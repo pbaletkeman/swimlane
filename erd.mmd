@@ -2,13 +2,12 @@ erDiagram
     frequency ||--o{ event : "frequency_id → frequency_id"
     event ||--|{ members : "event_id → event_id"
     members ||--|{ role : "members_id → role_id"
-
     event ||--o{ schedule : "event_id → schedule_id"
     members ||--o{ schedule : "members_id → member_id"
     venue ||--o{ schedule : "venue_id → venue_id"
     facility ||--o{ schedule : "facility_id → facility_id"
-
     role ||--o{ role : "role_id → parent_id"
+
     role {
         automatic role_id
         string name
@@ -23,36 +22,40 @@ erDiagram
     }
     event {
         automatic event_id
-        datetime startdatetime
-        datetime enddatetime
+        datetime start_date_time
+        datetime end_date_time
         bool is_active
         string frequency_id
     }
     members {
         automatic members_id
-        string firstname
-        string lastname
+        string first_name
+        string last_name
         string email
         string phone
-        string passwordhash
+        string password_hash
         bool is_active
     }
     venue {
         automatic venue_id
-        string location
+        string facility_id
+        string street
+        string city
+        string state
+        string postal_code
         float cost
         bool is_active
     }
     facility {
         automatic facility_id
         string name
+        string description
         int max_capicity
         int min_capicity
         bool is_active
     }
     schedule {
         automatic schedule_id
-        string facility_id
         string venue_id
         string member_id
         string event_id
