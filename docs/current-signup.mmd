@@ -1,0 +1,18 @@
+sequenceDiagram
+    Member->>Admin: Request to join the session (season, location, coach)?
+    Admin-->>Member: Approved
+    Admin-->>Member: Swim Before?
+
+    alt Member has swum before
+        Member-->>Admin: Yes
+        Admin-->>Member: Great, proceed to forms
+    else Member has NOT swum before
+        Member-->>Admin: No
+        Admin-->>Member: Fill out and sign these PDF forms
+        Member-->>Admin: Completed forms
+    end
+
+    Admin-->>Member: Pay Invoice
+    Member-->>Admin: Paid
+    Admin-->>Record: Register User
+    Admin-->>Member: Send welcome email, rules email, rescheduling info email

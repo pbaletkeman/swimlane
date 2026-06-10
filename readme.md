@@ -2,6 +2,6 @@
 
 see:
 
-- [plan](plan.md)
-- [relationships](relationships.md)
-- [schedule](schedule.txt)
+- [plan](docs/plan.md)
+- [relationships](docs/relationships.md)
+- [schedule](docs/schedule.txt)
