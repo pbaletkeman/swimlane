@@ -1,0 +1,43 @@
+flowchart TD
+
+    %% PROGRAM DISCOVERY
+    A[Site: List active programs and allow calendar selection]
+    B[User: Search programs by location, season, price, description]
+    C[Record DB: Return filtered programs]
+    D[User: Select program]
+
+    A --> B --> C --> D
+
+    %% SESSION FILTERING
+    E[User: Filter sessions by time, coach, description]
+    F[Record DB: Return sessions with available capacity]
+
+    D --> E --> F
+
+    %% REGISTRATION FLOW
+    G[User: Request to join session]
+    H{Has the member swum before}
+
+    F --> G --> H
+
+    %% YES PATH
+    H -->|Yes| I[Proceed to invoice]
+
+    %% NO PATH
+    H -->|No| J[Fill and sign PDF forms]
+    J --> K[User: Completed forms]
+
+    %% MERGE
+    I --> L[User: Pay invoice online]
+    K --> L
+
+    %% FINAL OUTPUT
+    M[Site: Send welcome email, rules email, rescheduling info]
+
+    L --> M
+
+    %% SYSTEM UPDATES
+    N[Record DB: Register user]
+    O[Admin: Notify of new signup]
+
+    M --> N --> O
