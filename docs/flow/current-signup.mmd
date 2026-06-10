@@ -1,0 +1,36 @@
+flowchart TD
+
+    %% REQUEST AND APPROVAL
+    A[Member: Request to join the session with season location coach details]
+    B[Admin: Approve request]
+    C[Admin: Ask if member has swum before]
+
+    A --> B --> C
+
+    %% DECISION
+    D{Has the member swum before}
+
+    C --> D
+
+    %% YES PATH
+    D -->|Yes| E[Admin: Proceed to invoice]
+
+    %% NO PATH
+    D -->|No| F[Admin: Provide PDF forms to complete]
+    F --> G[Member: Completed forms]
+
+    %% MERGE
+    E --> H[Admin: Request payment]
+    G --> H
+
+    %% PAYMENT
+    I[Member: Paid invoice]
+    H --> I
+
+    %% SYSTEM UPDATE
+    J[Record DB: Register user]
+    I --> J
+
+    %% FINAL OUTPUT
+    K[Admin: Send welcome email rules email rescheduling info]
+    J --> K

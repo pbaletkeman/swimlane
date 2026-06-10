@@ -1,0 +1,29 @@
+flowchart TD
+
+    %% INITIAL REQUEST
+    A[Member: Request makeup session with date and location]
+    B[Admin: Begin search for suitable slot]
+
+    A --> B
+
+    %% LOOP START
+    subgraph L[Loop Find suitable slot]
+        C[Admin: Check capacity for requested time]
+        D{Capacity available}
+        C --> D
+
+        %% YES PATH
+        D -->|Yes| E[Admin: Send confirmation request]
+        E --> F[Member: Confirm attendance]
+        F --> G[Admin: Book session in Record DB]
+
+        %% NO PATH
+        D -->|No| H[Admin: Provide alternative dates and times]
+    end
+
+    B --> C
+
+    %% FINAL OUTPUT
+    I[Admin: Send final confirmation with details]
+    G --> I
+    H --> I

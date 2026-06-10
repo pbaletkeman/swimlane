@@ -1,0 +1,48 @@
+sequenceDiagram
+    participant Site
+    actor User
+    participant Record as Record <<database>>
+    actor Admin
+
+    %% === MEMBER PROGRAM DISCOVERY ===
+    Note over Site,User: PROGRAM DISCOVERY (blue)
+    Site->>User: Allow calendar selection and list active programs
+
+    User->>Record: Find programs by location, season, price, description
+    activate Record
+    Record-->>User: Return filtered programs
+    deactivate Record
+
+    User->>Site: Select program
+
+    %% === SESSION FILTERING ===
+    Note over User,Record: SESSION FILTERING (green)
+    User->>Record: Filter by time, coach, description
+    activate Record
+    Record-->>User: Return filtered sessions with available capacity
+    deactivate Record
+
+    %% === REGISTRATION FLOW ===
+    Note over Site,User: REGISTRATION FLOW (orange)
+    User->>Site: Select and request to join session
+    Site-->>User: Swim Before?
+
+    alt Member has swum before
+        User-->>Site: Yes
+        Site-->>User: Great, proceed to invoice
+    else Member has NOT swum before
+        User-->>Site: No
+        Site-->>User: Fill out and sign PDF forms
+        User-->>Site: Completed forms
+    end
+
+    User-->>Site: Pay invoice online
+    Site-->>User: Send welcome email, rules email, rescheduling info email
+
+    %% === SYSTEM UPDATES ===
+    Note over Site,Record: SYSTEM UPDATES (yellow)
+    Site->>Record: Register user
+    activate Record
+    deactivate Record
+
+    Site->>Admin: Notify of new signup

@@ -1,0 +1,19 @@
+sequenceDiagram
+    actor Member
+    actor Admin
+    participant Site
+    participant Record as Record <<database>>
+
+    Note over Member,Site: MEMBER ACTIONS (blue)
+    Member->>Site: Find sessions that cannot be attended\n(date & location)
+    Member->>Site: Request makeup sessions\n(date & location + capacity check)
+
+    Note over Member,Record: DATABASE UPDATES (green)
+    Member->>Record: Update attendance status\n& save changes
+    activate Record
+    Record-->>Admin: Notify of changes
+    Record-->>Site: Update member schedule
+    deactivate Record
+
+    Note over Site,Member: FINAL OUTPUT (orange)
+    Site-->>Member: Final confirmation with details

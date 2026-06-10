@@ -1,0 +1,16 @@
+flowchart TD
+
+    %% MEMBER ACTIONS
+    A[Member: Find sessions that cannot be attended by date and location]
+    B[Member: Request makeup sessions with capacity check]
+
+    %% DATABASE UPDATES
+    C[Record DB: Update attendance status and save changes]
+    D[Admin: Receive notification of changes]
+    E[Site: Update member schedule]
+
+    %% FINAL OUTPUT
+    F[Site: Send final confirmation with details]
+
+    %% FLOW
+    A --> B --> C --> D --> E --> F
