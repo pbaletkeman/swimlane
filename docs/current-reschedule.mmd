@@ -1,13 +1,18 @@
 sequenceDiagram
-    Member->>Admin: email admin with date/location, can't make and request a makeup time/location
+    actor Member
+    actor Admin
+    participant Record as Record <<database>>
 
-    loop check capacity until a suitable slot is found
-        Admin-->>Record: admin checks capacity at date & time
-        alt has capacity
-            Admin-->>Member: email the user to confirm
-            Member-->>Admin: confirm
-            Admin-->>Record: book the session
-        else no capacity at the venue & time
-            Admin-->>Member: email with alternative dates and time
+    Member->>Admin: Request makeup session (date & location)
+
+    loop Find suitable slot
+        Admin-->>Record: Check capacity for requested time
+        alt Capacity available
+            Admin-->>Member: Send confirmation request
+            Member-->>Admin: Confirm attendance
+            Admin-->>Record: Book session
+        else No capacity
+            Admin-->>Member: Provide alternative dates/times
         end
     end
+    Admin-->>Member: Send final confirmation with details

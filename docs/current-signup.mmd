@@ -1,4 +1,9 @@
 sequenceDiagram
+    actor Member
+    actor Admin
+    participant Record as Record <<database>>
+
+
     Member->>Admin: Request to join the session (season, location, coach)?
     Admin-->>Member: Approved
     Admin-->>Member: Swim Before?
