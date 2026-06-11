@@ -1,20 +1,19 @@
 flowchart TD
 
     %% MEMBER ACTIONS
-    A[Member: Cancel session]
-    B[Schedule make up swim?]
-    %% YES PATH
-    C[Member: Select available makeup session (only options with capacity shown)]
-    %% NO PATH
-    C -->|No| H[Nothing]
+    A[Member Cancel session]
+    B[Schedule make up swim]
+    C[Member Select available makeup session only options with capacity shown]
+    H[No action taken]
 
     %% DATABASE UPDATES
-    D[Record DB: Update attendance status and save changes]
-    E[Admin: Receive notification of changes (optional by configuration)]
-    F[Site: Update member schedule]
+    D[Record DB Update attendance status and save changes]
+    E[Admin Receive notification of changes optional by configuration]
+    F[Site Update member schedule]
 
     %% FINAL OUTPUT
-    G[Site: Send final confirmation with details]
+    G[Site Send final confirmation with details]
 
     %% FLOW
-    A --> B --> C --> D --> E --> F
+    A --> B --> C --> D --> E --> F --> G
+    C -->|No| H
