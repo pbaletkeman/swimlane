@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+
+import sys
+import re
+import subprocess
+
+def main():
+    # Git passes the commit message file path as the first argument
+    commit_msg_file = sys.argv[1]
+
+    # Check if a commit source is provided (like 'merge', 'message', 'amend')
+    # We only want to enforce this on brand new, standard commits
+    if len(sys.argv) > 2:
+        return
+
+    # Get the current branch name
+    try:
+        branch = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).decode('utf-8').strip()
+    except subprocess.CalledProcessError:
+        return # Not on a branch (detached HEAD)
+
+    # Check if the branch starts with 'feature/' or 'bug/'
+    if not (branch.startswith('feature/') or branch.startswith('bug/')):
+        print(f"❌ Commit blocked: Branch '{branch}' must start with 'feature/' or 'bug/'")
+        sys.exit(1)
+
+    # Read current commit message
+    with open(commit_msg_file, 'r', encoding='utf-8') as f:
+        commit_msg = f.read()
+
+    # Prepend the branch name prefix if it isn't already there
+    prefix = f"[{branch}] "
+    if not commit_msg.startswith(prefix):
+        with open(commit_msg_file, 'w', encoding='utf-8') as f:
+            f.write(f"{prefix}{commit_msg}")
+
+if __name__ == '__main__':
+    main()
