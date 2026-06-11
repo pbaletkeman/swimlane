@@ -4,16 +4,17 @@ sequenceDiagram
     participant Site
     participant Record as Record <<database>>
 
-    Note over Member,Site: MEMBER ACTIONS (blue)
-    Member->>Site: Find sessions that cannot be attended\n(date & location)
-    Member->>Site: Request makeup sessions\n(date & location + capacity check)
+    Member->>Site: Find sessions that cannot be attended
 
-    Note over Member,Record: DATABASE UPDATES (green)
-    Member->>Record: Update attendance status\n& save changes
-    activate Record
-    Record-->>Admin: Notify of changes
-    Record-->>Site: Update member schedule
-    deactivate Record
-
-    Note over Site,Member: FINAL OUTPUT (orange)
-    Site-->>Member: Final confirmation with details
+    alt Member chooses cancellation
+        Member->>Site: Request cancellation of session
+        Site->>Record: Update attendance status and save changes
+        Record-->>Admin: Notify of changes
+        Site-->>Member: Final confirmation cancellation complete
+    else Member chooses makeup session
+        Member->>Site: Request makeup sessions with capacity check
+        Site->>Record: Update attendance status and save changes
+        Record-->>Admin: Notify of changes
+        Record-->>Site: Update member schedule
+        Site-->>Member: Final confirmation with details
+    end
