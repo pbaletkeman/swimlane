@@ -1,8 +1,26 @@
 import os
 from typing import Any
+from datetime import datetime, timedelta, timezone
+
+from authlib.integrations.starlette_client import OAuth
+
 from fastapi import Request, HTTPException, APIRouter
 from fastapi.responses import RedirectResponse
-from authlib.integrations.starlette_client import OAuth
+
+from jose import jwt
+
+from src.users import USER_DB
+
+SECRET_KEY = "your-app-super-secret-key" # Keep this safe!
+ALGORITHM = "HS256"
+
+def create_local_access_token(data: dict[Any, Any]) -> str:
+    """Generates a localized JWT containing the user's scope/role."""
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(minutes=60)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 
 # ---------------------------
 # ROUTES CLASS
@@ -33,6 +51,7 @@ class AuthRoutes:
         self.router.add_api_route("/login", self.login, methods=["GET"])
         self.router.add_api_route("/auth/callback", self.auth_callback, methods=["GET"])
         self.router.add_api_route("/me", self.me, methods=["GET"]) # type: ignore
+        self.router.add_api_route("/profile", self.me, methods=["GET"]) # type: ignore
         self.router.add_api_route("/logout", self.logout, methods=["GET"])
 
     async def login(self, request: Request) -> Any:
@@ -49,8 +68,22 @@ class AuthRoutes:
         if not user_info:
             raise HTTPException(status_code=400, detail="No user info returned")
 
+        #Look up user in local database to find their permissions
+        email:str = user_info.get("email")
+        user_record = USER_DB.get(email)
+
+        if not user_record:
+            # Register them automatically with a default role if not found
+            user_record = {"email": email, "role": "user"}
+            USER_DB[email] = user_record
+
+        # 3. Bake the role directly into your own app's JWT token
+        token_payload = {"sub": user_record["email"], "role": user_record["role"]}
+        token = create_local_access_token(data=token_payload)
+        print(f"Generated token for {email}: {token}")
+
         request.session["user"] = dict(user_info)  # type: ignore
-        return {"message": "Login successful", "user": user_info}
+        return {"message": "Login successful", "token": token, "user": user_info}
 
     async def me(self, request: Request) -> dict: # type: ignore
         user = request.session.get("user")
