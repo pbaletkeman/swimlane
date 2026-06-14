@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from users import BaseModel
+
 
 class TokenData(BaseModel):
     """Data model for decoded JWT token payload."""

@@ -1,0 +1,15 @@
+from pydantic import BaseModel
+
+
+class User(BaseModel):
+    """Data model representing a user with role information."""
+    user_id: str  # Unique identifier for the user (e.g., user ID)
+    sub: str  # Unique identifier for the user (e.g., subject claim from JWT)
+    role: str  # User's assigned role (e.g., "admin", "user")
+
+    first_name_nonce: str
+    first_name_ciphertext: str
+    last_name_nonce: str
+    last_name_ciphertext: str
+    email_nonce: str
+    email_ciphertext: str

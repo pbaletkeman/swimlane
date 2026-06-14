@@ -66,8 +66,8 @@ class RoleChecker:
             if not email  or  not role:
                 raise HTTPException(status_code=401, detail="Invalid token claims")
 
-        except JWTError:
-            raise HTTPException(status_code=401, detail="Could not validate credentials")
+        except JWTError as exc:
+            raise HTTPException(status_code=401, detail="Could not validate credentials") from exc
 
         # Enforce role matching
         if role not in self.allowed_roles:

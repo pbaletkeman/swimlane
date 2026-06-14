@@ -58,7 +58,7 @@ from src.config import ALGORITHM
 from src.env import TOKEN_SECRET_KEY
 from src.roles import member_role, UserRole
 
-from src.types import TokenData
+from data.users.user import TokenData
 
 # OAuth2 scheme for protected endpoints
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
