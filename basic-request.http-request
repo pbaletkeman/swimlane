@@ -1,0 +1,13 @@
+{
+  "body": {
+    "content": "",
+    "file": false,
+    "fileSize": false
+  },
+  "headers": {
+    "authorization": "bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJsZXRrZW1hbnBldGVAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJleHAiOjE3ODEzOTk2MDl9.FqC5cikzzoAZoq2c2XtGpxmXEBcWP9uJuh5YRYYDY_c"
+  },
+  "method": "GET",
+  "title": "New HTTP Request",
+  "url": "http://localhost:8000/secure"
+}
