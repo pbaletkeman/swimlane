@@ -13,7 +13,8 @@ from jose import jwt
 from jose.exceptions import JWTError
 
 from src.users import User
-from src.config import SECRET_KEY, ALGORITHM
+from src.config import ALGORITHM
+from src.env import TOKEN_SECRET_KEY
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -58,7 +59,7 @@ class RoleChecker:
         """
         try:
             # Decode the token issued by your backend
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=[ALGORITHM])
             email: str = payload.get("sub") # type: ignore
             role: str = payload.get("role") # type: ignore
 

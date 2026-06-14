@@ -1,2 +1,3 @@
-SECRET_KEY = "your-app-super-secret-key" # Keep this safe!
 ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
+REFRESH_TOKEN_EXPIRE_DAYS = 7

@@ -41,24 +41,32 @@ first‑party role enforcement.
 """
 
 import os
-from typing import Any
+from typing import Any, Optional
 from datetime import datetime, timedelta, timezone
 
 from authlib.integrations.starlette_client import OAuth
 
 from fastapi import Request, HTTPException, APIRouter, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordBearer
 from fastapi.responses import RedirectResponse
 
-from jose import jwt
+from jose import JWTError, exceptions, jwt
+from starlette import status
 
 from src.users import USER_DB, User
-from src.config import SECRET_KEY, ALGORITHM
+from src.config import ALGORITHM
+from src.env import TOKEN_SECRET_KEY
 from src.roles import member_role, UserRole
 
-def create_local_access_token(data: dict[Any, Any]) -> str:
+from src.types import TokenData
+
+# OAuth2 scheme for protected endpoints
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+def create_local_access_token(data: dict[Any, Any], expires_delta: Optional[timedelta] = None) -> str:
     """
-    Create a short‑lived JWT used internally by the application.
+    Create a short‑lived JWT access token used internally by the application.
 
     This token embeds the user's identity and role, and is separate from
     the Google OAuth token. It is used for authorizing access to protected
@@ -66,15 +74,115 @@ def create_local_access_token(data: dict[Any, Any]) -> str:
 
     Args:
         data: A dictionary containing user claims such as `sub` and `role`.
+        expires_delta: Optional custom expiration time. Defaults to 15 minutes.
 
     Returns:
-        A signed JWT string with a 60‑minute expiration.
+        A signed JWT string with expiration embedded.
     """
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=60)
+    to_encode["type"] = "access"
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(to_encode, TOKEN_SECRET_KEY, algorithm=ALGORITHM)
 
+
+def create_refresh_token(data: dict[Any, Any], expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Create a long‑lived JWT refresh token.
+
+    Refresh tokens are used to obtain new access tokens without re‑authenticating.
+    They have a longer expiration time (default 7 days) and should be stored securely
+    on the client side (e.g., in an HTTP-only cookie).
+
+    Args:
+        data: A dictionary containing user claims such as `sub` and `role`.
+        expires_delta: Optional custom expiration time. Defaults to 7 days.
+
+    Returns:
+        A signed JWT string with expiration embedded.
+    """
+    to_encode = data.copy()
+    to_encode["type"] = "refresh"
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(days=7)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, TOKEN_SECRET_KEY, algorithm=ALGORITHM)
+
+
+def verify_token(token: str, expected_type: str) -> TokenData:
+    """Decodes and validates a token structure and type."""
+
+    # Generate a token
+    # token_data = {"sub": "user1", "type": "access"}
+    # access_token = create_access_token(token_data)
+
+    # Verify the token
+    # try:
+    #     decoded_token = verify_token(access_token, "access")
+    #     print(decoded_token)
+    # except HTTPException as e:
+    #     print(e.detail)
+
+    try:
+        payload = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != expected_type:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid token type. Expected {expected_type} token.",
+            )
+        return TokenData(**payload)
+    except exceptions.ExpiredSignatureError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"{expected_type.capitalize()} token expired"
+        ) from exc
+    except JWTError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid {expected_type} token"
+        ) from exc
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
+    """Validates the short-lived access token on generic endpoints."""
+    payload = verify_token(token, expected_type="access")
+    username: str = payload.sub
+    if not username:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    return username
+
+
+async def refresh_access_token(refresh_token: str) -> dict[str, str]:
+    """
+    Exchange a valid refresh token for a new access token.
+
+    Args:
+        refresh_token: The refresh token from the client.
+
+    Returns:
+        A dictionary containing the new access token.
+
+    Raises:
+        HTTPException: If the refresh token is invalid or expired.
+    """
+    payload = verify_token(refresh_token, expected_type="refresh")
+    email: str = payload.sub
+
+    # Fetch user data to include in the new access token
+    user_record = USER_DB.get(email)
+    if not user_record:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+
+    # Create new access token with user's current role
+    token_payload: dict[Any, Any] = {"sub": email, "role": user_record.get("role")}
+    new_access_token = create_local_access_token(data=token_payload)
+
+    return {"access_token": new_access_token, "token_type": "bearer"}
 
 # ---------------------------
 # ROUTES CLASS
@@ -119,6 +227,7 @@ class AuthRoutes:
         self.router = APIRouter()
         self.router.add_api_route("/login", self.login, methods=["GET"])
         self.router.add_api_route("/auth/callback", self.auth_callback, methods=["GET"])
+        self.router.add_api_route("/refresh", self.refresh, methods=["POST"])
         self.router.add_api_route("/me", self.me, methods=["GET"]) # type: ignore
         self.router.add_api_route("/profile", self.me, methods=["GET"]) # type: ignore
         self.router.add_api_route("/logout", self.logout, methods=["GET"])
@@ -172,23 +281,30 @@ class AuthRoutes:
             raise HTTPException(status_code=400, detail="No user info returned")
 
         #Look up user in local database to find their permissions
-        email: str | None = user_info.get("email")  # type: ignore
-        if not email:
+        sub: str | None = user_info.get("sub")  # type: ignore
+        if not sub:
             raise HTTPException(status_code=400, detail="Email not found in user info")
-        user_record = USER_DB.get(email)
+        user_record = USER_DB.get(sub)
 
         if not user_record:
             # Register them automatically with a default role if not found
-            user_record = {"email": email, "role": UserRole.MEMBER.value} # type: ignore
-            USER_DB[email] = user_record
+            user_record = {"sub": sub, "role": UserRole.MEMBER.value} # type: ignore
+            USER_DB[sub] = user_record
 
         # 3. Bake the role directly into your own app's JWT token
-        token_payload = {"sub": user_record["email"], "role": user_record["role"]}
-        token = create_local_access_token(data=token_payload)
-        print(f"Generated token for {email}: {token}")
+        token_payload = {"sub": user_record["sub"], "role": user_record["role"]}
+        access_token = create_local_access_token(data=token_payload)
+        refresh_token = create_refresh_token(data=token_payload)
+        print(f"Generated tokens for {sub}")
 
         request.session["user"] = dict(user_info)  # type: ignore
-        return {"message": "Login successful", "token": token, "user": user_info}
+        return {
+            "message": "Login successful",
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "user": user_info
+        }
 
     async def me( # type: ignore
             self,
@@ -214,6 +330,39 @@ class AuthRoutes:
         if not current_user:
             raise HTTPException(status_code=401, detail="Not logged in")
         return current_user.dict() # type: ignore
+
+    async def refresh(self, request: Request) -> dict[str, str]:
+        """
+        Refresh an access token using a valid refresh token.
+
+        Expects the refresh token in the request body as JSON:
+        {
+            "refresh_token": "<token_string>"
+        }
+
+        Args:
+            request: The incoming FastAPI request.
+
+        Returns:
+            A dictionary containing the new access token.
+
+        Raises:
+            HTTPException: If the refresh token is missing, invalid, or expired.
+        """
+        try:
+            body = await request.json()
+            refresh_token: str | None = body.get("refresh_token")
+            if not refresh_token:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="refresh_token is required"
+                )
+            return await refresh_access_token(refresh_token)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid request body"
+            ) from exc
 
     async def logout(self, request: Request) -> RedirectResponse:
         """
