@@ -57,8 +57,8 @@ from src.users import USER_DB, User
 from src.config import ALGORITHM
 from src.env import TOKEN_SECRET_KEY
 from src.roles import member_role, UserRole
-
-from data.users.user import TokenData
+from src.misc_models import TokenData
+from src.encryption import encrypt_field
 
 # OAuth2 scheme for protected endpoints
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -199,6 +199,7 @@ class AuthRoutes:
     - Local JWT generation for role‑based authorization
     - Basic profile and logout endpoints
     """
+    # ------------------------------------------------------------------
     def __init__(self):
         """
         Initialize the OAuth client, load environment variables, and register routes.
@@ -232,6 +233,7 @@ class AuthRoutes:
         self.router.add_api_route("/profile", self.me, methods=["GET"]) # type: ignore
         self.router.add_api_route("/logout", self.logout, methods=["GET"])
 
+    # ------------------------------------------------------------------
     async def login(self, request: Request) -> Any:
         """
         Redirect the user to Google's OAuth login page.
@@ -245,6 +247,7 @@ class AuthRoutes:
         redirect_uri = request.url_for("auth_callback")
         return await self.oauth.google.authorize_redirect(request, redirect_uri)  # type: ignore
 
+    # ------------------------------------------------------------------
     async def auth_callback(self, request: Request) -> dict[str, Any]:
         """
         Handle Google's OAuth callback, extract user info, and issue a local JWT.
@@ -306,6 +309,7 @@ class AuthRoutes:
             "user": user_info
         }
 
+    # ------------------------------------------------------------------
     async def me( # type: ignore
             self,
             request: Request,  # injected value
@@ -331,6 +335,7 @@ class AuthRoutes:
             raise HTTPException(status_code=401, detail="Not logged in")
         return current_user.dict() # type: ignore
 
+    # ------------------------------------------------------------------
     async def refresh(self, request: Request) -> dict[str, str]:
         """
         Refresh an access token using a valid refresh token.
@@ -364,6 +369,7 @@ class AuthRoutes:
                 detail="Invalid request body"
             ) from exc
 
+    # ------------------------------------------------------------------
     async def logout(self, request: Request) -> RedirectResponse:
         """
         Log the user out by clearing their session and redirecting to the homepage.

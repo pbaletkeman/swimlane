@@ -1,9 +1,10 @@
+import datetime
+
 from pydantic import BaseModel
 
 
 class User(BaseModel):
     """Data model representing a user with role information."""
-    user_id: str  # Unique identifier for the user (e.g., user ID)
     sub: str  # Unique identifier for the user (e.g., subject claim from JWT)
     role: str  # User's assigned role (e.g., "admin", "user")
 
@@ -13,3 +14,10 @@ class User(BaseModel):
     last_name_ciphertext: str
     email_nonce: str
     email_ciphertext: str
+
+    created_at: datetime.datetime | None = None
+    updated_at: datetime.datetime | None = None
+    deleted_at: datetime.datetime | None = None
+
+    is_active: bool = True
+    is_deleted: bool = False
