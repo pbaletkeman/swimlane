@@ -1,0 +1,14 @@
+security:
+  algorithm:
+    HS256
+  access_token_expire_minutes:
+    15
+  refresh_token_expire_days:
+    7
+  web_admin:
+    sub1
+    sub2
+
+sql:
+  sqlite_file:
+    swimlane.db

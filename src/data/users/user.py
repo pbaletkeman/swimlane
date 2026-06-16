@@ -2,11 +2,12 @@ import datetime
 
 from pydantic import BaseModel
 
+from src.roles import UserRole
 
 class User(BaseModel):
     """Data model representing a user with role information."""
     sub: str  # Unique identifier for the user (e.g., subject claim from JWT)
-    role: str  # User's assigned role (e.g., "admin", "user")
+    role: UserRole  # User's assigned role (e.g., "admin", "user")
 
     first_name_nonce: str
     first_name_ciphertext: str

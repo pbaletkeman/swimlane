@@ -1,9 +1,19 @@
+from datetime import datetime, timezone
 import sqlite3
 from typing import Any, LiteralString, Optional
+import yaml
 
+from src.roles import UserRole
 from src.data.users.user_interface import UserInterface
 from src.data.users.user import User
-from src.config import SQLITE_FILE
+
+config: dict = {}  # type: ignore
+
+# Open and parse the YAML file
+with open("config.yaml", "r", encoding="utf-8") as file:
+    config = yaml.safe_load(file)
+
+SQLITE_FILE: str = config["sql"]["sqlite_file"]  # type: ignore
 
 class SQLite(UserInterface):
     """An implementation of the user's database opertions"""
@@ -79,6 +89,26 @@ class SQLite(UserInterface):
                 )
 
     # ------------------------------------------------------------------
+    def create_user_returning(self) -> str:
+        """Create the user returning sql"""
+        retval = """
+            RETURNING
+                sub,
+                role,
+                first_name_nonce,
+                first_name_ciphertext,
+                last_name_nonce,
+                last_name_ciphertext,
+                email_nonce,
+                email_ciphertext,
+                created_at,
+                updated_at,
+                deleted_at,
+                is_active,
+                is_deleted;
+            """
+        return retval
+    # ------------------------------------------------------------------
     def init(self) -> None:
         """Initialize the data store, creating necessary structures or tables.
         For in-memory, this may set up initial state."""
@@ -92,15 +122,63 @@ class SQLite(UserInterface):
     # begin singular methods
     # ------------------------------------------------------------------
     def create_user(self, user: User) -> Optional[User]:
-        """Create a new user in the data store. Returns the created user(s) with assigned IDs."""
+        """
+        Create a new user in the data store. Returns the created user(s) with assigned ID.
+        Delegate to `create_users_bulk`
+        """
+
+        retval: list[User] | None = self.create_users_bulk([user])
+        if retval and len(retval) == 1:
+            return retval[0]
 
     # ------------------------------------------------------------------
-    def update_user(self, current_sub: str, user: User ) -> Optional[User]:
-        """Update a user based on current_sub to the values in user. Returns updated user"""
-
-    # ------------------------------------------------------------------
-    def create_admin_user(self, sub: str) -> Optional[User]:
+    def create_admin_user(self, user: User) -> Optional[User]:
         """Create a new admin user with the given subject identifier (sub). Returns the created user."""
+        if user.sub in config["security"]["web_admin"]:
+            user.role = UserRole.WEB_ADMIN
+        self.create_user(user)
+
+    # ------------------------------------------------------------------
+    def update_user(self, user: User) -> Optional[User]:
+        # Set updated_at to current UTC time
+        user.updated_at = datetime.now(timezone.utc)
+
+        sql = f"""
+            UPDATE USER SET
+                role=?,
+                first_name_ciphertext=?,
+                first_name_nonce=?,
+                last_name_ciphertext=?,
+                last_name_nonce=?,
+                email_ciphertext=?,
+                email_nonce=?,
+                is_active=?,
+                updated_at=?
+            WHERE sub=?
+            {self.create_user_returning()}
+        """
+
+        with sqlite3.connect(SQLITE_FILE) as conn:
+            cursor = conn.cursor()
+
+            cursor.execute(sql, (
+                user.role,
+                user.first_name_ciphertext,
+                user.first_name_nonce,
+                user.last_name_ciphertext,
+                user.last_name_nonce,
+                user.email_ciphertext,
+                user.email_nonce,
+                user.is_active,
+                user.updated_at,
+                user.sub
+            ))
+
+            rs = cursor.fetchone()
+            if rs:
+                return self.create_user_helper(rs)
+
+        return None
 
     # ------------------------------------------------------------------
     def get_user_by_sub(self, sub: str) -> Optional[User]:
@@ -148,7 +226,6 @@ class SQLite(UserInterface):
 
         return was_deleted
 
-
 # ------------------------------------------------------------------
     def delete_user_by_sub(self, sub: str) -> bool:
         """Delete a user by their subject identifier."""
@@ -156,7 +233,7 @@ class SQLite(UserInterface):
         with sqlite3.connect(SQLITE_FILE) as conn:
             cursor = conn.cursor()
 
-            sql: str = "UPDATE USERS SET is_deleted='TRUE', deleted_at='NOW()' WHERE sub = ?"
+            sql: str = "UPDATE USERS SET is_deleted='TRUE', deleted_at=CURRENT_TIMESTAMP WHERE sub = ?"
             cursor.execute(sql, sub)
             conn.commit()
 
@@ -245,21 +322,7 @@ class SQLite(UserInterface):
 
         subs = ",".join(f"'{u.sub}'" for u in users)
 
-        sql = f"""DELETE FROM USERS WHERE sub in ({subs}) RETURNING
-                sub,
-                role,
-                first_name_nonce,
-                first_name_ciphertext,
-                last_name_nonce,
-                last_name_ciphertext,
-                email_nonce,
-                email_ciphertext,
-                created_at,
-                updated_at,
-                deleted_at,
-                is_active,
-                is_deleted;
-            """
+        sql = f"""DELETE FROM USERS WHERE sub in ({subs}) {self.create_user_returning()}"""
 
         return_users: list[User] = []
         with sqlite3.connect(SQLITE_FILE) as conn:
@@ -288,21 +351,7 @@ class SQLite(UserInterface):
         with sqlite3.connect(SQLITE_FILE) as conn:
             cursor = conn.cursor()
 
-            sql: str = f"""UPDATE USERS SET is_deleted='True', deleted_at='NOW()' WHERE sub in ({subs}) RETURNING
-                        sub,
-                        role,
-                        first_name_nonce,
-                        first_name_ciphertext,
-                        last_name_nonce,
-                        last_name_ciphertext,
-                        email_nonce,
-                        email_ciphertext,
-                        created_at,
-                        updated_at,
-                        deleted_at,
-                        is_active,
-                        is_deleted;
-                    """
+            sql: str = f"""UPDATE USERS SET is_deleted='True', deleted_at=CURRENT_TIMESTAMP WHERE sub in ({subs}) {self.create_user_returning()}"""
 
             return_users: list[User] = []
             with sqlite3.connect(SQLITE_FILE) as conn:

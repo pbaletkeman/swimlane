@@ -24,11 +24,11 @@ class UserInterface(abc.ABC):
         """Create a new user in the data store. Returns the created user(s) with assigned IDs."""
 
     @abc.abstractmethod
-    def update_user(self, current_sub: str, user: User ) -> Optional[User]:
+    def update_user(self, user: User ) -> Optional[User]:
         """Update a user based on current_sub to the values in user. Returns updated user"""
 
     @abc.abstractmethod
-    def create_admin_user(self, sub: str) -> Optional[User]:
+    def create_admin_user(self, user: User) -> Optional[User]:
         """Create a new admin user with the given subject identifier (sub). Returns the created user."""
 
     @abc.abstractmethod
