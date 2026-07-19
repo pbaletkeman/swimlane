@@ -1,4 +1,4 @@
-from users import BaseModel
+from pydantic import BaseModel
 
 
 class TokenData(BaseModel):

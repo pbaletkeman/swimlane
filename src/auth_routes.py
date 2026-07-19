@@ -52,20 +52,18 @@ from fastapi.responses import RedirectResponse
 
 from jose import JWTError, exceptions, jwt
 from starlette import status
-import yaml
 
 from src.data.users.user import User
 from src.env import TOKEN_SECRET_KEY
-from src.roles import member_role, UserRole
+from src.roles.roles import member_role, UserRole
 from src.misc_models import TokenData
 from src.encryption import encrypt_field
+from src.util.configs import Config
 
+config: dict = Config.yaml_config()  # type: ignore
+Config.google_config()
 
-config: dict = {}  # type: ignore
-
-# Open and parse the YAML file
-with open("config.yaml", "r", encoding="utf-8") as file:
-    config = yaml.safe_load(file)
+db_connect = Config().db
 
 algorithm: str = config["security"]["algorithm"]  # type: ignore
 
@@ -226,6 +224,7 @@ class AuthRoutes:
         # --- OAUTH SETUP ---
         self.oauth: Any = OAuth()
 
+
         self.oauth.register(  # type: ignore
             name="google",
             client_id=google_client_id,
@@ -242,6 +241,23 @@ class AuthRoutes:
         self.router.add_api_route("/profile", self.me, methods=["GET"]) # type: ignore
         self.router.add_api_route("/logout", self.logout, methods=["GET"])
 
+    # ------------------------------------------------------------------
+    def oauth2user(self, userinfo : dict[str, Any]) -> User:
+        first_name_enc = encrypt_field(userinfo["given_name"])
+        last_name_enc = encrypt_field(userinfo["family_name"])
+        email_enc = encrypt_field(userinfo["email"])
+
+        user: User = User(
+            sub=userinfo.get("sub"),  # type: ignore
+            first_name_nonce=first_name_enc["nonce"],
+            first_name_ciphertext=first_name_enc["ciphertext"],
+            last_name_nonce=last_name_enc["nonce"],
+            last_name_ciphertext=last_name_enc["ciphertext"],
+            email_nonce=email_enc["nonce"],
+            email_ciphertext=email_enc["ciphertext"]
+        )
+
+        return user
     # ------------------------------------------------------------------
     async def login(self, request: Request) -> Any:
         """
@@ -296,6 +312,27 @@ class AuthRoutes:
         sub: str | None = user_info.get("sub")  # type: ignore
         if not sub:
             raise HTTPException(status_code=400, detail="Email not found in user info")
+        # oauth_user : User = self.oauth2user(user_info)
+        if db_connect:
+            oauth_user : User = db_connect().get_user_by_sub(sub)
+            print("DD")
+
+        # User(
+        # sub='111122296393493391055',
+        # role=None,
+        # first_name_nonce='BuJGwyWNopwb7iMP',
+        # first_name_ciphertext='mClAiTFR9wOF/ceSiNg0s4+ZgqU=',
+        # last_name_nonce='zCQzXEO9pQ8GbeIT',
+        # last_name_ciphertext='yhGflA9A7oOQZU1AsYmtDD9YU97dK7Tc',
+        # email_nonce='HmHgfrHOW1JUa9aL',
+        # email_ciphertext='/CrD4qCrRrc0Rz5e/8RjkbtUYiHsdI90UgfTyd/uNpc=',
+        # created_at=None,
+        # updated_at=None,
+        # deleted_at=None,
+        # is_active=True,
+        # is_deleted=False
+
+
         user_record = USER_DB.get(sub)
 
         if not user_record:

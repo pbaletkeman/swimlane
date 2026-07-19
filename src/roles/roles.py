@@ -6,24 +6,8 @@ hierarchical `RoleChecker` dependency instances used for role-based access
 control (RBAC) across application routes and services.
 """
 
-from enum import StrEnum, auto
-
-from src.roles_checker import RoleChecker
-
-class UserRole(StrEnum):
-    """
-    Defines the system's available user roles.
-
-    Attributes:
-        WEB_ADMIN: Administrator with full system access and permissions.
-        FACILITY_MANAGER: Manager capable of overseeing facility operations.
-        COACH: Coach role with team and member management capabilities.
-        MEMBER: End-user accessing platform and coaching services.
-    """
-    WEB_ADMIN = auto()
-    FACILITY_MANAGER = auto()
-    COACH = auto()
-    MEMBER = auto()
+from src.roles.roles_checker import RoleChecker
+from src.roles.user_role import UserRole
 
 
 # Instantiate specific role dependencies
@@ -54,7 +38,6 @@ member_role = RoleChecker([
   UserRole.FACILITY_MANAGER.value,
   UserRole.WEB_ADMIN.value
 ])
-
 """RoleChecker: Grants access to Members, Coaches, Facility Managers, and Web Administrators."""
 
 

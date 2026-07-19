@@ -9,8 +9,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from src.users import User
-from src.roles import admin_role, facility_manager_role, coach_role, member_role, all_users
+from src.data.users.user import User
+from src.roles.roles import admin_role, facility_manager_role, coach_role, member_role, all_users
 
 
 # ---------------------------

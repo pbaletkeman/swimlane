@@ -22,22 +22,14 @@ from starlette.middleware.sessions import SessionMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordBearer
 
 # Load your config (your function)
-from src.util.load_config import load_config
+# from util.load_oauth_config import load_config
 from src.auth_routes import AuthRoutes
 from src.sample_route import Sample
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 security = HTTPBearer()
 
-load_config()
-
 app = FastAPI()
-
-# @app.get("/profile")
-# def read_profile(credentials: HTTPAuthorizationCredentials = Depends(security)):
-#     token = credentials.credentials
-#     return {"token": token}
-
 
 # --- SESSION MIDDLEWARE ---
 app.add_middleware(SessionMiddleware, secret_key=os.urandom(24).hex())

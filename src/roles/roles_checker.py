@@ -12,11 +12,16 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from jose.exceptions import JWTError
 
-from src.users import User
-from src.config import ALGORITHM
+from src.data.users.user import User
 from src.env import TOKEN_SECRET_KEY
 
+from src.util.configs import Config
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+config: dict = Config.yaml_config()  # type: ignore
+
+algorithm: str = config["security"]["algorithm"]  # type: ignore
 
 class RoleChecker:
     """
@@ -59,7 +64,7 @@ class RoleChecker:
         """
         try:
             # Decode the token issued by your backend
-            payload = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=[algorithm])
             email: str = payload.get("sub") # type: ignore
             role: str = payload.get("role") # type: ignore
 

@@ -5,10 +5,21 @@ security:
     15
   refresh_token_expire_days:
     7
-  web_admin:
-    sub1
-    sub2
+  web_admins:
+    # pete@letkeman.ca = 111122296393493391055
+    - 111122296393493391055
+    - sub2
 
 sql:
-  sqlite_file:
-    swimlane.db
+  active:
+    sqlite
+    # postgresql
+
+  providers:
+    sqlite:
+      # sqlite specific config
+      sqlite_file:
+        swimlane.db
+
+    postgresql:
+      # postgresql specific config values, not credentails
