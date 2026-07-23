@@ -30,12 +30,15 @@ class SQLite(UserInterfaceBase):
                 last_name_ciphertext  TEXT     NOT NULL,
                 email_nonce           TEXT     NOT NULL UNIQUE,
                 email_ciphertext      TEXT     NOT NULL,
-                created_at            DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at            DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-                deleted_at            DATETIME NULL,
-                is_deleted            BOOLEAN  NULL DEFAULT 0,
-                is_active             BOOLEAN  NULL DEFAULT 1
-            );"""
+                created_at            TEXT NOT NULL DEFAULT datetime('now', 'utc'),
+                updated_at            TEXT NULL DEFAULT CURRENT_TIMESTAMP,
+                deleted_at            TEXT NULL,
+                is_deleted            INTEGER  NULL DEFAULT 0, -- Using INTEGER for boolean clarity
+                is_active             INTEGER  NULL DEFAULT 1
+            );
+            CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
+            CREATE INDEX IF NOT EXISTS idx_users_sub ON users (sub);
+            CREATE INDEX IF NOT EXISTS idx_users_email_nonce ON users (email_nonce);"""
         return sql
 
     # ------------------------------------------------------------------
@@ -157,7 +160,8 @@ class SQLite(UserInterfaceBase):
     # ------------------------------------------------------------------
     def create_admin_user(self, user: User) -> Optional[User]:
         """Create a new admin user with the given subject identifier (sub). Returns the created user."""
-        if user.sub in self._config["security"]["web_admin"]:  # type: ignore[index]
+        if self._config.get("security", {}).get("web_admin") and user.sub in self._config["security"]["web_admin"]:  # type: ignore[index]
+            user.role = UserRole.WEB_ADMIN
             user.role = UserRole.WEB_ADMIN
         self.create_user(user)
 
