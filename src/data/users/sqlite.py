@@ -1,3 +1,22 @@
+"""
+SQLite Implementation of User Interface Layer for Swimlane Application (`swimlane/src/data/users/sqlite.py`).
+
+This module provides database operations for user management using SQLite3 connections.
+It serves as an interface layer (inheriting from `UserInterfaceBase`) to perform 
+CRUD operations (Create, Read, Update, Delete) on the 'users' table located in the 
+SQLite database file configured by `Config`.
+
+Methods include:
+- `get_create_table()`: Provides the DDL for setting up the users table schema.
+- `get_record_select()`: Creates SQL fragments for selecting user data based on criteria.
+- Helper methods (`create_user_helper`, `_get_list_of_users`): Transform raw row results into 
+  typed `User` objects or lists of subjects.
+- Core CRUD operations (`create_user_bulk`, `update_user`, `delete_user_by_sub`, etc.): 
+  Handle the actual database transactions, managing soft deletes and role assignments.
+
+Attributes:
+    _sqlite_file (str): The path to the SQLite database where user data is stored.
+"""
 from datetime import datetime, timezone
 import sqlite3
 from typing import Any, LiteralString, Optional
@@ -89,7 +108,25 @@ class SQLite(UserInterfaceBase):
                 deleted_at,
                 is_active,
                 is_deleted;
-            """
+"""
+SQLite Implementation of User Interface Layer for Swimlane Application (`swimlane/src/data/users/sqlite.py`).
+
+This module provides database operations for user management using SQLite3 connections.
+It serves as an interface layer (inheriting from `UserInterfaceBase`) to perform 
+CRUD operations (Create, Read, Update, Delete) on the 'users' table located in the 
+SQLite database file configured by `Config`.
+
+Methods include:
+- `get_create_table()`: Provides the DDL for setting up the users table schema.
+- `get_record_select()`: Creates SQL fragments for selecting user data based on criteria.
+- Helper methods (`create_user_helper`, `_get_list_of_users`): Transform raw row results into 
+  typed `User` objects or lists of subjects.
+- Core CRUD operations (`create_user_bulk`, `update_user`, `delete_user_by_sub`, etc.): 
+  Handle the actual database transactions, managing soft deletes and role assignments.
+
+Attributes:
+    _sqlite_file (str): The path to the SQLite database where user data is stored.
+"""
         return retval
 
     # ------------------------------------------------------------------
@@ -114,21 +151,21 @@ class SQLite(UserInterfaceBase):
         if not user_list:
             return None
 
-        subs = []
+        subs: list[str] = []
         for u in user_list:
             subs.append(str(u.sub))  # type: ignore[attr-defined]
 
         return subs
 
     # ------------------------------------------------------------------
-    def get_sub(self, id: int) -> Optional[User]:
+    def get_sub(self, user_id: int) -> Optional[User]:
         """Retrieve a single user by their ID."""
 
         with sqlite3.connect(self._sqlite_file) as conn:
             cursor = conn.cursor()
 
             sql = "SELECT * FROM users WHERE id = ?"
-            return_user = self.create_user_helper(cursor.execute(sql, (id,)).fetchone())
+            return_user = self.create_user_helper(cursor.execute(sql, (user_id,)).fetchone())
 
             return return_user
 
@@ -139,7 +176,7 @@ class SQLite(UserInterfaceBase):
         if not user_list:
             return None
 
-        subs = []
+        subs: list[str] = []
         for u in user_list:
             subs.append(str(u.sub))  # type: ignore[attr-defined]
 
@@ -334,7 +371,9 @@ class SQLite(UserInterfaceBase):
             valid_last_name = bool(user.last_name_nonce and user.last_name_ciphertext)
             valid_email = bool(user.email_nonce and user.email_ciphertext)
 
-            if not (bool(user.role and valid_first_name) and valid_last_name and valid_email):  # type: ignore[attr-defined]
+            if not (bool(user.role and valid_first_name) # type: ignore[attr-defined]
+                and valid_last_name
+                and valid_email):
                 continue
 
             data.append((
@@ -402,21 +441,30 @@ class SQLite(UserInterfaceBase):
         if not users:
             return []
 
-        params_sql_values_in = ",".join(f"?" for _ in users)
-        subs = ",".join(f"'{u.sub}'" for u in users)
-        sql: str = f"""UPDATE "users" SET is_deleted=1, deleted_at=CURRENT_TIMESTAMP WHERE sub IN ({params_sql_values_in}) {self.create_user_returning()}"""
+        sub_list = [str(u.sub) for u in users if u.sub is not None]  # type: ignore[attr-defined]
+
+        placeholders = ", ".join(["?"] * len(sub_list))
 
         with sqlite3.connect(self._sqlite_file) as conn:
             cursor = conn.cursor()
 
-            cursor.execute(sql)
+            update_sql = f"""UPDATE users SET is_deleted=1, deleted_at=CURRENT_TIMESTAMP WHERE sub IN
+                ({placeholders})"""
+            cursor.execute(update_sql, sub_list)
+            conn.commit()
+
+            if cursor.rowcount == 0:
+                return []
+
+            # Fetch the detailed records of the users that were just updated (by querying against their subjects)
+            select_sql = self.get_record_select(f"WHERE sub IN ({placeholders}) AND deleted_at IS NOT NULL")
+            cursor.execute(select_sql, sub_list)
+
             return_users: list[User] = []
-            deleted_rows = cursor.fetchall()
-            for rs in deleted_rows:
+            for rs in cursor.fetchall():
                 u = self.create_user_helper(rs)
                 if u is not None:
                     return_users.append(u)
 
-            conn.commit()
             return return_users if len(return_users) > 0 else None
     # end bulk methods
