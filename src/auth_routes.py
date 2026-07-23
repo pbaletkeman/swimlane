@@ -57,7 +57,7 @@ from src.data.users.user import User
 from src.env import TOKEN_SECRET_KEY
 from src.roles.roles import member_role, UserRole
 from src.misc_models import TokenData
-from src.encryption import encrypt_field
+from src.encryption import encrypt_field, hash_field
 from src.util.configs import Config
 
 config: dict = Config.yaml_config()  # type: ignore
@@ -254,7 +254,8 @@ class AuthRoutes:
             last_name_nonce=last_name_enc["nonce"],
             last_name_ciphertext=last_name_enc["ciphertext"],
             email_nonce=email_enc["nonce"],
-            email_ciphertext=email_enc["ciphertext"]
+            email_ciphertext=email_enc["ciphertext"],
+            email_hash=hash_field(userinfo["email"])
         )
 
         return user

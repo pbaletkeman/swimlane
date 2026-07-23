@@ -1,5 +1,6 @@
 import os
 import base64
+import hashlib
 from typing import Any, Optional
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from src.env import ENCRYPTION_KEY_ENV_VAR
@@ -43,3 +44,12 @@ def decrypt_field(nonce_b64: str, ciphertext_b64: str, aad: Optional[bytes] = No
     ciphertext = base64.b64decode(ciphertext_b64)
     plaintext = aesgcm.decrypt(nonce, ciphertext, aad)
     return plaintext.decode("utf-8")
+
+
+def hash_field(plaintext: str) -> str:
+    """
+    Produce a deterministic SHA-256 hash of a plaintext value.
+    Used for lookups on encrypted fields (e.g., email) where the
+    encryption is non-deterministic (random nonce per call).
+    """
+    return hashlib.sha256(plaintext.lower().encode("utf-8")).hexdigest()

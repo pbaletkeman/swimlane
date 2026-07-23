@@ -23,6 +23,7 @@ from typing import Any, LiteralString, Optional
 
 from src.data.users.user import User
 from src.data.users.user_interface import UserInterface as UserInterfaceBase
+from src.encryption import hash_field
 from src.roles.roles import UserRole
 from src.util.configs import Config
 
@@ -32,8 +33,7 @@ class SQLite(UserInterfaceBase):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self._config = Config().yamlconfig or {}  # type: ignore[union-attr]
-        sql_config = dict(self._config).get("sql", {}) if hasattr(dict.keys(), "items") else {}
+        self._config: dict[str, Any] = Config().yamlconfig or {}  # type: ignore[union-attr]
         self._sqlite_file: str = ""
 
     # ------------------------------------------------------------------
@@ -49,6 +49,7 @@ class SQLite(UserInterfaceBase):
                 last_name_ciphertext  TEXT     NOT NULL,
                 email_nonce           TEXT     NOT NULL UNIQUE,
                 email_ciphertext      TEXT     NOT NULL,
+                email_hash            TEXT     NOT NULL UNIQUE,
                 created_at            TEXT NOT NULL DEFAULT datetime('now', 'utc'),
                 updated_at            TEXT NULL DEFAULT CURRENT_TIMESTAMP,
                 deleted_at            TEXT NULL,
@@ -57,7 +58,8 @@ class SQLite(UserInterfaceBase):
             );
             CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
             CREATE INDEX IF NOT EXISTS idx_users_sub ON users (sub);
-            CREATE INDEX IF NOT EXISTS idx_users_email_nonce ON users (email_nonce);"""
+            CREATE INDEX IF NOT EXISTS idx_users_email_nonce ON users (email_nonce);
+            CREATE INDEX IF NOT EXISTS idx_users_email_hash ON users (email_hash);"""
         return sql
 
     # ------------------------------------------------------------------
@@ -65,7 +67,7 @@ class SQLite(UserInterfaceBase):
         """Helper function to create the sql to get user info"""
 
         sql: str = f"""SELECT id, sub, role, first_name_nonce, first_name_ciphertext, last_name_nonce,
-            last_name_ciphertext, email_nonce, email_ciphertext, created_at, updated_at, deleted_at
+            last_name_ciphertext, email_nonce, email_ciphertext, email_hash, created_at, updated_at, deleted_at
             FROM users {where} ORDER BY is_active DESC, created_at ASC"""
         return sql
 
@@ -83,12 +85,14 @@ class SQLite(UserInterfaceBase):
                     last_name_nonce=rs["last_name_nonce"],
                     email_ciphertext=rs["email_ciphertext"],
                     email_nonce=rs["email_nonce"],
+                    email_hash=rs["email_hash"],
                     is_active=rs["is_active"],
                     is_deleted=rs["is_deleted"],
                     created_at=rs["created_at"],
                     deleted_at=rs["deleted_at"],
                     updated_at=rs["updated_at"],
                 )
+        return None
 
     # ------------------------------------------------------------------
     def create_user_returning(self) -> str:
@@ -103,29 +107,12 @@ class SQLite(UserInterfaceBase):
                 last_name_ciphertext,
                 email_nonce,
                 email_ciphertext,
+                email_hash,
                 created_at,
                 updated_at,
                 deleted_at,
                 is_active,
                 is_deleted;
-"""
-SQLite Implementation of User Interface Layer for Swimlane Application (`swimlane/src/data/users/sqlite.py`).
-
-This module provides database operations for user management using SQLite3 connections.
-It serves as an interface layer (inheriting from `UserInterfaceBase`) to perform 
-CRUD operations (Create, Read, Update, Delete) on the 'users' table located in the 
-SQLite database file configured by `Config`.
-
-Methods include:
-- `get_create_table()`: Provides the DDL for setting up the users table schema.
-- `get_record_select()`: Creates SQL fragments for selecting user data based on criteria.
-- Helper methods (`create_user_helper`, `_get_list_of_users`): Transform raw row results into 
-  typed `User` objects or lists of subjects.
-- Core CRUD operations (`create_user_bulk`, `update_user`, `delete_user_by_sub`, etc.): 
-  Handle the actual database transactions, managing soft deletes and role assignments.
-
-Attributes:
-    _sqlite_file (str): The path to the SQLite database where user data is stored.
 """
         return retval
 
@@ -199,8 +186,7 @@ Attributes:
         """Create a new admin user with the given subject identifier (sub). Returns the created user."""
         if self._config.get("security", {}).get("web_admin") and user.sub in self._config["security"]["web_admin"]:  # type: ignore[index]
             user.role = UserRole.WEB_ADMIN
-            user.role = UserRole.WEB_ADMIN
-        self.create_user(user)
+        return self.create_user(user)
 
     # ------------------------------------------------------------------
     def update_user(self, user: User) -> Optional[User]:
@@ -208,7 +194,7 @@ Attributes:
         user.updated_at = datetime.now(timezone.utc)
 
         sql = f"""
-            UPDATE USER SET
+            UPDATE users SET
                 role=?,
                 first_name_ciphertext=?,
                 first_name_nonce=?,
@@ -216,6 +202,7 @@ Attributes:
                 last_name_nonce=?,
                 email_ciphertext=?,
                 email_nonce=?,
+                email_hash=?,
                 is_active=?,
                 updated_at=?
             WHERE sub=?
@@ -233,6 +220,7 @@ Attributes:
                 user.last_name_nonce,
                 user.email_ciphertext,
                 user.email_nonce,
+                user.email_hash,
                 user.is_active,
                 user.updated_at,
                 user.sub
@@ -267,8 +255,9 @@ Attributes:
             cursor = conn.cursor()
 
             return_user: Optional[User] = None
-            sql: str = self.get_record_select("WHERE email_nonce = ?")
-            cursor.execute(sql, (email,))
+            email_h = hash_field(email)
+            sql: str = self.get_record_select("WHERE email_hash = ?")
+            cursor.execute(sql, (email_h,))
             rs = cursor.fetchone()
             if rs:
                 return_user = self.create_user_helper(rs)
@@ -298,7 +287,7 @@ Attributes:
             sql = "UPDATE users SET is_deleted=1, deleted_at=CURRENT_TIMESTAMP WHERE sub = ?"
             cursor.execute(sql, (sub,))
             conn.commit()
-            return int(cursor.rowcount) == 1
+            return cursor.rowcount == 1
 
     # end singular methods
 
@@ -344,15 +333,6 @@ Attributes:
         if not users:
             return []
 
-        subs = ""
-        for u in users:
-            valid_first_name = bool(u.first_name_nonce and u.first_name_ciphertext)
-            valid_last_name = bool(u.last_name_nonce and u.last_name_ciphertext)
-            valid_email = bool(u.email_nonce and u.email_ciphertext)
-
-            if bool(u.role and valid_first_name) and valid_last_name and valid_email:
-                subs += f" '{u.sub}',"
-
         sql: str = """INSERT INTO "users" (
                  sub,
                  role,
@@ -361,15 +341,16 @@ Attributes:
                  last_name_nonce,
                  last_name_ciphertext,
                  email_nonce,
-                 email_ciphertext)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)"""
+                 email_ciphertext,
+                 email_hash)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"""
 
-        data: list[tuple[str, str, str, str, str, str, str, str]] = []
-        subs_params = []  # type: ignore[attr-defined]
+        data: list[tuple[str, str, str, str, str, str, str, str, str]] = []
+        subs_params: list[str] = []
         for user in users:
             valid_first_name = bool(user.first_name_nonce and user.first_name_ciphertext)
             valid_last_name = bool(user.last_name_nonce and user.last_name_ciphertext)
-            valid_email = bool(user.email_nonce and user.email_ciphertext)
+            valid_email = bool(user.email_nonce and user.email_ciphertext and user.email_hash)
 
             if not (bool(user.role and valid_first_name) # type: ignore[attr-defined]
                 and valid_last_name
@@ -385,6 +366,7 @@ Attributes:
                 user.last_name_ciphertext or "",
                 user.email_nonce or "",
                 user.email_ciphertext or "",
+                user.email_hash or "",  # type: ignore[arg-type]
             ))
 
             subs_params.append(str(user.sub))  # type: ignore[attr-defined]
@@ -398,17 +380,17 @@ Attributes:
                 conn.commit()
                 return []
 
-            params_values_clause_sub = ", ".join([f"'{u}'" for u in subs_params])
-            sql_retrieve_users: str = self.get_record_select(f"WHERE sub IN ({params_values_clause_sub})") + " LIMIT 20"
+            placeholders = ", ".join(["?"] * len(subs_params))
+            sql_retrieve_users: str = self.get_record_select(f"WHERE sub IN ({placeholders})") + " LIMIT 20"
 
-            cursor.execute(sql_retrieve_users)
-            users: list[User] = []
+            cursor.execute(sql_retrieve_users, subs_params)
+            created_users: list[User] = []
             for rs in cursor:
                 user = self.create_user_helper(rs)
                 if user is not None:
-                    users.append(user)
+                    created_users.append(user)
 
-        return users if len(users) > 0 else None
+        return created_users if len(created_users) > 0 else None
 
     # ------------------------------------------------------------------
     def hard_delete_users_bulk(self, users: list[User]) -> Optional[list[User]]:

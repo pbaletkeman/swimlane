@@ -15,6 +15,7 @@ class User(BaseModel):
     last_name_ciphertext: str | None = None
     email_nonce: str | None = None
     email_ciphertext: str | None = None
+    email_hash: str | None = None
 
     created_at: datetime.datetime | None = None
     updated_at: datetime.datetime | None = None
