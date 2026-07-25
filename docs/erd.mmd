@@ -1,11 +1,32 @@
 erDiagram
+    %% Implemented entities (exist in codebase)
+    user ||--o{ schedule : "sub → member_id"
+
+    %% Planned entities (not yet implemented — design roadmap)
     frequency ||--o{ event : "frequency_id → frequency_id"
     event ||--|{ user : "event_id → event_id"
     event ||--o{ schedule : "event_id → schedule_id"
-    user ||--o{ schedule : "members_id → member_id"
     venue ||--o{ schedule : "venue_id → venue_id"
     facility ||--o{ schedule : "facility_id → facility_id"
 
+
+    user {
+        int id PK "auto-increment"
+        string sub UK "Google subject ID, NOT NULL, UNIQUE"
+        string role "NOT NULL, DEFAULT 'member' — enum: web_admin, facility_manager, coach, member"
+        string first_name_nonce "AES-256-GCM nonce, NOT NULL"
+        string first_name_ciphertext "AES-256-GCM ciphertext, NOT NULL"
+        string last_name_nonce "AES-256-GCM nonce, NOT NULL"
+        string last_name_ciphertext "AES-256-GCM ciphertext, NOT NULL"
+        string email_nonce "AES-256-GCM nonce, NOT NULL, UNIQUE"
+        string email_ciphertext "AES-256-GCM ciphertext, NOT NULL"
+        string email_hash "SHA-256 hash for lookups, NOT NULL, UNIQUE"
+        datetime created_at "NOT NULL, DEFAULT CURRENT_TIMESTAMP"
+        datetime updated_at "NULL, DEFAULT CURRENT_TIMESTAMP"
+        datetime deleted_at "NULL — soft delete timestamp"
+        bool is_deleted "NULL, DEFAULT 0"
+        bool is_active "NULL, DEFAULT 1"
+    }
 
     frequency {
         automatic frequency_id
@@ -19,21 +40,6 @@ erDiagram
         datetime end_date_time
         bool is_active
         string frequency_id
-    }
-    user {
-        string sub
-        string role
-        string first_name_nonce
-        string first_name_ciphertext
-        string last_name_nonce
-        string last_name_ciphertext
-        string email_nonce
-        string email_ciphertext
-        datetime created_at
-        datetime updated_at
-        datetime delete_at
-        bool is_deleted
-        bool is_active
     }
     venue {
         automatic venue_id
