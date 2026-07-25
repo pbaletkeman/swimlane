@@ -1,3 +1,10 @@
+"""
+Application configuration management.
+
+Provides the Config class for loading YAML configuration, setting Google OAuth
+environment variables, and selecting the active database provider. All config
+reads are cached after the first call to avoid repeated disk I/O.
+"""
 
 import json
 import os
@@ -43,15 +50,15 @@ class Config:
                 for key, value in web.items():
                     os.environ["GOOGLE_" + key.upper()] = str(value)
             Config._google_configured = True
-        except FileNotFoundError:
+        except FileNotFoundError as exc:
             raise FileNotFoundError(
                 f"Google OAuth client secret not found at '{file_path}'. "
                 "Create it from client_secret.sample.txt."
-            )
-        except json.JSONDecodeError as e:
+            ) from exc
+        except json.JSONDecodeError as exc:
             raise ValueError(
-                f"Invalid JSON in '{file_path}': {e}"
-            )
+                f"Invalid JSON in '{file_path}': {exc}"
+            ) from exc
 
     @staticmethod
     def sqlite_file() -> str:

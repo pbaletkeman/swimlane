@@ -54,14 +54,54 @@ def _load_seed_data(path: str = "seed_admins.json") -> dict[str, dict[str, str]]
     return data
 
 
-def main() -> None:
-    """Seed the database with WEB_ADMIN users from config and seed_admins.json.
+def _build_user(sub: str, entry: dict[str, str]) -> User:
+    """Build an encrypted User from seed data entry.
 
-    For each sub in config.yaml's web_admins:
-    - Skips if the user already exists in the database.
-    - Looks up name/email from seed_admins.json.
-    - Encrypts PII fields and inserts the user with WEB_ADMIN role.
+    Args:
+        sub: The Google subject ID.
+        entry: Dictionary with first_name, last_name, email.
+
+    Returns:
+        A User with encrypted PII fields and WEB_ADMIN role.
     """
+    first_enc = encrypt_field(entry["first_name"])
+    last_enc = encrypt_field(entry["last_name"])
+    email_enc = encrypt_field(entry["email"])
+
+    return User(
+        sub=sub,
+        role=UserRole.WEB_ADMIN,
+        first_name_nonce=first_enc["nonce"],
+        first_name_ciphertext=first_enc["ciphertext"],
+        last_name_nonce=last_enc["nonce"],
+        last_name_ciphertext=last_enc["ciphertext"],
+        email_nonce=email_enc["nonce"],
+        email_ciphertext=email_enc["ciphertext"],
+        email_hash=hash_field(entry["email"]),
+    )
+
+
+def _seed_one(db: SQLite, sub: str, seed_data: dict[str, dict[str, str]]) -> str:
+    """Seed a single admin user. Returns 'created', 'skipped', or 'error'."""
+    if db.get_user_by_sub(sub):
+        print(f"  SKIP  sub={sub} (already exists)")
+        return "skipped"
+
+    if sub not in seed_data:
+        print(f"  ERROR sub={sub} not found in seed_admins.json")
+        return "error"
+
+    user = db.create_user(_build_user(sub, seed_data[sub]))
+    if user:
+        print(f"  OK    sub={sub} role={user.role}")
+        return "created"
+
+    print(f"  ERROR sub={sub} failed to create")
+    return "error"
+
+
+def main() -> None:
+    """Seed the database with WEB_ADMIN users from config and seed_admins.json."""
     config = Config.yaml_config()
     web_admins_raw: list[Any] = config.get("security", {}).get("web_admins", [])
     web_admins: list[str] = [str(s) for s in web_admins_raw]
@@ -71,57 +111,14 @@ def main() -> None:
         sys.exit(1)
 
     seed_data = _load_seed_data()
-
     db = SQLite()
     db.init()
 
-    created = 0
-    skipped = 0
-    errors = 0
-
+    counts = {"created": 0, "skipped": 0, "error": 0}
     for sub in web_admins:
-        existing = db.get_user_by_sub(sub)
-        if existing:
-            print(f"  SKIP  sub={sub} (already exists)")
-            skipped += 1
-            continue
+        counts[_seed_one(db, sub, seed_data)] += 1
 
-        if sub not in seed_data:
-            print(f"  ERROR sub={sub} not found in seed_admins.json")
-            errors += 1
-            continue
-
-        entry = seed_data[sub]
-        first_name: str = entry["first_name"]
-        last_name: str = entry["last_name"]
-        email: str = entry["email"]
-
-        first_enc = encrypt_field(first_name)
-        last_enc = encrypt_field(last_name)
-        email_enc = encrypt_field(email)
-
-        # hash_field produces a deterministic hash for lookups (email is also encrypted above)
-        user = User(
-            sub=sub,
-            role=UserRole.WEB_ADMIN,
-            first_name_nonce=first_enc["nonce"],
-            first_name_ciphertext=first_enc["ciphertext"],
-            last_name_nonce=last_enc["nonce"],
-            last_name_ciphertext=last_enc["ciphertext"],
-            email_nonce=email_enc["nonce"],
-            email_ciphertext=email_enc["ciphertext"],
-            email_hash=hash_field(email),
-        )
-
-        result = db.create_user(user)
-        if result:
-            print(f"  OK    sub={sub} role={result.role}")
-            created += 1
-        else:
-            print(f"  ERROR sub={sub} failed to create")
-            errors += 1
-
-    print(f"\nDone. created={created} skipped={skipped} errors={errors}")
+    print(f"\nDone. created={counts['created']} skipped={counts['skipped']} errors={counts['error']}")
 
 
 if __name__ == "__main__":

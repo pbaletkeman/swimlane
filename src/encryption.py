@@ -1,3 +1,10 @@
+"""
+PII encryption utilities using AES-256-GCM.
+
+Provides authenticated encryption for sensitive user fields (name, email) with
+random nonces, and deterministic SHA-256 hashing for encrypted field lookups.
+"""
+
 import os
 import base64
 import hashlib
