@@ -12,15 +12,19 @@ class Config:
 
     db_provider: dict[Any, Any]
     db: Any | None = None
+    _yaml_cache: dict[str, Any] | None = None
+    _google_configured: bool = False
+    _sqlite_file_cache: str | None = None
 
     @staticmethod
     def yaml_config() -> dict[str, Any]:
-        """Load the config.yaml file"""
-        # Open and parse the YAML file
+        """Load the config.yaml file (cached after first read)"""
+        if Config._yaml_cache is not None:
+            return Config._yaml_cache
         config: dict[str, Any] = {}
         with open("config.yaml", "r", encoding="utf-8") as file:
             config = yaml.safe_load(file)
-
+        Config._yaml_cache = config
         return config
 
     @staticmethod
@@ -28,17 +32,36 @@ class Config:
         """
         Load configuration from a JSON file and set environment variables.
         This is necessary for the OAuth client to access the required credentials.
+        Skips if already configured (cached).
         """
+        if Config._google_configured:
+            return
         try:
             with open(file_path, "r", encoding="utf-8") as file:
                 config_data = json.load(file)
                 web = config_data.get("web", {})
                 for key, value in web.items():
-                    os.environ["GOOGLE_" + key] = str(value)
+                    os.environ["GOOGLE_" + key.upper()] = str(value)
+            Config._google_configured = True
         except FileNotFoundError:
-            print("Configuration file not found. Please ensure .secrets/client_secret.json exists.")
-        except json.JSONDecodeError:
-            print("Error decoding JSON configuration. Please check the format of client_secret.json.")
+            raise FileNotFoundError(
+                f"Google OAuth client secret not found at '{file_path}'. "
+                "Create it from client_secret.sample.txt."
+            )
+        except json.JSONDecodeError as e:
+            raise ValueError(
+                f"Invalid JSON in '{file_path}': {e}"
+            )
+
+    @staticmethod
+    def sqlite_file() -> str:
+        """Return the SQLite database file path (cached after first read)"""
+        if Config._sqlite_file_cache is not None:
+            return Config._sqlite_file_cache
+        config = Config.yaml_config()
+        path = config.get("sql", {}).get("providers", {}).get("sqlite", {}).get("sqlite_file", "")
+        Config._sqlite_file_cache = path
+        return path
 
 
     def __init__(self) -> None:
@@ -51,5 +74,6 @@ class Config:
             self.db = SQLite
         elif self.yamlconfig["sql"]["active"] == "postgresql":
             self.db_provider = self.yamlconfig["sql"]["providers"]["postgresql"]
+            raise NotImplementedError("PostgreSQL provider not yet implemented")
         else:
             print("config not found")

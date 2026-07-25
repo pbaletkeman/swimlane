@@ -17,17 +17,10 @@ Run this module with `uvicorn main:app --reload` during development.
 """
 
 import os
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordBearer
 
-# Load your config (your function)
-# from util.load_oauth_config import load_config
 from src.auth_routes import AuthRoutes
-from src.sample_route import Sample
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-security = HTTPBearer()
 
 app = FastAPI()
 
@@ -37,7 +30,6 @@ app.add_middleware(SessionMiddleware, secret_key=os.urandom(24).hex())
 # Include the router in the app
 auth_routes = AuthRoutes()
 app.include_router(auth_routes.router)
-app.include_router(Sample().router)
 
 if __name__ == "__main__":
     import uvicorn

@@ -65,10 +65,10 @@ class RoleChecker:
         try:
             # Decode the token issued by your backend
             payload = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=[algorithm])
-            email: str = payload.get("sub") # type: ignore
+            sub: str = payload.get("sub") # type: ignore
             role: str = payload.get("role") # type: ignore
 
-            if not email  or  not role:
+            if not sub or not role:
                 raise HTTPException(status_code=401, detail="Invalid token claims")
 
         except JWTError as exc:
@@ -81,4 +81,4 @@ class RoleChecker:
                 detail="You do not have permission to access this resource"
             )
 
-        return User(email=email, role=role)
+        return User(sub=sub, role=role)

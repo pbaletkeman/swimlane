@@ -33,8 +33,8 @@ class SQLite(UserInterfaceBase):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self._config: dict[str, Any] = Config().yamlconfig or {}  # type: ignore[union-attr]
-        self._sqlite_file: str = self._config.get("sql", {}).get("providers", {}).get("sqlite", {}).get("sqlite_file", "")
+        self._config: dict[str, Any] = Config.yaml_config() or {}
+        self._sqlite_file: str = Config.sqlite_file()
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._sqlite_file)
@@ -47,7 +47,7 @@ class SQLite(UserInterfaceBase):
         sql = """CREATE TABLE IF NOT EXISTS users (
                 id                    INTEGER  PRIMARY KEY AUTOINCREMENT,
                 sub                   TEXT     NOT NULL UNIQUE,
-                role                  TEXT     NOT NULL DEFAULT 'USER',
+                role                  TEXT     NOT NULL DEFAULT 'member',
                 first_name_nonce      TEXT     NOT NULL,
                 first_name_ciphertext TEXT     NOT NULL,
                 last_name_nonce       TEXT     NOT NULL,

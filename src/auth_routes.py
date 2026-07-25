@@ -155,15 +155,6 @@ def verify_token(token: str, expected_type: str) -> TokenData:
         ) from exc
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
-    """Validates the short-lived access token on generic endpoints."""
-    payload = verify_token(token, expected_type="access")
-    username: str = payload.sub
-    if not username:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    return username
-
-
 async def refresh_access_token(refresh_token: str) -> dict[str, str]:
     """
     Exchange a valid refresh token for a new access token.
@@ -178,15 +169,17 @@ async def refresh_access_token(refresh_token: str) -> dict[str, str]:
         HTTPException: If the refresh token is invalid or expired.
     """
     payload = verify_token(refresh_token, expected_type="refresh")
-    email: str = payload.sub
+    sub: str = payload.sub
 
-    # Fetch user data to include in the new access token
-    user_record = USER_DB.get(email)
-    if not user_record:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    # Fetch user from database to get their current role
+    user: User | None = None
+    if db_connect:
+        user = db_connect().get_user_by_sub(sub)
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
 
     # Create new access token with user's current role
-    token_payload: dict[Any, Any] = {"sub": email, "role": user_record.get("role")}
+    token_payload: dict[Any, Any] = {"sub": sub, "role": user.role}
     new_access_token = create_local_access_token(data=token_payload)
 
     return {"access_token": new_access_token, "token_type": "bearer"}
@@ -309,43 +302,26 @@ class AuthRoutes:
         if not user_info:
             raise HTTPException(status_code=400, detail="No user info returned")
 
-        #Look up user in local database to find their permissions
+        # Look up user in local database to find their permissions
         sub: str | None = user_info.get("sub")  # type: ignore
         if not sub:
             raise HTTPException(status_code=400, detail="Email not found in user info")
-        # oauth_user : User = self.oauth2user(user_info)
+
+        # Query the database for an existing user
+        existing_user: User | None = None
         if db_connect:
-            oauth_user : User = db_connect().get_user_by_sub(sub)
-            print("DD")
+            existing_user = db_connect().get_user_by_sub(sub)
 
-        # User(
-        # sub='111122296393493391055',
-        # role=None,
-        # first_name_nonce='BuJGwyWNopwb7iMP',
-        # first_name_ciphertext='mClAiTFR9wOF/ceSiNg0s4+ZgqU=',
-        # last_name_nonce='zCQzXEO9pQ8GbeIT',
-        # last_name_ciphertext='yhGflA9A7oOQZU1AsYmtDD9YU97dK7Tc',
-        # email_nonce='HmHgfrHOW1JUa9aL',
-        # email_ciphertext='/CrD4qCrRrc0Rz5e/8RjkbtUYiHsdI90UgfTyd/uNpc=',
-        # created_at=None,
-        # updated_at=None,
-        # deleted_at=None,
-        # is_active=True,
-        # is_deleted=False
+        # Auto-register new users with default MEMBER role
+        if not existing_user:
+            oauth_user: User = self.oauth2user(user_info)
+            oauth_user.role = UserRole.MEMBER.value
+            existing_user = db_connect().create_user(oauth_user)
 
-
-        user_record = USER_DB.get(sub)
-
-        if not user_record:
-            # Register them automatically with a default role if not found
-            user_record = {"sub": sub, "role": UserRole.MEMBER.value} # type: ignore
-            USER_DB[sub] = user_record
-
-        # 3. Bake the role directly into your own app's JWT token
-        token_payload = {"sub": user_record["sub"], "role": user_record["role"]}
+        # Bake the role directly into your own app's JWT token
+        token_payload = {"sub": sub, "role": existing_user.role}
         access_token = create_local_access_token(data=token_payload)
         refresh_token = create_refresh_token(data=token_payload)
-        print(f"Generated tokens for {sub}")
 
         request.session["user"] = dict(user_info)  # type: ignore
         return {
@@ -380,7 +356,7 @@ class AuthRoutes:
 
         if not current_user:
             raise HTTPException(status_code=401, detail="Not logged in")
-        return current_user.dict() # type: ignore
+        return current_user.model_dump() # type: ignore
 
     # ------------------------------------------------------------------
     async def refresh(self, request: Request) -> dict[str, str]:
