@@ -1,0 +1,197 @@
+# Swimlane AGENTS.md
+
+## What is this project?
+
+**Swimlane** is a FastAPI web application for managing swimming-related data. It uses Google OAuth2 authentication, session-based identity tracking, and local JWT role tokens for authorization.
+
+## Tech Stack
+
+- **Framework**: FastAPI + Starlette
+- **Auth**: Authlib (OAuth2 client), python-jose/jose (JWT signing), google-auth via Authlib
+- **Database**: SQLite (default, switchable to PostgreSQL via `config.yaml`)
+- **Sessions**: server-side session middleware (`os.urandom(24).hex()` as secret)
+- **Server**: Uvicorn
+- **Encryption**: AES-256-GCM via `cryptography` library for stored user fields (name, email)
+- **Linting**: ruff, pylint, pymarkdownlnt
+
+## Project Structure
+
+```
+swimlane/
+├── main.py                  # FastAPI app entrypoint — registers middleware & routers
+├── config.yaml              # Database/config flags (sqlite vs postgresql)
+├── requirements.txt         # Python dependencies (pip list format)
+├── init_env.py              # Setup script: configures git hooks, installs requirements
+├── activate.bat             # Windows venv activation shortcut
+├── client_secret.sample.txt # Sample Google OAuth client secret JSON
+│
+├── config/
+│   └── postgresql/          # PostgreSQL Docker setup (docker-compose.yml, readme.md)
+│
+├── docs/                    # Business domain documentation
+│   ├── erd.mmd              # Entity-Relationship diagram
+│   ├── flow/                # Mermaid flowcharts (signup, reschedule)
+│   ├── sequence/            # Mermaid sequence diagrams
+│   ├── plan.md              # Development plan
+│   └── relationships.md     # Business domain relationships
+│
+├── referances/              # Reference/prototype code (misspelled intentionally)
+│
+├── .githooks/
+│   └── prepare-commit-msg   # Enforces branch naming, prepends branch to commit msg
+│
+├── .opencode/
+│   └── skills/              # Opencode agent skills (SKILL.md per skill)
+│       ├── auth-jwt/        # Google OAuth2 + JWT token system
+│       ├── rbac/            # Role-based access control
+│       ├── encryption/      # AES-256-GCM PII encryption
+│       ├── data-access/     # UserInterface ABC + SQLite CRUD
+│       ├── fastapi-patterns/# Router registration, DI, middleware
+│       ├── config-management/# YAML config, Google OAuth, DB switching
+│       ├── devops/          # Git hooks, Docker, linting
+│       └── swimlane-domain/ # Business domain, entities, workflows
+│
+├── src/
+│   ├── auth_routes.py       # Google OAuth login, JWT issuance, /me, /profile, /logout
+│   ├── sample_route.py      # Sample CRUD routes with role guards (/open, /secure, /admin)
+│   ├── encryption.py        # AES-256-GCM encryption for stored fields (name, email)
+│   ├── env.py               # Environment variable constants (TOKEN_SECRET_KEY, ENCRYPTION_KEY)
+│   ├── misc_models.py       # Shared dataclasses/models (TokenData)
+│   ├── config.py            # Empty — actual config logic is in src/util/configs.py
+│   │
+│   ├── util/
+│   │   └── configs.py       # Config class: YAML loading, Google config, DB provider selection
+│   │
+│   ├── roles/
+│   │   ├── roles.py           # Role instances: admin_role, facility_manager_role, coach_role, member_role, all_users
+│   │   ├── roles_checker.py   # RoleChecker — FastAPI dependency for JWT-based role enforcement
+│   │   └── user_role.py       # UserRole StrEnum: WEB_ADMIN, FACILITY_MANAGER, COACH, MEMBER
+│   │
+│   └── data/
+│       └── users/
+│           ├── user_interface.py  # Abstract base class for user CRUD operations
+│           ├── user.py            # Pydantic User model (nonce+ciphertext fields for PII)
+│           └── sqlite.py          # SQLite implementation of UserInterface
+```
+
+## Key Configuration File: `config.yaml`
+
+The database and security settings live in the root `config.yaml`. It has three sections:
+
+1. **security** — JWT algorithm (`HS256`), access token expiry (15 min), refresh token expiry (7 days), `web_admins` (list of Google OAuth sub IDs)
+2. **sql.active** — Which SQL driver to use (`sqlite` or `postgresql`)
+3. **sql.providers** — Per-database provider config (`sqlite_file` path for sqlite, postgresql config for postgres)
+
+To switch databases: change the value of `active` under the `sql:` key.
+
+## Key Constants & Secrets
+
+- **GOOGLE_CLIENT_ID** / **GOOGLE_CLIENT_SECRET** — Loaded at runtime from `.secrets/client_secret.json` via `Config.google_config()`, which sets them as environment variables
+- **TOKEN_SECRET_KEY** — Hardcoded in `src/env.py` (loaded as module-level constant)
+- **APP_AES_KEY** — Encryption key for AES-256-GCM, loaded from env var (falls back to `ENCRYPTION_KEY_ENV_VAR` in `src/env.py`)
+
+**Note**: Secrets in `src/env.py` are hardcoded in source code. The `.secrets/` directory is gitignored for Google OAuth credentials.
+
+## Running the Application
+
+```bash
+python main.py
+# or
+uvicorn main:app --reload
+```
+
+Run with SQLite (default). For PostgreSQL, edit `config.yaml`:
+
+```yaml
+sql:
+  active: postgresql
+```
+
+A PostgreSQL Docker setup is available in `config/postgresql/docker-compose.yml`.
+
+## Setup
+
+Run `init_env.py` to configure git hooks, upgrade pip, and install requirements:
+
+```bash
+python init_env.py
+```
+
+## Authentication Flow
+
+1. `/login` → redirects to Google OAuth2 consent screen
+2. Google returns tokens + `userinfo` (email, name, sub) to `/auth/callback?code=...`
+3. On callback: exchange code for token, extract userinfo, lookup user in DB by `sub`, auto-register as default **MEMBER** role if not found, generate local JWT access+refresh tokens
+4. User gets two tokens back: short-lived `access_token` (15 min) and long-lived `refresh_token` (7 days)
+5. Backend routes use the HTTP Bearer token via `Depends(security)`
+
+## Role-Based Access Control (RBAC)
+
+**Dependency injection** via FastAPI's DI system. Roles are implemented in `roles.py` using `RoleChecker`:
+
+- `admin_role` — Allows `WEB_ADMIN`
+- `facility_manager_role` — Allows `FACILITY_MANAGER`, `WEB_ADMIN`
+- `coach_role` — Allows `COACH`, `FACILITY_MANAGER`, `WEB_ADMIN`
+- `member_role` — Allows `MEMBER`, `COACH`, `FACILITY_MANAGER`, `WEB_ADMIN`
+- `all_users` — Allows all `UserRole` values
+
+Roles are hierarchical — higher roles inherit access to lower-role endpoints.
+
+## Database Connection
+
+The `Config` class in `src/util/configs.py` selects the database provider based on `config.yaml`. Setting `sql.active: sqlite` assigns the `SQLite` class (from `src/data/users/sqlite.py`) to `Config().db`. The SQLite implementation stores encrypted fields (nonce + ciphertext) for names and emails — never plaintext.
+
+## Notes
+
+- `src/data/init.py`, `src/config.py`, and `src/init.py` are empty files — actual logic lives in `src/util/configs.py`
+- The `.venv/` folder is checked into git in this repo but should not be committed to a shared branch — add it to your local `.gitignore`
+- `sample_route.py` defines `facility_manager_only`, `coach_role_only`, and `member_role_only` methods that are not registered as routes (dead code)
+- `auth_routes.py` references an undefined `USER_DB` global in some code paths — this would cause a `NameError` at runtime
+- `roles_checker.py` instantiates `User(email=email, ...)` but the `User` model has no `email` field — would cause a Pydantic validation error
+- `SQLite.__init__` sets `_sqlite_file` to an empty string `""` — the `init()` method would fail without setting it from config first
+- `referances/` directory name is intentionally misspelled
+
+Skills provide specialized instructions and workflows for specific tasks.
+Use the skill tool to load a skill when a task matches its description.
+<available_skills>
+  <skill>
+    <name>auth-jwt</name>
+    <description>Google OAuth2 authentication and JWT access/refresh token system for FastAPI</description>
+    <location>.opencode/skills/auth-jwt/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>rbac</name>
+    <description>Role-based access control with hierarchical roles and FastAPI dependency injection</description>
+    <location>.opencode/skills/rbac/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>encryption</name>
+    <description>AES-256-GCM authenticated encryption for PII fields (name, email)</description>
+    <location>.opencode/skills/encryption/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>data-access</name>
+    <description>Abstract data interface pattern, SQLite CRUD implementation, and database operations</description>
+    <location>.opencode/skills/data-access/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>fastapi-patterns</name>
+    <description>FastAPI router registration, dependency injection, middleware, and Pydantic patterns</description>
+    <location>.opencode/skills/fastapi-patterns/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>config-management</name>
+    <description>YAML configuration, Google OAuth credential loading, and runtime database provider selection</description>
+    <location>.opencode/skills/config-management/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>devops</name>
+    <description>Git hooks, environment setup, Docker, linting, and development tooling</description>
+    <location>.opencode/skills/devops/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>swimlane-domain</name>
+    <description>Swimming team management business domain, entity model, and workflow documentation</description>
+    <location>.opencode/skills/swimlane-domain/SKILL.md</location>
+  </skill>
+</available_skills>

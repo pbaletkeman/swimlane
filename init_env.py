@@ -1,11 +1,47 @@
+"""
+Utility script for initializing a local development environment.
+
+This script performs three main setup tasks:
+
+1. Configure Git hooks
+- If a `.git` directory is present, the script sets `core.hooksPath` to `.githooks`
+    so that custom Git hooks in the repository are automatically used.
+
+2. Upgrade pip and install project dependencies
+- Uses `sys.executable` to ensure installation occurs inside the active virtual
+    environment.
+- Automatically installs packages from `requirements.txt` if it exists.
+
+3. Provide user‑friendly console output
+- Prints progress messages and warnings to guide the developer through the setup
+    process.
+
+Run this script once after cloning the repository to prepare your local environment.
+
+`python init_env.py`
+"""
+
 #!/usr/bin/env python3
 
 import os
 import subprocess
 import sys
 
-
 def setup_project() -> None:
+    """
+    Set up the local development environment for the project.
+
+    This function performs the following actions:
+
+    - Checks for a `.git` directory and configures Git to use the `.githooks`
+      directory for custom hooks.
+    - Upgrades `pip` using the currently active Python interpreter.
+    - Installs dependencies listed in `requirements.txt` if the file exists.
+    - Prints status messages to guide the user through the setup process.
+
+    This function is intended to be run once after cloning the repository.
+    """
+
     print("🚀 Setting up local development environment...")
 
     # 1. Configure Git Hooks
@@ -27,6 +63,3 @@ def setup_project() -> None:
 
 if __name__ == "__main__":
     setup_project()
-
-# run with
-# python init_env.py
