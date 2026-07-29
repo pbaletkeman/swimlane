@@ -11,23 +11,16 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 - [x] JWT access/refresh token system
 - [x] Role-based access control (admin, facility_manager, coach, member)
 - [x] Session middleware
+- [x] Frequency entity data layer (`src/data/frequency/` — model, interface, SQLite CRUD)
+- [x] Frequency API routes (`src/frequency_routes.py`) + router registration in `main.py`
 
 ---
 
 ## In Progress
 
-- [ ] Frequency entity data layer (files exist in `src/data/frequency/` — verify implementation)
-
 ---
 
 ## To Do
-
-### Frequency Entity
-
-- [ ] Verify `frequency_interface.py` matches ERD schema (frequency_id, name, day_interval, is_active)
-- [ ] Verify `sqlite.py` implements all CRUD operations
-- [ ] Create frequency API routes (`src/frequency_routes.py`)
-- [ ] Add frequency router to `main.py`
 
 ### Event Entity
 

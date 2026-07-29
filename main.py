@@ -17,10 +17,12 @@ Run this module with `uvicorn main:app --reload` during development.
 """
 
 import os
+
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.auth_routes import AuthRoutes
+from src.frequency_routes import FrequencyRoutes
 
 app = FastAPI()
 
@@ -31,8 +33,12 @@ app.add_middleware(SessionMiddleware, secret_key=os.urandom(24).hex())
 auth_routes = AuthRoutes()
 app.include_router(auth_routes.router)
 
+frequency_routes = FrequencyRoutes()
+app.include_router(frequency_routes.router)
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="127.0.0.1", port=8000)
 
 # uvicorn main:app --reload
