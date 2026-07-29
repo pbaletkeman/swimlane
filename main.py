@@ -22,6 +22,7 @@ from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.auth_routes import AuthRoutes
+from src.facility_routes import FacilityRoutes
 from src.frequency_routes import FrequencyRoutes
 
 app = FastAPI()
@@ -35,6 +36,9 @@ app.include_router(auth_routes.router)
 
 frequency_routes = FrequencyRoutes()
 app.include_router(frequency_routes.router)
+
+facility_routes = FacilityRoutes()
+app.include_router(facility_routes.router)
 
 if __name__ == "__main__":
     import uvicorn
