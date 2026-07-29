@@ -41,23 +41,22 @@ first‑party role enforcement.
 """
 
 import os
-from typing import Any, Optional
 from datetime import datetime, timedelta, timezone
+from typing import Any, Optional
 
 from authlib.integrations.starlette_client import OAuth
-
-from fastapi import Request, HTTPException, APIRouter, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordBearer
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
-
+from fastapi.security import HTTPBearer
 from jose import JWTError, exceptions, jwt
 from starlette import status
 
 from src.data.users.user import User
-from src.env import TOKEN_SECRET_KEY
-from src.roles.roles import member_role, UserRole
-from src.misc_models import TokenData
 from src.encryption import encrypt_field, hash_field
+from src.env import TOKEN_SECRET_KEY
+from src.misc_models import TokenData
+from src.roles.roles import member_role
+from src.roles.user_role import UserRole
 from src.util.configs import Config
 
 config: dict = Config.yaml_config()  # type: ignore
@@ -66,9 +65,6 @@ Config.google_config()
 db_connect = Config().db
 
 algorithm: str = config["security"]["algorithm"]  # type: ignore
-
-# OAuth2 scheme for protected endpoints
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 def create_local_access_token(data: dict[Any, Any], expires_delta: Optional[timedelta] = None) -> str:
@@ -124,17 +120,6 @@ def create_refresh_token(data: dict[Any, Any], expires_delta: Optional[timedelta
 def verify_token(token: str, expected_type: str) -> TokenData:
     """Decodes and validates a token structure and type."""
 
-    # Generate a token
-    # token_data = {"sub": "user1", "type": "access"}
-    # access_token = create_access_token(token_data)
-
-    # Verify the token
-    # try:
-    #     decoded_token = verify_token(access_token, "access")
-    #     print(decoded_token)
-    # except HTTPException as e:
-    #     print(e.detail)
-
     try:
         payload = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=[algorithm])
         if payload.get("type") != expected_type:
@@ -155,7 +140,7 @@ def verify_token(token: str, expected_type: str) -> TokenData:
         ) from exc
 
 
-async def refresh_access_token(refresh_token: str) -> dict[str, str]:
+def refresh_access_token(refresh_token: str) -> dict[str, str]:
     """
     Exchange a valid refresh token for a new access token.
 
@@ -305,7 +290,7 @@ class AuthRoutes:
         # Look up user in local database to find their permissions
         sub: str | None = user_info.get("sub")  # type: ignore
         if not sub:
-            raise HTTPException(status_code=400, detail="Email not found in user info")
+            raise HTTPException(status_code=400, detail="Subject not found in user info")
 
         # Query the database for an existing user
         existing_user: User | None = None
@@ -314,6 +299,8 @@ class AuthRoutes:
 
         # Auto-register new users with default MEMBER role
         if not existing_user:
+            if not db_connect:
+                raise HTTPException(status_code=500, detail="Database not configured")
             oauth_user: User = self.oauth2user(user_info)
             oauth_user.role = UserRole.MEMBER.value
             existing_user = db_connect().create_user(oauth_user)
@@ -333,29 +320,21 @@ class AuthRoutes:
         }
 
     # ------------------------------------------------------------------
-    async def me( # type: ignore
+    async def me(
             self,
-            request: Request,  # injected value
-            credentials: HTTPAuthorizationCredentials = Depends(security),  # injected value
-            current_user: User = Depends(member_role)  # injected value
-        ) -> dict: # type: ignore
+            current_user: User = Depends(member_role)
+        ) -> dict:
         """
-        Return the currently authenticated user's Google profile.
+        Return the currently authenticated user's profile.
 
-        Args:
-            request: The incoming FastAPI request.
+        Requires a valid JWT access token with MEMBER role or higher.
 
         Returns:
-            The user dictionary stored in the session.
+            The authenticated user's profile as a dictionary.
 
         Raises:
-            HTTPException: If the user is not logged in.
+            HTTPException: 401 if token is missing/invalid, 403 if insufficient role.
         """
-        assert credentials.credentials is not None  # make the linter happy that we are using the token
-        assert request is not None  # make the linter happy that we are using the token
-
-        if not current_user:
-            raise HTTPException(status_code=401, detail="Not logged in")
         return current_user.model_dump() # type: ignore
 
     # ------------------------------------------------------------------
@@ -385,7 +364,7 @@ class AuthRoutes:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="refresh_token is required"
                 )
-            return await refresh_access_token(refresh_token)
+            return refresh_access_token(refresh_token)
         except ValueError as exc:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
