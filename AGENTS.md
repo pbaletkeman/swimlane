@@ -23,9 +23,11 @@ No test files exist yet. `pytest` config is in `pyproject.toml` (`tests/` dir).
 
 **Routers** (registered in `main.py`):
 
-- `src/auth_routes.py` — Google OAuth login/callback, JWT issuance, `/me`, `/profile`, `/logout`
-- `src/frequency_routes.py` — Frequency CRUD (`/frequencies`)
-- `src/facility_routes.py` — Facility CRUD (`/facilities`)
+- `src/routes/auth_routes.py` — Google OAuth login/callback, JWT issuance, `/me`, `/profile`, `/logout`
+- `src/routes/frequency_routes.py` — Frequency CRUD (`/frequencies`)
+- `src/routes/facility_routes.py` — Facility CRUD (`/facilities`)
+- `src/routes/event_routes.py` — Event CRUD (`/events`)
+- `src/routes/venue_routes.py` — Venue CRUD (`/venues`)
 
 **Data layer** (`src/data/<entity>/`): each entity has 3 files following the same pattern:
 
@@ -33,7 +35,7 @@ No test files exist yet. `pytest` config is in `pyproject.toml` (`tests/` dir).
 - `<entity>_interface.py` — Abstract base class (ABC)
 - `sqlite.py` — SQLite implementation (raw `sqlite3`, no ORM)
 
-Implemented entities: `users`, `frequency`, `facility`, `event`. Planned: `venue`, `schedule`.
+Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`. Planned: `schedule`.
 
 **Config**: `config.yaml` (root) — YAML loaded by `src/util/configs.py:Config`. Controls DB driver (`sql.active: sqlite|postgresql`) and security settings. `.secrets/client_secret.json` for Google OAuth credentials (gitignored).
 
@@ -60,7 +62,7 @@ Follow `src/data/facility/` as the canonical example:
 1. Create `src/data/<entity>/<entity>.py` — Pydantic `BaseModel`
 2. Create `src/data/<entity>/<entity>_interface.py` — `abc.ABC` with abstract CRUD methods
 3. Create `src/data/<entity>/sqlite.py` — concrete SQLite class, inherit interface, implement with raw `sqlite3`
-4. Create `src/<entity>_routes.py` — class-based router pattern (see `frequency_routes.py`)
+4. Create `src/routes/<entity>_routes.py` — class-based router pattern (see `frequency_routes.py`)
 5. Register router in `main.py`
 
 ## Conventions
@@ -69,4 +71,4 @@ Follow `src/data/facility/` as the canonical example:
 - DB access in routes: `db = Config().db()` then call methods on the instance
 - Soft deletes via `is_active` column (not `is_deleted` — except `users` which uses both)
 - Bulk operations use `executemany` + `RETURNING` or re-select after insert
-- No `__init__.py` files in `src/` packages (implicit namespace packages)
+- No `__init__.py` files in `src/` packages except `src/routes/` (explicit route package)

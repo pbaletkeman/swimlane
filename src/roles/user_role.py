@@ -1,3 +1,5 @@
+"""UserRole enumeration for role-based access control."""
+
 from enum import StrEnum, auto
 
 

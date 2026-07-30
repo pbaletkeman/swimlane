@@ -159,7 +159,8 @@ class EventRoutes:
         db = self._get_db()
         all_events = db.list_events() or []
         events = [
-            ev for ev in all_events
+            ev
+            for ev in all_events
             for b in bodies
             if ev.start_date_time == b.start_date_time and ev.end_date_time == b.end_date_time
         ]
@@ -174,7 +175,8 @@ class EventRoutes:
         db = self._get_db()
         all_events = db.list_events() or []
         events = [
-            ev for ev in all_events
+            ev
+            for ev in all_events
             for b in bodies
             if ev.start_date_time == b.start_date_time and ev.end_date_time == b.end_date_time
         ]

@@ -9,8 +9,8 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 ### Core Infrastructure
 
 - [x] User entity with encrypted PII (AES-256-GCM) — `src/data/users/`
-- [x] Google OAuth2 authentication — `src/auth_routes.py`
-- [x] JWT access/refresh token system — `src/auth_routes.py`
+- [x] Google OAuth2 authentication — `src/routes/auth_routes.py`
+- [x] JWT access/refresh token system — `src/routes/auth_routes.py`
 - [x] Role-based access control (admin, facility_manager, coach, member) — `src/roles/`
 - [x] Session middleware — `main.py`
 - [x] AES-256-GCM encryption for stored fields — `src/encryption.py`
@@ -22,7 +22,7 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 - [x] Abstract interface — `src/data/frequency/frequency_interface.py`
 - [x] SQLite CRUD — `src/data/frequency/sqlite.py`
 - [x] Table auto-creation via `init()` — `frequency` table with `name` UNIQUE index
-- [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/frequency_routes.py`
+- [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/routes/frequency_routes.py`
 - [x] Router registered in `main.py`
 
 ### Facility Entity
@@ -31,7 +31,7 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 - [x] Abstract interface — `src/data/facility/facility_interface.py`
 - [x] SQLite CRUD — `src/data/facility/sqlite.py`
 - [x] Table auto-creation via `init()` — `facility` table with `name` UNIQUE index
-- [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/facility_routes.py`
+- [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/routes/facility_routes.py`
 - [x] Router registered in `main.py`
 
 ### Event Entity
@@ -40,7 +40,16 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 - [x] Abstract interface — `src/data/event/event_interface.py`
 - [x] SQLite CRUD — `src/data/event/sqlite.py`
 - [x] Table auto-creation via `init()` — `event` table with `frequency_id` index
-- [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/event_routes.py`
+- [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/routes/event_routes.py`
+- [x] Router registered in `main.py`
+
+### Venue Entity
+
+- [x] Pydantic model — `src/data/venue/venue.py`
+- [x] Abstract interface — `src/data/venue/venue_interface.py`
+- [x] SQLite CRUD — `src/data/venue/sqlite.py`
+- [x] Table auto-creation via `init()` — `venue` table with `facility_id` index
+- [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/routes/venue_routes.py`
 - [x] Router registered in `main.py`
 
 ---
@@ -53,20 +62,12 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 
 ## To Do
 
-### Venue Entity
-
-- [ ] Create `src/data/venue/venue.py` — Pydantic model
-- [ ] Create `src/data/venue/venue_interface.py` — abstract base class
-- [ ] Create `src/data/venue/sqlite.py` — SQLite implementation
-- [ ] Create `src/venue_routes.py` — FastAPI routes
-- [ ] Add venue router to `main.py`
-
 ### Schedule Entity (junction table)
 
 - [ ] Create `src/data/schedule/schedule.py` — Pydantic model
 - [ ] Create `src/data/schedule/schedule_interface.py` — abstract base class
 - [ ] Create `src/data/schedule/sqlite.py` — SQLite implementation
-- [ ] Create `src/schedule_routes.py` — FastAPI routes
+- [ ] Create `src/routes/schedule_routes.py` — FastAPI routes
 - [ ] Add schedule router to `main.py`
 
 ### Database Constraints
