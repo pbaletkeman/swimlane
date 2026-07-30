@@ -1,8 +1,8 @@
+"""User data model for the Swimlane application."""
+
 import datetime
 
 from pydantic import BaseModel
-
-# from src.roles.roles import UserRole
 
 
 class User(BaseModel):

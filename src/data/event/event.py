@@ -1,3 +1,5 @@
+"""Event data model for the Swimlane application."""
+
 from pydantic import BaseModel
 
 

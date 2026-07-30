@@ -21,10 +21,11 @@ import os
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 
-from src.auth_routes import AuthRoutes
-from src.event_routes import EventRoutes
-from src.facility_routes import FacilityRoutes
-from src.frequency_routes import FrequencyRoutes
+from src.routes.auth_routes import AuthRoutes
+from src.routes.event_routes import EventRoutes
+from src.routes.facility_routes import FacilityRoutes
+from src.routes.frequency_routes import FrequencyRoutes
+from src.routes.venue_routes import VenueRoutes
 
 app = FastAPI()
 
@@ -43,6 +44,9 @@ app.include_router(facility_routes.router)
 
 event_routes = EventRoutes()
 app.include_router(event_routes.router)
+
+venue_routes = VenueRoutes()
+app.include_router(venue_routes.router)
 
 if __name__ == "__main__":
     import uvicorn

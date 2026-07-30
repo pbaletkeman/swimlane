@@ -1,3 +1,5 @@
+"""Shared Pydantic models used across the application."""
+
 from pydantic import BaseModel
 
 

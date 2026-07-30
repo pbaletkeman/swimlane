@@ -1,6 +1,6 @@
 # Swimlane
 
-A FastAPI web application for managing swimming-related data. Uses Google OAuth2 authentication, session-based identity tracking, and local JWT role tokens for authorization.
+A FastAPI web application for managing swimming team data — events, venues, facilities, and member schedules. Uses Google OAuth2 authentication, session-based identity tracking, and local JWT role tokens for authorization.
 
 ## Prerequisites
 
@@ -79,7 +79,6 @@ uv run pytest tests/test_specific.py
 ```bash
 uv run ruff check .
 uv run ruff format .
-uv run pylint src/
 ```
 
 ### Type checking
@@ -90,8 +89,10 @@ uv run pyright
 
 ## API Endpoints
 
-| Method | Path | Description | Auth Required |
-|--------|------|-------------|---------------|
+### Authentication
+
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
 | GET | `/login` | Redirect to Google OAuth | No |
 | GET | `/auth/callback` | OAuth callback handler | No |
 | POST | `/refresh` | Refresh access token | No |
@@ -99,35 +100,61 @@ uv run pyright
 | GET | `/profile` | Get current user profile | Yes |
 | GET | `/logout` | Clear session and redirect | No |
 
+### Entities
+
+| Prefix | Entity | Endpoints | Auth |
+|--------|--------|-----------|------|
+| `/frequencies` | Frequency | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
+| `/facilities` | Facility | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
+| `/events` | Event | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
+| `/venues` | Venue | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
+
 ## Project Structure
 
 ```plaintext
 swimlane/
-├── main.py              # FastAPI app entrypoint
-├── config.yaml          # Application configuration
-├── pyproject.toml       # Dependencies and tool config
-├── LICENSE              # MIT License
+├── main.py                  # FastAPI app entrypoint
+├── config.yaml              # Application configuration
+├── pyproject.toml           # Dependencies and tool config
+├── LICENSE                  # MIT License
 ├── src/
-│   ├── auth_routes.py   # Authentication endpoints
-│   ├── encryption.py    # AES-256-GCM encryption
-│   ├── env.py           # Environment constants
-│   ├── misc_models.py   # Shared Pydantic models
-│   ├── util/
-│   │   └── configs.py   # Configuration management
-│   ├── roles/
-│   │   ├── roles.py     # Role definitions
-│   │   ├── roles_checker.py  # RBAC dependency
-│   │   └── user_role.py # UserRole enum
-│   └── data/
-│       └── users/       # User CRUD operations
-└── docs/                # Documentation
+│   ├── encryption.py        # AES-256-GCM encryption for PII
+│   ├── env.py               # Environment variable defaults
+│   ├── misc_models.py       # Shared Pydantic models (TokenData)
+│   ├── data/                # Data layer (entity models + SQLite)
+│   │   ├── users/           # User entity with encrypted PII
+│   │   ├── frequency/       # Event frequency types
+│   │   ├── facility/        # Physical facilities
+│   │   ├── event/           # Swim sessions
+│   │   └── venue/           # Locations with facilities
+│   ├── roles/               # RBAC (UserRole, RoleChecker)
+│   ├── routes/              # API routers (auth, entity CRUD)
+│   └── util/                # Config management (YAML, DB provider)
+├── docs/                    # Documentation
+│   ├── erd.mmd              # Entity-Relationship diagram
+│   ├── flow/                # Workflow flowcharts
+│   └── sequence/            # Sequence diagrams
+├── config/                  # Deployment configs (PostgreSQL)
+└── referances/              # Reference implementations
 ```
+
+## Entity Pattern
+
+Each entity follows a consistent 3-file pattern:
+
+1. `<entity>.py` — Pydantic `BaseModel`
+2. `<entity>_interface.py` — Abstract base class (`abc.ABC`)
+3. `sqlite.py` — Concrete SQLite implementation
+
+See [`src/data/`](src/data/README.md) for details.
 
 ## Documentation
 
-- [Plan](docs/plan.md)
-- [Relationships](docs/relationships.md)
-- [Entity Relationship Diagram](docs/erd.mmd)
+- [Architecture](AGENTS.md) — Commands, patterns, conventions, gotchas
+- [Development Plan](docs/plan.md)
+- [Entity Relationships](docs/relationships.md)
+- [ERD](docs/erd.mmd)
+- [TODO](docs/TODO.md) — Task tracking
 
 ## License
 

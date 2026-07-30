@@ -1,8 +1,25 @@
-# Readme.md
+# Documentation
 
-## see [index.md](index.md)
+Project documentation including architecture, workflows, and development plans.
 
-## see [diagrams.md](diagrams.md)
+## Files
 
+| File | Description |
+|------|-------------|
+| `readme.md` | Documentation index and overview |
+| `erd.mmd` | Entity-Relationship diagram (Mermaid format) |
+| `relationships.md` | Business domain relationships and entity descriptions |
+| `plan.md` | Development plan and milestones |
+| `TODO.md` | Task tracking — completed, in-progress, and to-do items |
+| `policy-amendment.md` | Team Atomica swim policy (makeup rules, refunds) |
+| `other-notes.md` | Business notes (invoicing, missed swim tracking) |
+| `diagrams.md` | Diagram index and descriptions |
+| `index.md` | Documentation landing page |
+| `update_index.py` | Script to regenerate documentation index |
 
-Something goes here
+## Directories
+
+| Directory | Description |
+|-----------|-------------|
+| `flow/` | Mermaid flowcharts — current and new signup/reschedule workflows |
+| `sequence/` | Mermaid sequence diagrams — current and new signup/reschedule interactions |
