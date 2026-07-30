@@ -7,6 +7,7 @@ encrypts PII, and inserts into the users table.
 Usage:
     python seed_admins.py
 """
+
 import json
 import sys
 from typing import Any

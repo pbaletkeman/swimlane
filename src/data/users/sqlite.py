@@ -2,23 +2,24 @@
 SQLite Implementation of User Interface Layer for Swimlane Application (`swimlane/src/data/users/sqlite.py`).
 
 This module provides database operations for user management using SQLite3 connections.
-It serves as an interface layer (inheriting from `UserInterfaceBase`) to perform 
-CRUD operations (Create, Read, Update, Delete) on the 'users' table located in the 
+It serves as an interface layer (inheriting from `UserInterfaceBase`) to perform
+CRUD operations (Create, Read, Update, Delete) on the 'users' table located in the
 SQLite database file configured by `Config`.
 
 Methods include:
 - `get_create_table()`: Provides the DDL for setting up the users table schema.
 - `get_record_select()`: Creates SQL fragments for selecting user data based on criteria.
-- Helper methods (`create_user_helper`, `_get_list_of_users`): Transform raw row results into 
+- Helper methods (`create_user_helper`, `_get_list_of_users`): Transform raw row results into
   typed `User` objects or lists of subjects.
-- Core CRUD operations (`create_user_bulk`, `update_user`, `delete_user_by_sub`, etc.): 
+- Core CRUD operations (`create_user_bulk`, `update_user`, `delete_user_by_sub`, etc.):
   Handle the actual database transactions, managing soft deletes and role assignments.
 
 Attributes:
     _sqlite_file (str): The path to the SQLite database where user data is stored.
 """
-from datetime import datetime, timezone
+
 import sqlite3
+from datetime import datetime, timezone
 from typing import Any, LiteralString, Optional
 
 from src.data.users.user import User
@@ -83,21 +84,21 @@ class SQLite(UserInterfaceBase):
 
         if rs:
             return User(
-                    sub=rs["sub"],
-                    role=rs["role"],
-                    first_name_ciphertext=rs["first_name_ciphertext"],
-                    first_name_nonce=rs["first_name_nonce"],
-                    last_name_ciphertext=rs["last_name_ciphertext"],
-                    last_name_nonce=rs["last_name_nonce"],
-                    email_ciphertext=rs["email_ciphertext"],
-                    email_nonce=rs["email_nonce"],
-                    email_hash=rs["email_hash"],
-                    is_active=rs["is_active"],
-                    is_deleted=rs["is_deleted"],
-                    created_at=rs["created_at"],
-                    deleted_at=rs["deleted_at"],
-                    updated_at=rs["updated_at"],
-                )
+                sub=rs["sub"],
+                role=rs["role"],
+                first_name_ciphertext=rs["first_name_ciphertext"],
+                first_name_nonce=rs["first_name_nonce"],
+                last_name_ciphertext=rs["last_name_ciphertext"],
+                last_name_nonce=rs["last_name_nonce"],
+                email_ciphertext=rs["email_ciphertext"],
+                email_nonce=rs["email_nonce"],
+                email_hash=rs["email_hash"],
+                is_active=rs["is_active"],
+                is_deleted=rs["is_deleted"],
+                created_at=rs["created_at"],
+                deleted_at=rs["deleted_at"],
+                updated_at=rs["updated_at"],
+            )
         return None
 
     # ------------------------------------------------------------------
@@ -218,19 +219,22 @@ class SQLite(UserInterfaceBase):
         with self._connect() as conn:
             cursor = conn.cursor()
 
-            cursor.execute(sql, (
-                user.role,
-                user.first_name_ciphertext,
-                user.first_name_nonce,
-                user.last_name_ciphertext,
-                user.last_name_nonce,
-                user.email_ciphertext,
-                user.email_nonce,
-                user.email_hash,
-                user.is_active,
-                user.updated_at,
-                user.sub
-            ))
+            cursor.execute(
+                sql,
+                (
+                    user.role,
+                    user.first_name_ciphertext,
+                    user.first_name_nonce,
+                    user.last_name_ciphertext,
+                    user.last_name_nonce,
+                    user.email_ciphertext,
+                    user.email_nonce,
+                    user.email_hash,
+                    user.is_active,
+                    user.updated_at,
+                    user.sub,
+                ),
+            )
 
             rs = cursor.fetchone()
             if rs:
@@ -358,22 +362,26 @@ class SQLite(UserInterfaceBase):
             valid_last_name = bool(user.last_name_nonce and user.last_name_ciphertext)
             valid_email = bool(user.email_nonce and user.email_ciphertext and user.email_hash)
 
-            if not (bool(user.role and valid_first_name) # type: ignore[attr-defined]
+            if not (
+                bool(user.role and valid_first_name)  # type: ignore[attr-defined]
                 and valid_last_name
-                and valid_email):
+                and valid_email
+            ):
                 continue
 
-            data.append((
-                str(user.sub),      # type: ignore[attr-defined]
-                str(user.role),     # type: ignore[union-attr]
-                user.first_name_nonce or "",
-                user.first_name_ciphertext or "",
-                user.last_name_nonce or "",
-                user.last_name_ciphertext or "",
-                user.email_nonce or "",
-                user.email_ciphertext or "",
-                user.email_hash or "",  # type: ignore[arg-type]
-            ))
+            data.append(
+                (
+                    str(user.sub),  # type: ignore[attr-defined]
+                    str(user.role),  # type: ignore[union-attr]
+                    user.first_name_nonce or "",
+                    user.first_name_ciphertext or "",
+                    user.last_name_nonce or "",
+                    user.last_name_ciphertext or "",
+                    user.email_nonce or "",
+                    user.email_ciphertext or "",
+                    user.email_hash or "",  # type: ignore[arg-type]
+                )
+            )
 
             subs_params.append(str(user.sub))  # type: ignore[attr-defined]
 
@@ -455,4 +463,5 @@ class SQLite(UserInterfaceBase):
                     return_users.append(u)
 
             return return_users if len(return_users) > 0 else None
+
     # end bulk methods

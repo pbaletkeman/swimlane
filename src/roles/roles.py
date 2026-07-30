@@ -9,35 +9,22 @@ control (RBAC) across application routes and services.
 from src.roles.roles_checker import RoleChecker
 from src.roles.user_role import UserRole
 
-
 # Instantiate specific role dependencies
-admin_role = RoleChecker([
-  UserRole.WEB_ADMIN.value
-])
+admin_role = RoleChecker([UserRole.WEB_ADMIN.value])
 """RoleChecker: Grants access to Web Administrators only."""
 
 
-facility_manager_role = RoleChecker([
-  UserRole.FACILITY_MANAGER.value,
-  UserRole.WEB_ADMIN.value
-])
+facility_manager_role = RoleChecker([UserRole.FACILITY_MANAGER.value, UserRole.WEB_ADMIN.value])
 """RoleChecker: Grants access to Facility Managers and Web Administrators."""
 
 
-coach_role = RoleChecker([
-  UserRole.COACH.value,
-  UserRole.FACILITY_MANAGER.value,
-  UserRole.WEB_ADMIN.value
-])
+coach_role = RoleChecker([UserRole.COACH.value, UserRole.FACILITY_MANAGER.value, UserRole.WEB_ADMIN.value])
 """RoleChecker: Grants access to Coaches, Facility Managers, and Web Administrators."""
 
 
-member_role = RoleChecker([
-  UserRole.MEMBER.value,
-  UserRole.COACH.value,
-  UserRole.FACILITY_MANAGER.value,
-  UserRole.WEB_ADMIN.value
-])
+member_role = RoleChecker(
+    [UserRole.MEMBER.value, UserRole.COACH.value, UserRole.FACILITY_MANAGER.value, UserRole.WEB_ADMIN.value]
+)
 """RoleChecker: Grants access to Members, Coaches, Facility Managers, and Web Administrators."""
 
 

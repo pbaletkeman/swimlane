@@ -9,10 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from src.data.facility.facility import Facility
+from src.data.facility.sqlite import SQLite as FacilitySQLite
 from src.roles.roles import admin_role, all_users, facility_manager_role
-from src.util.configs import Config
-
-db_connect = Config().db
 
 
 class FacilityRequest(BaseModel):
@@ -86,10 +84,8 @@ class FacilityRoutes:
         )
 
     # ------------------------------------------------------------------
-    def _get_db(self):
-        if not db_connect:
-            raise HTTPException(status_code=500, detail="Database not configured")
-        return db_connect()
+    def _get_db(self) -> FacilitySQLite:
+        return FacilitySQLite()
 
     # ------------------------------------------------------------------
     async def list_facilities(self) -> list[Facility]:

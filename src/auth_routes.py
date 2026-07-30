@@ -130,14 +130,10 @@ def verify_token(token: str, expected_type: str) -> TokenData:
         return TokenData(**payload)
     except exceptions.ExpiredSignatureError as exc:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"{expected_type.capitalize()} token expired"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=f"{expected_type.capitalize()} token expired"
         ) from exc
     except JWTError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid {expected_type} token"
-        ) from exc
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid {expected_type} token") from exc
 
 
 def refresh_access_token(refresh_token: str) -> dict[str, str]:
@@ -169,10 +165,12 @@ def refresh_access_token(refresh_token: str) -> dict[str, str]:
 
     return {"access_token": new_access_token, "token_type": "bearer"}
 
+
 # ---------------------------
 # ROUTES CLASS
 # ---------------------------
 security = HTTPBearer()
+
 
 class AuthRoutes:
     """
@@ -184,6 +182,7 @@ class AuthRoutes:
     - Local JWT generation for role‑based authorization
     - Basic profile and logout endpoints
     """
+
     # ------------------------------------------------------------------
     def __init__(self):
         """
@@ -202,7 +201,6 @@ class AuthRoutes:
         # --- OAUTH SETUP ---
         self.oauth: Any = OAuth()
 
-
         self.oauth.register(  # type: ignore
             name="google",
             client_id=google_client_id,
@@ -215,12 +213,12 @@ class AuthRoutes:
         self.router.add_api_route("/login", self.login, methods=["GET"])
         self.router.add_api_route("/auth/callback", self.auth_callback, methods=["GET"])
         self.router.add_api_route("/refresh", self.refresh, methods=["POST"])
-        self.router.add_api_route("/me", self.me, methods=["GET"]) # type: ignore
-        self.router.add_api_route("/profile", self.me, methods=["GET"]) # type: ignore
+        self.router.add_api_route("/me", self.me, methods=["GET"])  # type: ignore
+        self.router.add_api_route("/profile", self.me, methods=["GET"])  # type: ignore
         self.router.add_api_route("/logout", self.logout, methods=["GET"])
 
     # ------------------------------------------------------------------
-    def oauth2user(self, userinfo : dict[str, Any]) -> User:
+    def oauth2user(self, userinfo: dict[str, Any]) -> User:
         first_name_enc = encrypt_field(userinfo["given_name"])
         last_name_enc = encrypt_field(userinfo["family_name"])
         email_enc = encrypt_field(userinfo["email"])
@@ -233,10 +231,11 @@ class AuthRoutes:
             last_name_ciphertext=last_name_enc["ciphertext"],
             email_nonce=email_enc["nonce"],
             email_ciphertext=email_enc["ciphertext"],
-            email_hash=hash_field(userinfo["email"])
+            email_hash=hash_field(userinfo["email"]),
         )
 
         return user
+
     # ------------------------------------------------------------------
     async def login(self, request: Request) -> Any:
         """
@@ -304,6 +303,8 @@ class AuthRoutes:
             oauth_user: User = self.oauth2user(user_info)
             oauth_user.role = UserRole.MEMBER.value
             existing_user = db_connect().create_user(oauth_user)
+            if not existing_user:
+                raise HTTPException(status_code=500, detail="Failed to create user")
 
         # Bake the role directly into your own app's JWT token
         token_payload = {"sub": sub, "role": existing_user.role}
@@ -316,14 +317,11 @@ class AuthRoutes:
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer",
-            "user": user_info
+            "user": user_info,
         }
 
     # ------------------------------------------------------------------
-    async def me(
-            self,
-            current_user: User = Depends(member_role)
-        ) -> dict:
+    async def me(self, current_user: User = Depends(member_role)) -> dict:
         """
         Return the currently authenticated user's profile.
 
@@ -335,7 +333,7 @@ class AuthRoutes:
         Raises:
             HTTPException: 401 if token is missing/invalid, 403 if insufficient role.
         """
-        return current_user.model_dump() # type: ignore
+        return current_user.model_dump()  # type: ignore
 
     # ------------------------------------------------------------------
     async def refresh(self, request: Request) -> dict[str, str]:
@@ -360,16 +358,10 @@ class AuthRoutes:
             body = await request.json()
             refresh_token: str | None = body.get("refresh_token")
             if not refresh_token:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="refresh_token is required"
-                )
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="refresh_token is required")
             return refresh_access_token(refresh_token)
         except ValueError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid request body"
-            ) from exc
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request body") from exc
 
     # ------------------------------------------------------------------
     async def logout(self, request: Request) -> RedirectResponse:

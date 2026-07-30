@@ -9,6 +9,7 @@ reads are cached after the first call to avoid repeated disk I/O.
 import json
 import os
 from typing import Any
+
 import yaml
 
 
@@ -52,13 +53,10 @@ class Config:
             Config._google_configured = True
         except FileNotFoundError as exc:
             raise FileNotFoundError(
-                f"Google OAuth client secret not found at '{file_path}'. "
-                "Create it from client_secret.sample.txt."
+                f"Google OAuth client secret not found at '{file_path}'. Create it from client_secret.sample.txt."
             ) from exc
         except json.JSONDecodeError as exc:
-            raise ValueError(
-                f"Invalid JSON in '{file_path}': {exc}"
-            ) from exc
+            raise ValueError(f"Invalid JSON in '{file_path}': {exc}") from exc
 
     @staticmethod
     def sqlite_file() -> str:
@@ -69,7 +67,6 @@ class Config:
         path = config.get("sql", {}).get("providers", {}).get("sqlite", {}).get("sqlite_file", "")
         Config._sqlite_file_cache = path
         return path
-
 
     def __init__(self) -> None:
         from src.data.users.sqlite import SQLite

@@ -5,12 +5,15 @@ Provides authenticated encryption for sensitive user fields (name, email) with
 random nonces, and deterministic SHA-256 hashing for encrypted field lookups.
 """
 
-import os
 import base64
 import hashlib
+import os
 from typing import Any, Optional
+
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
 from src.env import ENCRYPTION_KEY_ENV_VAR
+
 
 def load_key_from_env() -> bytes:
     """
@@ -25,7 +28,9 @@ def load_key_from_env() -> bytes:
         raise RuntimeError("APP_AES_KEY must be 32 bytes (base64-encoded)")
     return key
 
+
 KEY = load_key_from_env()
+
 
 def encrypt_field(plaintext: str, aad: Optional[bytes] = None) -> dict[Any, Any]:
     """

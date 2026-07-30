@@ -5,6 +5,7 @@ This module provides database operations for frequency management using SQLite3 
 It serves as an interface layer (inheriting from `FrequencyInterface`) to perform
 CRUD operations on the 'frequency' table.
 """
+
 import sqlite3
 from typing import Any, LiteralString, Optional
 
@@ -94,12 +95,15 @@ class SQLite(FrequencyInterfaceBase):
         with self._connect() as conn:
             cursor = conn.cursor()
 
-            cursor.execute(sql, (
-                frequency.name,
-                frequency.day_interval,
-                frequency.is_active,
-                frequency.frequency_id,
-            ))
+            cursor.execute(
+                sql,
+                (
+                    frequency.name,
+                    frequency.day_interval,
+                    frequency.is_active,
+                    frequency.frequency_id,
+                ),
+            )
 
             rs = cursor.fetchone()
             if rs:

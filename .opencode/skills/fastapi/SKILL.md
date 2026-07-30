@@ -229,9 +229,7 @@ class Item(BaseModel):
 
 @app.get("/items/me", response_model=Item)
 async def get_item() -> Any:
-    item = InternalItem(
-        name="Foo", description="A very nice Item", secret_key="supersecret"
-    )
+    item = InternalItem(name="Foo", description="A very nice Item", secret_key="supersecret")
     return item
 ```
 
@@ -383,7 +381,6 @@ class ItemList(RootModel[Annotated[list[int], Field(min_length=1)]]):
 @app.post("/items/")
 async def create_items(items: ItemList):
     return items
-
 ```
 
 FastAPI supports these type annotations and will create a Pydantic `TypeAdapter` for them, so that types can work as normally and there's no need for the custom logic and types in RootModels.
