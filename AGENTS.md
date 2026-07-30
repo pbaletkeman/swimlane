@@ -28,6 +28,7 @@ No test files exist yet. `pytest` config is in `pyproject.toml` (`tests/` dir).
 - `src/routes/facility_routes.py` — Facility CRUD (`/facilities`)
 - `src/routes/event_routes.py` — Event CRUD (`/events`)
 - `src/routes/venue_routes.py` — Venue CRUD (`/venues`)
+- `src/routes/schedule_routes.py` — Schedule CRUD (`/schedules`)
 
 **Data layer** (`src/data/<entity>/`): each entity has 3 files following the same pattern:
 
@@ -35,7 +36,7 @@ No test files exist yet. `pytest` config is in `pyproject.toml` (`tests/` dir).
 - `<entity>_interface.py` — Abstract base class (ABC)
 - `sqlite.py` — SQLite implementation (raw `sqlite3`, no ORM)
 
-Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`. Planned: `schedule`.
+Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `schedule`.
 
 **Config**: `config.yaml` (root) — YAML loaded by `src/util/configs.py:Config`. Controls DB driver (`sql.active: sqlite|postgresql`) and security settings. `.secrets/client_secret.json` for Google OAuth credentials (gitignored).
 
@@ -43,7 +44,9 @@ Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`. Planne
 
 **Encryption**: `src/encryption.py` — AES-256-GCM for PII fields. Key from env var (`APP_AES_KEY`). User model stores nonce + ciphertext columns, never plaintext.
 
-**DB init**: Each SQLite implementation's `init()` runs `CREATE TABLE IF NOT EXISTS` — no separate migration files. Call `Config().db().init()` to ensure tables exist.
+**DB init**: Each SQLite implementation's `init()` runs `CREATE TABLE IF NOT EXISTS` — no separate migration files. Call `Config().db().init()` to ensure tables exist. All connections enable `PRAGMA foreign_keys = ON` for FK enforcement.
+
+**Foreign Keys**: FK constraints with `ON DELETE CASCADE ON UPDATE CASCADE` are defined in `CREATE TABLE` DDL for: `venue→facility`, `event→frequency`, `schedule→venue`, `schedule→users`, `schedule→event`.
 
 ## Gotchas
 
@@ -51,7 +54,6 @@ Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`. Planne
 - `Config().db` is a **class** (not instance) — call `Config().db()` to get a SQLite instance.
 - `Config.__init__` calls `Config.google_config()` which reads `.secrets/client_secret.json` — app won't start without it (or will raise `FileNotFoundError`).
 - `referances/` directory name is intentionally misspelled.
-- The `.venv/` folder is in git but should not be committed to shared branches.
 - `pymarkdownlnt` is in dev deps but no markdown lint config exists — don't run it unless configured.
 - Ruff line-length is 120 (not default 88).
 
@@ -71,4 +73,3 @@ Follow `src/data/facility/` as the canonical example:
 - DB access in routes: `db = Config().db()` then call methods on the instance
 - Soft deletes via `is_active` column (not `is_deleted` — except `users` which uses both)
 - Bulk operations use `executemany` + `RETURNING` or re-select after insert
-- No `__init__.py` files in `src/` packages except `src/routes/` (explicit route package)
