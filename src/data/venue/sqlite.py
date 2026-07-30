@@ -25,6 +25,7 @@ class SQLite(VenueInterfaceBase):
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._sqlite_file)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON;")
         return conn
 
     # ------------------------------------------------------------------
@@ -38,7 +39,8 @@ class SQLite(VenueInterfaceBase):
                 state       TEXT     NOT NULL,
                 postal_code TEXT     NOT NULL,
                 cost        REAL     NULL DEFAULT 0.0,
-                is_active   INTEGER  NULL DEFAULT 1
+                is_active   INTEGER  NULL DEFAULT 1,
+                FOREIGN KEY (facility_id) REFERENCES facility(facility_id) ON DELETE CASCADE ON UPDATE CASCADE
             );
             CREATE INDEX IF NOT EXISTS idx_venue_facility_id ON venue (facility_id);"""
         return sql

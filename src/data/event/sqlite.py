@@ -25,6 +25,7 @@ class SQLite(EventInterfaceBase):
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._sqlite_file)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON;")
         return conn
 
     # ------------------------------------------------------------------
@@ -35,7 +36,8 @@ class SQLite(EventInterfaceBase):
                 start_date_time  TEXT     NOT NULL,
                 end_date_time    TEXT     NOT NULL,
                 frequency_id     INTEGER,
-                is_active        INTEGER  NULL DEFAULT 1
+                is_active        INTEGER  NULL DEFAULT 1,
+                FOREIGN KEY (frequency_id) REFERENCES frequency(frequency_id) ON DELETE CASCADE ON UPDATE CASCADE
             );
             CREATE INDEX IF NOT EXISTS idx_event_frequency_id ON event (frequency_id);"""
         return sql

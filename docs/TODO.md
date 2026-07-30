@@ -52,6 +52,21 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 - [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/routes/venue_routes.py`
 - [x] Router registered in `main.py`
 
+### Schedule Entity
+
+- [x] Pydantic model — `src/data/schedule/schedule.py`
+- [x] Abstract interface — `src/data/schedule/schedule_interface.py`
+- [x] SQLite CRUD — `src/data/schedule/sqlite.py`
+- [x] Table auto-creation via `init()` — `schedule` table with `venue_id`, `member_id`, `event_id` indexes
+- [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/routes/schedule_routes.py`
+- [x] Router registered in `main.py`
+
+### Database Constraints
+
+- [x] Add foreign key constraints per ERD relationships
+- [x] Add `ON DELETE` / `ON UPDATE` cascade rules for venue→facility, event→frequency, schedule→venue/member/event
+- [x] Enable `PRAGMA foreign_keys = ON` in all SQLite connections
+
 ---
 
 ## In Progress
@@ -61,19 +76,6 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 ---
 
 ## To Do
-
-### Schedule Entity (junction table)
-
-- [ ] Create `src/data/schedule/schedule.py` — Pydantic model
-- [ ] Create `src/data/schedule/schedule_interface.py` — abstract base class
-- [ ] Create `src/data/schedule/sqlite.py` — SQLite implementation
-- [ ] Create `src/routes/schedule_routes.py` — FastAPI routes
-- [ ] Add schedule router to `main.py`
-
-### Database Constraints
-
-- [ ] Add foreign key constraints per ERD relationships
-- [ ] Add `ON DELETE` / `ON UPDATE` cascade rules for venue→facility, event→frequency, schedule→ venue/member/event
 
 ### Testing
 

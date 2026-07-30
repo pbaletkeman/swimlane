@@ -25,6 +25,7 @@ from src.routes.auth_routes import AuthRoutes
 from src.routes.event_routes import EventRoutes
 from src.routes.facility_routes import FacilityRoutes
 from src.routes.frequency_routes import FrequencyRoutes
+from src.routes.schedule_routes import ScheduleRoutes
 from src.routes.venue_routes import VenueRoutes
 
 app = FastAPI()
@@ -47,6 +48,9 @@ app.include_router(event_routes.router)
 
 venue_routes = VenueRoutes()
 app.include_router(venue_routes.router)
+
+schedule_routes = ScheduleRoutes()
+app.include_router(schedule_routes.router)
 
 if __name__ == "__main__":
     import uvicorn
