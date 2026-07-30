@@ -4,9 +4,12 @@ It provides an abstract base class with methods for creating, retrieving, updati
 as well as listing users by role. This interface allows for different implementations of user data storage
 (e.g., in-memory, database) while maintaining a consistent API for user operations across the application.
 """
+
 import abc
 from typing import Optional
+
 from src.data.users.user import User
+
 
 class UserInterface(abc.ABC):
     """Abstract base class defining the interface for user data management.
@@ -24,7 +27,7 @@ class UserInterface(abc.ABC):
         """Create a new user in the data store. Returns the created user(s) with assigned IDs."""
 
     @abc.abstractmethod
-    def update_user(self, user: User ) -> Optional[User]:
+    def update_user(self, user: User) -> Optional[User]:
         """Update a user based on current_sub to the values in user. Returns updated user"""
 
     @abc.abstractmethod
@@ -55,6 +58,7 @@ class UserInterface(abc.ABC):
             return self.get_user_by_email(email) is not None
         else:
             return False
+
     # end singular methods
 
     # begin bulk methods

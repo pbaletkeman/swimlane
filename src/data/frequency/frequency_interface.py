@@ -1,9 +1,12 @@
 """
-This module defines the FrequencyInterface interface, which abstracts the data management layer for frequency information.
-It provides an abstract base class with methods for creating, retrieving, updating, and deleting frequency records.
+This module defines the FrequencyInterface interface, which abstracts the data
+management layer for frequency information. It provides an abstract base class
+with methods for creating, retrieving, updating, and deleting frequency records.
 """
+
 import abc
 from typing import Optional
+
 from src.data.frequency.frequency import Frequency
 
 

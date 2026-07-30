@@ -4,8 +4,10 @@ from pydantic import BaseModel
 
 # from src.roles.roles import UserRole
 
+
 class User(BaseModel):
     """Data model representing a user with role information."""
+
     sub: str  # Unique identifier for the user (e.g., subject claim from JWT)
     role: str | None = None  # UserRole  # User's assigned role (e.g., "admin", "user")
 

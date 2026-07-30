@@ -34,6 +34,15 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 - [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/facility_routes.py`
 - [x] Router registered in `main.py`
 
+### Event Entity
+
+- [x] Pydantic model — `src/data/event/event.py`
+- [x] Abstract interface — `src/data/event/event_interface.py`
+- [x] SQLite CRUD — `src/data/event/sqlite.py`
+- [x] Table auto-creation via `init()` — `event` table with `frequency_id` index
+- [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/event_routes.py`
+- [x] Router registered in `main.py`
+
 ---
 
 ## In Progress
@@ -43,14 +52,6 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 ---
 
 ## To Do
-
-### Event Entity
-
-- [ ] Create `src/data/event/event.py` — Pydantic model
-- [ ] Create `src/data/event/event_interface.py` — abstract base class
-- [ ] Create `src/data/event/sqlite.py` — SQLite implementation
-- [ ] Create `src/event_routes.py` — FastAPI routes
-- [ ] Add event router to `main.py`
 
 ### Venue Entity
 

@@ -9,10 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from src.data.frequency.frequency import Frequency
+from src.data.frequency.sqlite import SQLite as FrequencySQLite
 from src.roles.roles import admin_role, all_users, facility_manager_role
-from src.util.configs import Config
-
-db_connect = Config().db
 
 
 class FrequencyRequest(BaseModel):
@@ -84,10 +82,8 @@ class FrequencyRoutes:
         )
 
     # ------------------------------------------------------------------
-    def _get_db(self):
-        if not db_connect:
-            raise HTTPException(status_code=500, detail="Database not configured")
-        return db_connect()
+    def _get_db(self) -> FrequencySQLite:
+        return FrequencySQLite()
 
     # ------------------------------------------------------------------
     async def list_frequencies(self) -> list[Frequency]:

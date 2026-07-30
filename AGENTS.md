@@ -33,7 +33,7 @@ No test files exist yet. `pytest` config is in `pyproject.toml` (`tests/` dir).
 - `<entity>_interface.py` — Abstract base class (ABC)
 - `sqlite.py` — SQLite implementation (raw `sqlite3`, no ORM)
 
-Implemented entities: `users`, `frequency`, `facility`. Planned: `event`, `venue`, `schedule`.
+Implemented entities: `users`, `frequency`, `facility`, `event`. Planned: `venue`, `schedule`.
 
 **Config**: `config.yaml` (root) — YAML loaded by `src/util/configs.py:Config`. Controls DB driver (`sql.active: sqlite|postgresql`) and security settings. `.secrets/client_secret.json` for Google OAuth credentials (gitignored).
 

@@ -2,6 +2,7 @@
 This module defines the FacilityInterface interface, which abstracts the data management layer for facility information.
 It provides an abstract base class with methods for creating, retrieving, updating, and deleting facility records.
 """
+
 import abc
 from typing import Optional
 

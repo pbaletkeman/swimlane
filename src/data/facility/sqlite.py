@@ -5,6 +5,7 @@ This module provides database operations for facility management using SQLite3 c
 It serves as an interface layer (inheriting from `FacilityInterface`) to perform
 CRUD operations on the 'facility' table.
 """
+
 import sqlite3
 from typing import Any, LiteralString, Optional
 
@@ -100,14 +101,17 @@ class SQLite(FacilityInterfaceBase):
         with self._connect() as conn:
             cursor = conn.cursor()
 
-            cursor.execute(sql, (
-                facility.name,
-                facility.description,
-                facility.max_capacity,
-                facility.min_capacity,
-                facility.is_active,
-                facility.facility_id,
-            ))
+            cursor.execute(
+                sql,
+                (
+                    facility.name,
+                    facility.description,
+                    facility.max_capacity,
+                    facility.min_capacity,
+                    facility.is_active,
+                    facility.facility_id,
+                ),
+            )
 
             rs = cursor.fetchone()
             if rs:
@@ -195,13 +199,15 @@ class SQLite(FacilityInterfaceBase):
         for fac in facilities:
             if not fac.name:
                 continue
-            data.append((
-                fac.name,
-                fac.description,
-                fac.max_capacity,
-                fac.min_capacity,
-                int(fac.is_active),
-            ))
+            data.append(
+                (
+                    fac.name,
+                    fac.description,
+                    fac.max_capacity,
+                    fac.min_capacity,
+                    int(fac.is_active),
+                )
+            )
             names.append(fac.name)
 
         with self._connect() as conn:
