@@ -111,4 +111,7 @@ poetry.toml
 ### secrets ###
 .secrets/
 
+### sqlite database ###
+*.db
+
 ### End of https://www.toptal.com/developers/gitignore/api/python #;

@@ -18,6 +18,7 @@ class AuthRoutes:
         self.router.add_api_route("/login", self.login, methods=["GET"])
         # ...
 
+
 # In main.py
 app.include_router(AuthRoutes().router)
 ```

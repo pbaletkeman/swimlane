@@ -40,6 +40,7 @@ Roles are hierarchical -- higher roles inherit access to lower-role endpoints.
 ```python
 from src.roles.roles import admin_role, member_role
 
+
 @router.get("/admin-only", dependencies=[Depends(HTTPBearer()), Depends(admin_role)])
 def admin_endpoint():
     return {"message": "Admin only"}
