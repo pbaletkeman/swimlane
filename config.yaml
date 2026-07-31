@@ -1,3 +1,7 @@
+logging:
+  level: INFO  # Override with LOG_LEVEL env var
+  # file: logs/app.log  # Optional alternative to LOG_FILE env var
+
 security:
   algorithm:
     HS256

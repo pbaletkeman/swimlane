@@ -44,6 +44,8 @@ Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `sched
 
 **Encryption**: `src/encryption.py` — AES-256-GCM for PII fields. Key from env var (`APP_AES_KEY`). User model stores nonce + ciphertext columns, never plaintext.
 
+**Logging**: `src/util/logging.py` — centralized `setup_logging()`. `src/middleware/logging.py` — request logging middleware with UUID correlation IDs. Env vars: `LOG_LEVEL` (default `INFO`), `LOG_FORMAT` (`text`|`json`), `LOG_FILE` (optional file output).
+
 **DB init**: Each SQLite implementation's `init()` runs `CREATE TABLE IF NOT EXISTS` — no separate migration files. Call `Config().db().init()` to ensure tables exist. All connections enable `PRAGMA foreign_keys = ON` for FK enforcement.
 
 **Foreign Keys**: FK constraints with `ON DELETE CASCADE ON UPDATE CASCADE` are defined in `CREATE TABLE` DDL for: `venue→facility`, `event→frequency`, `schedule→venue`, `schedule→users`, `schedule→event`.
