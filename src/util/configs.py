@@ -7,10 +7,13 @@ reads are cached after the first call to avoid repeated disk I/O.
 """
 
 import json
+import logging
 import os
 from typing import Any
 
 import yaml
+
+logger = logging.getLogger(__name__)
 
 
 class Config:
@@ -33,6 +36,7 @@ class Config:
         with open("config.yaml", "r", encoding="utf-8") as file:
             config = yaml.safe_load(file)
         Config._yaml_cache = config
+        logger.info("Configuration loaded from config.yaml")
         return config
 
     @staticmethod
@@ -51,11 +55,14 @@ class Config:
                 for key, value in web.items():
                     os.environ["GOOGLE_" + key.upper()] = str(value)
             Config._google_configured = True
+            logger.info("Google OAuth credentials loaded from %s", file_path)
         except FileNotFoundError as exc:
+            logger.error("Google OAuth client secret not found at '%s'", file_path)
             raise FileNotFoundError(
                 f"Google OAuth client secret not found at '{file_path}'. Create it from client_secret.sample.txt."
             ) from exc
         except json.JSONDecodeError as exc:
+            logger.error("Invalid JSON in '%s': %s", file_path, exc)
             raise ValueError(f"Invalid JSON in '{file_path}': {exc}") from exc
 
     @staticmethod
@@ -66,10 +73,11 @@ class Config:
         config = Config.yaml_config()
         path = config.get("sql", {}).get("providers", {}).get("sqlite", {}).get("sqlite_file", "")
         Config._sqlite_file_cache = path
+        logger.info("SQLite database file: %s", path)
         return path
 
     def __init__(self) -> None:
-        from src.data.users.sqlite import SQLite
+        from src.data.users.sqlite import SQLite  # noqa: E402  # pylint: disable=import-outside-toplevel
 
         self.yamlconfig: dict[str, Any] = Config.yaml_config()
         Config.google_config()
@@ -80,4 +88,4 @@ class Config:
             self.db_provider = self.yamlconfig["sql"]["providers"]["postgresql"]
             raise NotImplementedError("PostgreSQL provider not yet implemented")
         else:
-            print("config not found")
+            logger.warning("Unknown SQL driver configured: %s", self.yamlconfig["sql"]["active"])

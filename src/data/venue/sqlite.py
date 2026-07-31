@@ -6,12 +6,15 @@ It serves as an interface layer (inheriting from `VenueInterface`) to perform
 CRUD operations on the 'venue' table.
 """
 
+import logging
 import sqlite3
 from typing import Any, LiteralString, Optional
 
 from src.data.venue.venue import Venue
 from src.data.venue.venue_interface import VenueInterface as VenueInterfaceBase
 from src.util.configs import Config
+
+logger = logging.getLogger(__name__)
 
 
 class SQLite(VenueInterfaceBase):
@@ -23,10 +26,14 @@ class SQLite(VenueInterfaceBase):
         self._sqlite_file: str = Config.sqlite_file()
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._sqlite_file)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys = ON;")
-        return conn
+        try:
+            conn = sqlite3.connect(self._sqlite_file)
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA foreign_keys = ON;")
+            return conn
+        except sqlite3.Error as e:
+            logger.error("Database connection failed: %s", e)
+            raise
 
     # ------------------------------------------------------------------
     def get_create_table(self) -> LiteralString:
@@ -76,11 +83,15 @@ class SQLite(VenueInterfaceBase):
     # ------------------------------------------------------------------
     def init(self) -> None:
         """Initialize the data store, creating necessary structures or tables."""
-        with self._connect() as conn:
-            cursor = conn.cursor()
-            sql: str = self.get_create_table()
-            cursor.executescript(sql)
-            conn.commit()
+        try:
+            with self._connect() as conn:
+                cursor = conn.cursor()
+                sql: str = self.get_create_table()
+                cursor.executescript(sql)
+                conn.commit()
+        except sqlite3.Error as e:
+            logger.error("Database initialization failed: %s", e)
+            raise
 
     # ------------------------------------------------------------------
     def create_venue(self, venue: Venue) -> Optional[Venue]:

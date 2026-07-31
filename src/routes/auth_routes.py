@@ -40,6 +40,7 @@ for authentication and authorization, combining third‑party identity with
 first‑party role enforcement.
 """
 
+import logging
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
@@ -58,6 +59,8 @@ from src.misc_models import TokenData
 from src.roles.roles import member_role
 from src.roles.user_role import UserRole
 from src.util.configs import Config
+
+logger = logging.getLogger(__name__)
 
 config: dict = Config.yaml_config()  # type: ignore
 Config.google_config()
@@ -247,6 +250,7 @@ class AuthRoutes:
         Returns:
             A redirect response sending the user to Google's OAuth consent screen.
         """
+        logger.info("Login initiated")
         redirect_uri = request.url_for("auth_callback")
         return await self.oauth.google.authorize_redirect(request, redirect_uri)  # type: ignore
 
@@ -280,6 +284,7 @@ class AuthRoutes:
         try:
             token: Any = await self.oauth.google.authorize_access_token(request)  # type: ignore
         except Exception as exc:
+            logger.error("OAuth authorization failed: %s", exc)
             raise HTTPException(status_code=400, detail="OAuth authorization failed") from exc
 
         user_info: dict[str, Any] = token.get("userinfo")  # type: ignore
@@ -304,7 +309,11 @@ class AuthRoutes:
             oauth_user.role = UserRole.MEMBER.value
             existing_user = db_connect().create_user(oauth_user)
             if not existing_user:
+                logger.error("Failed to create user with sub=%s", sub)
                 raise HTTPException(status_code=500, detail="Failed to create user")
+            logger.info("New user registered with sub=%s", sub)
+        else:
+            logger.info("User login successful, sub=%s", sub)
 
         # Bake the role directly into your own app's JWT token
         token_payload = {"sub": sub, "role": existing_user.role}
@@ -359,6 +368,7 @@ class AuthRoutes:
             refresh_token: str | None = body.get("refresh_token")
             if not refresh_token:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="refresh_token is required")
+            logger.info("Token refresh requested")
             return refresh_access_token(refresh_token)
         except ValueError as exc:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid request body") from exc
@@ -374,5 +384,6 @@ class AuthRoutes:
         Returns:
             A redirect response to the root URL.
         """
+        logger.info("User logged out")
         request.session.pop("user", None)
         return RedirectResponse(url="/")

@@ -7,12 +7,15 @@ random nonces, and deterministic SHA-256 hashing for encrypted field lookups.
 
 import base64
 import hashlib
+import logging
 import os
 from typing import Any, Optional
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from src.env import ENCRYPTION_KEY_ENV_VAR
+
+logger = logging.getLogger(__name__)
 
 
 def load_key_from_env() -> bytes:
@@ -37,25 +40,33 @@ def encrypt_field(plaintext: str, aad: Optional[bytes] = None) -> dict[Any, Any]
     Encrypt a single PII field with AES-256-GCM.
     Returns dict with base64 nonce + ciphertext.
     """
-    aesgcm = AESGCM(KEY)
-    nonce = os.urandom(12)  # 96-bit nonce (standard for GCM)
-    ciphertext = aesgcm.encrypt(nonce, plaintext.encode("utf-8"), aad)
+    try:
+        aesgcm = AESGCM(KEY)
+        nonce = os.urandom(12)  # 96-bit nonce (standard for GCM)
+        ciphertext = aesgcm.encrypt(nonce, plaintext.encode("utf-8"), aad)
 
-    return {
-        "nonce": base64.b64encode(nonce).decode("ascii"),
-        "ciphertext": base64.b64encode(ciphertext).decode("ascii"),
-    }
+        return {
+            "nonce": base64.b64encode(nonce).decode("ascii"),
+            "ciphertext": base64.b64encode(ciphertext).decode("ascii"),
+        }
+    except Exception as e:
+        logger.error("Encryption failed: %s", e)
+        raise
 
 
 def decrypt_field(nonce_b64: str, ciphertext_b64: str, aad: Optional[bytes] = None) -> str:
     """
     Decrypt a single PII field with AES-256-GCM.
     """
-    aesgcm = AESGCM(KEY)
-    nonce = base64.b64decode(nonce_b64)
-    ciphertext = base64.b64decode(ciphertext_b64)
-    plaintext = aesgcm.decrypt(nonce, ciphertext, aad)
-    return plaintext.decode("utf-8")
+    try:
+        aesgcm = AESGCM(KEY)
+        nonce = base64.b64decode(nonce_b64)
+        ciphertext = base64.b64decode(ciphertext_b64)
+        plaintext = aesgcm.decrypt(nonce, ciphertext, aad)
+        return plaintext.decode("utf-8")
+    except Exception as e:
+        logger.error("Decryption failed: %s", e)
+        raise
 
 
 def hash_field(plaintext: str) -> str:
