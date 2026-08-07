@@ -5,7 +5,7 @@ sequenceDiagram
     actor Admin
 
     %% === MEMBER PROGRAM DISCOVERY ===
-    Note over Site,User: PROGRAM DISCOVERY (blue)
+    Note over Site,User: PROGRAM DISCOVERY
     Site->>User: Allow calendar selection and list active programs
 
     User->>Record: Find programs by location, season, price, description
@@ -16,14 +16,14 @@ sequenceDiagram
     User->>Site: Select program
 
     %% === SESSION FILTERING ===
-    Note over User,Record: SESSION FILTERING (green)
+    Note over User,Record: SESSION FILTERING
     User->>Record: Filter by time, coach, description
     activate Record
     Record-->>User: Return filtered sessions with available capacity
     deactivate Record
 
     %% === REGISTRATION FLOW ===
-    Note over Site,User: REGISTRATION FLOW (orange)
+    Note over Site,User: REGISTRATION FLOW
     User->>Site: Select and request to join session
     Site-->>User: Swim Before?
 
