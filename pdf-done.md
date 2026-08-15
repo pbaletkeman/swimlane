@@ -275,8 +275,13 @@ Files created/modified:
 - Note: ruff also auto-reformatted embedded Python code fences in `docs/logging-info.md`;
   that incidental change was reverted (`git checkout`) to keep the diff scoped to this step.
 
+### 6.3 — `uv run pyright` (done)
+
+- `uv run pyright` → 0 errors, 0 warnings, 0 informations (typechecking against `src`
+  per `pyproject.toml` config).
+
 ## Pending
 
-- Step 6 (remaining): 6.3 `uv run pyright`, 6.4 smoke test
+- Step 6 (remaining): 6.4 smoke test
 - Step 7. Update sequence diagram in `docs/sequence/new-signup.mmd`
 - Step 8. (Deferred) PDF export of a completed form

@@ -155,7 +155,7 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
 
 - 6.1 [x] `uv run ruff check .`
 - 6.2 [x] `uv run ruff format .`
-- 6.3 [ ] `uv run pyright`
+- 6.3 [x] `uv run pyright`
 - 6.4 [ ] Manual smoke test: create question/rule, GET facility form, submit form, re-submit
       for same `(sub, facility)`
 
