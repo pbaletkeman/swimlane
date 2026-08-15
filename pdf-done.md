@@ -360,6 +360,20 @@ added, and PDF export stays deferred.
   403 (member → another member's submission), 200 with a valid `%PDF` payload for the
   member's own submission and for a facility manager exporting any submission.
 
+### 8.3 — Fold facility rules into the exported PDF (done)
+
+- `export_submission_pdf` now also fetches the facility's rules via
+  `list_rules_by_facility` and passes them into `_build_submission_pdf`.
+- `_build_submission_pdf` renders a "Facility Rules" section after the answers table: each
+  rule as a bold title + content paragraph, sorted by `sort_order`.
+- Verified via `TestClient`: exported PDF's content stream (ASCII85 + FlateDecode decoded)
+  contains the "Facility Rules" header, rule title ("No Phones on Deck"), and rule content.
+
+## Step 8. PDF export of a completed form (complete) ✅
+
+All of 8.1–8.3 done: reportlab in deps, submission→PDF export endpoint with ownership
+enforcement, and facility rules folded into the export.
+
 ## Pending
 
-- Step 8 (remaining): 8.3 optional — fold facility rules into the exported PDF
+None — the PDF form → web form migration is complete.

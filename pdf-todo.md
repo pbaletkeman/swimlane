@@ -167,8 +167,8 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
 - 7.2 [x] Add `Site->>Record: Save form submission (questions, answers, signed_at)` step
 - 7.3 [x] Keep the PDF export as a deferred convenience export (no round-trip step in diagram)
 
-### 8. (Deferred) PDF export of a completed form
+### 8. (Deferred) PDF export of a completed form ✅
 
 - 8.1 [x] Choose PDF library (e.g., `reportlab`) and add to deps — only when required
 - 8.2 [x] Endpoint to render a member's completed submission as PDF for records
-- 8.3 [ ] Optional: fold facility rules into the exported PDF
+- 8.3 [x] Optional: fold facility rules into the exported PDF

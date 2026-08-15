@@ -281,8 +281,9 @@ class FormRoutes:
                 raise HTTPException(status_code=403, detail="Cannot access another member's submission")
             facility = self._get_facility_db().get_facility_by_id(submission.facility_id)
             questions = self._get_question_db().list_form_questions_by_facility(submission.facility_id) or []
+            rules = self._get_rule_db().list_rules_by_facility(submission.facility_id) or []
             responses = db.get_responses_by_submission_id(submission_id) or []
-            pdf_bytes = self._build_submission_pdf(submission, facility, questions, responses)
+            pdf_bytes = self._build_submission_pdf(submission, facility, questions, rules, responses)
             return Response(
                 content=pdf_bytes,
                 media_type="application/pdf",
@@ -315,14 +316,19 @@ class FormRoutes:
         submission: FormSubmission,
         facility: Facility | None,
         questions: list[FormQuestion],
+        rules: list[FacilityRule],
         responses: list[FormResponse],
     ) -> bytes:
-        """Render a submission (facility, member, answers) into a PDF document."""
+        """Render a submission (facility, member, answers, rules) into a PDF document."""
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle("FormTitle", parent=styles["Title"], fontSize=16, spaceAfter=12)
         label_style = ParagraphStyle("Label", parent=styles["Normal"], fontSize=9, textColor=colors.grey)
         value_style = styles["Normal"]
         cell_style = ParagraphStyle("Cell", parent=styles["Normal"], fontSize=10, leading=13)
+        rule_style = ParagraphStyle("Rule", parent=styles["Normal"], fontSize=10, leading=13, spaceAfter=6)
+        rule_title_style = ParagraphStyle(
+            "RuleTitle", parent=styles["Normal"], fontSize=11, fontName="Helvetica-Bold", spaceBefore=10, spaceAfter=4
+        )
 
         buf = BytesIO()
         doc = SimpleDocTemplate(buf, pagesize=letter, rightMargin=54, leftMargin=54, topMargin=54, bottomMargin=54)
@@ -385,6 +391,12 @@ class FormRoutes:
             )
         )
         story.append(table)
+
+        if rules:
+            story.append(Paragraph("Facility Rules", ParagraphStyle("RulesHeader", parent=title_style, fontSize=13)))
+            for rule in sorted(rules, key=lambda r: (r.sort_order, r.rule_id or 0)):
+                story.append(Paragraph(rule.title or "Rule", rule_title_style))
+                story.append(Paragraph(rule.content or "-", rule_style))
 
         doc.build(story)
         return buf.getvalue()
