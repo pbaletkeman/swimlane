@@ -202,9 +202,23 @@ Files created/modified:
   - Re-submit returns the same `submission_id` and replaces the responses (one token per
     `(sub, facility)`).
 
+## Step 5. Register router in `main.py` (partial: 5.1) ⏳
+
+### 5.1 — Import `FormRoutes` (done)
+
+- Added `from src.routes.form_routes import FormRoutes` to `main.py` (alphabetical order).
+- Marked `# noqa: F401` because the router is not instantiated/registered until 5.2 —
+  otherwise `ruff check` flags the unused import.
+- `import main` verified — app loads configuration, SQLite driver, and startup logs cleanly.
+
+### Verification (5.1)
+
+- `uv run ruff check main.py` — pass; `uv run ruff format --check main.py` — pass;
+  `uv run pyright main.py` — 0 errors; `import main` succeeds.
+
 ## Pending
 
-- Step 5. Register router in `main.py`
+- Step 5 (remaining): 5.2 instantiate + include router, 5.3 verify tables
 - Step 6. Verify (ruff / pyright / smoke test)
 - Step 7. Update sequence diagram in `docs/sequence/new-signup.mmd`
 - Step 8. (Deferred) PDF export of a completed form

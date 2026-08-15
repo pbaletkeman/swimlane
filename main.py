@@ -26,6 +26,7 @@ from src.middleware.logging import RequestLoggingMiddleware
 from src.routes.auth_routes import AuthRoutes
 from src.routes.event_routes import EventRoutes
 from src.routes.facility_routes import FacilityRoutes
+from src.routes.form_routes import FormRoutes  # noqa: F401  # registered in step 5.2
 from src.routes.frequency_routes import FrequencyRoutes
 from src.routes.schedule_routes import ScheduleRoutes
 from src.routes.venue_routes import VenueRoutes
