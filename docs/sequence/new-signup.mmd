@@ -35,6 +35,7 @@ sequenceDiagram
         Site-->>User: Serve facility questions and rules
         User-->>Site: Answer questions and check signature box
         User-->>Site: Submit completed form
+        Site->>Record: Save form submission (questions, answers, signed_at)
     end
 
     User-->>Site: Pay invoice online

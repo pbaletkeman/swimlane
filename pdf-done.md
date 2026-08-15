@@ -314,8 +314,13 @@ test.
     - `User-->>Site: Submit completed form`
 - No PDF round-trip remains in the diagram (matches the Option B decision).
 
+### 7.2 — Add save-submission step (done)
+
+- Added `Site->>Record: Save form submission (questions, answers, signed_at)` directly after
+  `User-->>Site: Submit completed form` inside the `else Member has NOT swum before` branch —
+  the submission is persisted the moment the member posts it, before the invoice step.
+
 ## Pending
 
-- Step 7 (remaining): 7.2 add `Site->>Record: Save form submission` step,
-  7.3 keep PDF export deferred
+- Step 7 (remaining): 7.3 keep PDF export deferred
 - Step 8. (Deferred) PDF export of a completed form
