@@ -202,7 +202,7 @@ Files created/modified:
   - Re-submit returns the same `submission_id` and replaces the responses (one token per
     `(sub, facility)`).
 
-## Step 5. Register router in `main.py` (partial: 5.1) ⏳
+## Step 5. Register router in `main.py` (complete) ✅
 
 ### 5.1 — Import `FormRoutes` (done)
 
@@ -232,9 +232,33 @@ Files created/modified:
 - `import main` loads; `main.app.openapi()` lists every `/forms` path with the expected
   HTTP methods.
 
+### 5.3 — Confirm entity tables created (done)
+
+- Called `init()` on the three new entities and inspected the schema:
+  - `form_question`: 7 columns (incl. `question_type`, `is_required`, `sort_order`, `is_active`),
+    FK `facility_id → facility`, index `idx_form_question_facility_id`.
+  - `facility_rule`: 6 columns (incl. `sort_order`, `is_active`), FK `facility_id → facility`,
+    index `idx_facility_rule_facility_id`.
+  - `form_submission`: 6 columns (incl. `signed_at`, `submitted_at`, `is_complete`),
+    FKs `sub → users` and `facility_id → facility`, indexes `idx_form_submission_sub`,
+    `idx_form_submission_facility_id`, plus `sqlite_autoindex_form_submission_1`
+    (the `UNIQUE (sub, facility_id)` constraint).
+  - `form_response`: 5 columns, FKs `question_id → form_question` and
+    `submission_id → form_submission`, indexes `idx_form_response_question_id` and
+    `idx_form_response_submission_id`.
+- Matches the existing startup pattern: each entity's `init()` runs idempotent
+  `CREATE TABLE IF NOT EXISTS` (same as `seed_admins.py` calling the users `init()`).
+  No global startup hook exists for any entity; these are created per-entity on demand.
+
+### Verification (5.3)
+
+- `uv run ruff check src/ main.py` — pass; `uv run ruff format --check` — pass;
+  `uv run pyright src/ main.py` — 0 errors.
+- All four tables present in the SQLite DB with expected columns, FKs, and indexes;
+  nothing missing.
+
 ## Pending
 
-- Step 5 (remaining): 5.3 verify tables created
 - Step 6. Verify (ruff / pyright / smoke test)
 - Step 7. Update sequence diagram in `docs/sequence/new-signup.mmd`
 - Step 8. (Deferred) PDF export of a completed form

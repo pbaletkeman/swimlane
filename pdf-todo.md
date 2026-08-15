@@ -143,12 +143,12 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
 - 4.6 [x] Request/response Pydantic bodies + 404/409/500 `HTTPException` handling matching
       existing route style
 
-### 5. Register router in `main.py`
+### 5. Register router in `main.py` ✅
 
 - 5.1 [x] `from src.routes.form_routes import FormRoutes`
 - 5.2 [x] `form_routes = FormRoutes()` + `app.include_router(form_routes.router)` alongside
       the other routers
-- 5.3 [ ] Confirm entity tables are created (call each entity's `init()` / verify on first
+- 5.3 [x] Confirm entity tables are created (call each entity's `init()` / verify on first
       `Config().db()` use per existing startup pattern)
 
 ### 6. Verify
