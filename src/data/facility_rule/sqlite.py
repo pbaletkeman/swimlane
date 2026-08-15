@@ -207,15 +207,19 @@ class SQLite(FacilityRuleInterfaceBase):
             )
 
         with self._connect() as conn:
-            conn.executemany(sql, data)
+            cursor = conn.cursor()
+            cursor.executemany(sql, data)
 
             if not data:
                 conn.commit()
                 return []
 
-            sql_retrieve = self.get_record_select("WHERE rowid IN (SELECT last_insert_rowid() FROM facility_rule)")
-            cursor = conn.cursor()
-            cursor.execute(sql_retrieve)
+            cursor.execute("SELECT last_insert_rowid() AS last_rowid")
+            last_rowid: int | None = cursor.fetchone()["last_rowid"]
+            assert last_rowid is not None
+            first_rowid: int = last_rowid - len(data) + 1
+            sql_retrieve = self.get_record_select("WHERE rule_id BETWEEN ? AND ?")
+            cursor.execute(sql_retrieve, (first_rowid, last_rowid))
             created: list[FacilityRule] = []
             for rs in cursor:
                 fr = self.create_facility_rule_helper(rs)

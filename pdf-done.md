@@ -103,9 +103,69 @@ Files created in `src/data/form_submission/`:
 - `uv run ruff check src/` — pass (pre-existing issues only in `referances/` and
   `seed_admins.py`, unrelated to this work).
 
+## Step 4. Create `src/routes/form_routes.py` (partial: 4.1–4.3) ⏳
+
+Files created/modified:
+
+| File | Description |
+|------|-------------|
+| `src/routes/form_routes.py` | Class-based `FormRoutes` router — `APIRouter(prefix="/forms", tags=["forms"])` |
+
+### 4.1 — Router class
+
+- `FormRoutes.__init__` builds the router and registers all endpoints with
+  `dependencies=[Depends(role)]`, mirroring `FacilityRoutes`.
+- `/bulk` routes registered **before** `/{id}` routes so `DELETE /forms/questions/bulk`
+  is not shadowed by `/{question_id}`.
+
+### 4.2 — Question CRUD (`facility_manager_role`)
+
+- `POST /forms/questions` → `create_question`
+- `PUT /forms/questions/{question_id}` → `update_question`
+- `DELETE /forms/questions/{question_id}` → soft delete
+- `DELETE /forms/questions/{question_id}/hard` → hard delete (`admin_role`)
+- `POST /forms/questions/bulk` → `create_questions_bulk`
+- `DELETE /forms/questions/bulk` → bulk soft delete by id (`QuestionIdRequest`)
+- `DELETE /forms/questions/bulk/hard` → bulk hard delete by id (`admin_role`)
+
+### 4.3 — Rule CRUD (`facility_manager_role`)
+
+- `POST /forms/rules` → `create_rule`
+- `PUT /forms/rules/{rule_id}` → `update_rule`
+- `DELETE /forms/rules/{rule_id}` → soft delete
+- `DELETE /forms/rules/{rule_id}/hard` → hard delete (`admin_role`)
+- `POST /forms/rules/bulk` → `create_rules_bulk`
+- `DELETE /forms/rules/bulk` → bulk soft delete by id (`RuleIdRequest`)
+- `DELETE /forms/rules/bulk/hard` → bulk hard delete by id (`admin_role`)
+
+### 4.6 — Request models + error handling
+
+- `QuestionRequest` / `RuleRequest` (create/update), `QuestionIdRequest` /
+  `RuleIdRequest` (bulk delete by id); 404 on missing entity, 400 on empty bulk ids,
+  500 fallback — matching existing route style.
+
+### Bonus bugfix (found while testing 4.2)
+
+- `create_form_questions_bulk` and `create_rules_bulk` only returned the **last**
+  inserted row (`last_insert_rowid()` returns a single rowid). Fixed to select the full
+  id range (`WHERE id BETWEEN ? AND ?` computed from `last_insert_rowid()`), so bulk
+  create now returns all created rows. (`cursor.lastrowid` was unreliable after
+  `executemany` in this Python version.)
+
+### Verification
+
+- `uv run ruff check src/` — pass; `uv run ruff format --check src/` — pass;
+  `uv run pyright src/` — 0 errors.
+- Functional test via `TestClient` with real JWTs (`HS256`, `TOKEN_SECRET_KEY`):
+  - 401 with no token, 403 for `member` role, 200 for `facility_manager`.
+  - Question + rule create/update, bulk create (returns all rows), bulk delete by id,
+    soft delete, hard delete; 400 on empty bulk ids; 404 on missing entity.
+  - `admin_role` enforcement: `web_admin` hard-deletes OK, `facility_manager` gets 403.
+  - Route ordering verified: `DELETE /forms/questions/bulk` hits the bulk handler.
+
 ## Pending
 
-- Step 4. Create `src/routes/form_routes.py`
+- Step 4 (remaining): 4.4 (all_users GET facility form) and 4.5 (member_role submit)
 - Step 5. Register router in `main.py`
 - Step 6. Verify (ruff / pyright / smoke test)
 - Step 7. Update sequence diagram in `docs/sequence/new-signup.mmd`
