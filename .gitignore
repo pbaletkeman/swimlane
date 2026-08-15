@@ -115,6 +115,9 @@ poetry.toml
 ### sqlite database ###
 *.db
 
+### fetch-client (VSCode extension) artifacts ###
+.fetch-client/
+
 
 
 ### End of https://www.toptal.com/developers/gitignore/api/python #;
