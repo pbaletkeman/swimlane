@@ -107,11 +107,11 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
 
 ### 3. Create `src/data/form_submission/`
 
-- 3.1 [ ] `form_submission.py` — Pydantic model: `submission_id`, `facility_id`, `sub`,
+- 3.1 [x] `form_submission.py` — Pydantic model: `submission_id`, `facility_id`, `sub`,
       `signed_at`, `submitted_at`, `is_complete`
-- 3.2 [ ] `form_response.py` — Pydantic model: `response_id`, `submission_id`, `question_id`,
+- 3.2 [x] `form_response.py` — Pydantic model: `response_id`, `submission_id`, `question_id`,
       `answer_text`, `answer_bool`
-- 3.3 [ ] `form_submission_interface.py` — ABC: `init`, `get_form_by_facility` (fetch active
+- 3.3 [x] `form_submission_interface.py` — ABC: `init`, `get_form_by_facility` (fetch active
       questions + rules), `create_submission` (atomic: insert submission + responses in a
       single transaction), `get_submission_by_id`, `list_submissions_by_facility`,
       `list_submissions_by_sub`, soft/hard delete
