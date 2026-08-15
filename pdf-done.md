@@ -257,8 +257,19 @@ Files created/modified:
 - All four tables present in the SQLite DB with expected columns, FKs, and indexes;
   nothing missing.
 
+### 6.1 — `uv run ruff check .` (done)
+
+- Initial full run surfaced 15 errors, all but one in `referances/` (intentionally
+  misspelled reference dir): `invalid-syntax`/`E501`/`E703` because those `.py` files embed
+  shell + sqlite3-terminal snippets and are never valid Python.
+- Added `exclude = ["referances"]` to `[tool.ruff]` in `pyproject.toml` (reference-only
+  directory, not part of the app).
+- The one real issue — `seed_admins.py` `I001` import block un-sorted — fixed by ruff
+  (`from src.data.users.sqlite import SQLite` reordered before `user`).
+- Final `uv run ruff check .` → All checks passed.
+
 ## Pending
 
-- Step 6. Verify (ruff / pyright / smoke test)
+- Step 6 (remaining): 6.2 `uv run ruff format .`, 6.3 `uv run pyright`, 6.4 smoke test
 - Step 7. Update sequence diagram in `docs/sequence/new-signup.mmd`
 - Step 8. (Deferred) PDF export of a completed form

@@ -28,6 +28,7 @@ dev = [
 
 [tool.ruff]
 line-length = 120
+exclude = ["referances"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]

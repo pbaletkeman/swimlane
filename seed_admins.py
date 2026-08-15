@@ -12,8 +12,8 @@ import json
 import sys
 from typing import Any
 
-from src.data.users.user import User
 from src.data.users.sqlite import SQLite
+from src.data.users.user import User
 from src.encryption import encrypt_field, hash_field
 from src.roles.user_role import UserRole
 from src.util.configs import Config
