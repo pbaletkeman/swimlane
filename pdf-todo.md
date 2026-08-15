@@ -169,6 +169,6 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
 
 ### 8. (Deferred) PDF export of a completed form
 
-- 8.1 [ ] Choose PDF library (e.g., `reportlab`) and add to deps — only when required
+- 8.1 [x] Choose PDF library (e.g., `reportlab`) and add to deps — only when required
 - 8.2 [ ] Endpoint to render a member's completed submission as PDF for records
 - 8.3 [ ] Optional: fold facility rules into the exported PDF

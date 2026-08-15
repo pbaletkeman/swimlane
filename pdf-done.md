@@ -331,6 +331,17 @@ test.
 All of 7.1–7.3 done: web-form flow replaces the PDF round-trip, the save-submission step is
 added, and PDF export stays deferred.
 
+## Step 8. (Deferred) PDF export of a completed form (partial: 8.1) ⏳
+
+### 8.1 — Choose PDF library (done)
+
+- Chose **reportlab** (`reportlab>=4.0.0` added to `[project].dependencies` in
+  `pyproject.toml`). Pure-Python PDF generation, no external service, works headless.
+- `uv sync --dev` resolved reportlab 5.0.0 (+ pillow 12.3.0).
+- Verified: reportlab imports and renders a minimal PDF on Python 3.14 (canvas →
+  letter-size page → valid file).
+
 ## Pending
 
-- Step 8. (Deferred) PDF export of a completed form
+- Step 8 (remaining): 8.2 endpoint to render a member's completed submission as PDF,
+  8.3 optional: fold facility rules into the export
