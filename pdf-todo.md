@@ -159,13 +159,13 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
 - 6.4 [x] Manual smoke test: create question/rule, GET facility form, submit form, re-submit
       for same `(sub, facility)`
 
-### 7. Update sequence diagram in `docs/sequence/new-signup.mmd`
+### 7. Update sequence diagram in `docs/sequence/new-signup.mmd` ✅
 
 - 7.1 [x] Replace lines 35-36 ("Fill out and sign PDF forms" / "Completed forms") with the
       web-form flow: Site serves facility questions + rules, Member answers + checks
       signature box, Member posts submission
 - 7.2 [x] Add `Site->>Record: Save form submission (questions, answers, signed_at)` step
-- 7.3 [ ] Keep the PDF export as a deferred convenience export (no round-trip step in diagram)
+- 7.3 [x] Keep the PDF export as a deferred convenience export (no round-trip step in diagram)
 
 ### 8. (Deferred) PDF export of a completed form
 

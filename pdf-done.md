@@ -320,7 +320,17 @@ test.
   `User-->>Site: Submit completed form` inside the `else Member has NOT swum before` branch —
   the submission is persisted the moment the member posts it, before the invoice step.
 
+### 7.3 — PDF export stays deferred (done)
+
+- Confirmed `docs/sequence/new-signup.mmd` has no PDF references: the only remaining PDF
+  mentions are in `current-signup.mmd`, which intentionally documents the old flow.
+- PDF export remains a deferred convenience export (Step 8), not a diagram round-trip step.
+
+## Step 7. Update sequence diagram (complete) ✅
+
+All of 7.1–7.3 done: web-form flow replaces the PDF round-trip, the save-submission step is
+added, and PDF export stays deferred.
+
 ## Pending
 
-- Step 7 (remaining): 7.3 keep PDF export deferred
 - Step 8. (Deferred) PDF export of a completed form
