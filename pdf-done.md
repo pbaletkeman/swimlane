@@ -268,8 +268,15 @@ Files created/modified:
   (`from src.data.users.sqlite import SQLite` reordered before `user`).
 - Final `uv run ruff check .` → All checks passed.
 
+### 6.2 — `uv run ruff format .` (done)
+
+- Ran the full-format command: no Python source changes needed (`75 files already
+  formatted`; `ruff check .` passes after).
+- Note: ruff also auto-reformatted embedded Python code fences in `docs/logging-info.md`;
+  that incidental change was reverted (`git checkout`) to keep the diff scoped to this step.
+
 ## Pending
 
-- Step 6 (remaining): 6.2 `uv run ruff format .`, 6.3 `uv run pyright`, 6.4 smoke test
+- Step 6 (remaining): 6.3 `uv run pyright`, 6.4 smoke test
 - Step 7. Update sequence diagram in `docs/sequence/new-signup.mmd`
 - Step 8. (Deferred) PDF export of a completed form
