@@ -151,12 +151,12 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
 - 5.3 [x] Confirm entity tables are created (call each entity's `init()` / verify on first
       `Config().db()` use per existing startup pattern)
 
-### 6. Verify
+### 6. Verify ✅
 
 - 6.1 [x] `uv run ruff check .`
 - 6.2 [x] `uv run ruff format .`
 - 6.3 [x] `uv run pyright`
-- 6.4 [ ] Manual smoke test: create question/rule, GET facility form, submit form, re-submit
+- 6.4 [x] Manual smoke test: create question/rule, GET facility form, submit form, re-submit
       for same `(sub, facility)`
 
 ### 7. Update sequence diagram in `docs/sequence/new-signup.mmd`

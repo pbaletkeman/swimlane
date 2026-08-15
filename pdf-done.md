@@ -280,8 +280,28 @@ Files created/modified:
 - `uv run pyright` → 0 errors, 0 warnings, 0 informations (typechecking against `src`
   per `pyproject.toml` config).
 
+### 6.4 — Manual smoke test (done)
+
+- Ran an end-to-end smoke test through the full app (`main.app` via `TestClient`) with real
+  JWT tokens (facility_manager + member) and matching `users` rows:
+  1. `POST /facilities` → 200 (facility_manager).
+  2. `POST /forms/questions` text + checkbox → 200 each.
+  3. `POST /forms/rules` → 200.
+  4. `GET /forms/{facility_id}` (member) → 200 with 2 questions + 1 rule.
+  5. `POST /forms/{facility_id}/submit` (member, `signed: true`) → 200; `sub` attached
+     (`smoke-member-1`), `signed_at` set, `is_complete: true`.
+  6. Re-submit same `(sub, facility)` → 200 with the identical `submission_id`
+     (upsert path).
+- Request-logging middleware emitted correlation IDs for every call.
+- Test data (facility + its cascaded questions/rules/submissions, smoke users) cleaned up;
+  `uv run ruff check .` passes afterward.
+
+## Step 6. Verify (complete) ✅
+
+All of 6.1–6.4 pass: `ruff check .`, `ruff format .`, `pyright`, and the end-to-end smoke
+test.
+
 ## Pending
 
-- Step 6 (remaining): 6.4 smoke test
 - Step 7. Update sequence diagram in `docs/sequence/new-signup.mmd`
 - Step 8. (Deferred) PDF export of a completed form
