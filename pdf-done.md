@@ -216,9 +216,25 @@ Files created/modified:
 - `uv run ruff check main.py` — pass; `uv run ruff format --check main.py` — pass;
   `uv run pyright main.py` — 0 errors; `import main` succeeds.
 
+### 5.2 — Instantiate + include router (done)
+
+- Added `form_routes = FormRoutes()` and `app.include_router(form_routes.router)` in
+  `main.py` between the facility and event routers.
+- Removed the temporary `# noqa: F401` from the 5.1 import (now used).
+- Verified via the app's OpenAPI schema that all 12 `/forms` routes are registered:
+  question CRUD (+bulk/hard), rule CRUD (+bulk/hard), `GET /forms/{facility_id}`,
+  `POST /forms/{facility_id}/submit`.
+
+### Verification (5.2)
+
+- `uv run ruff check main.py` — pass; `uv run ruff format --check main.py` — pass;
+  `uv run pyright main.py` — 0 errors.
+- `import main` loads; `main.app.openapi()` lists every `/forms` path with the expected
+  HTTP methods.
+
 ## Pending
 
-- Step 5 (remaining): 5.2 instantiate + include router, 5.3 verify tables
+- Step 5 (remaining): 5.3 verify tables created
 - Step 6. Verify (ruff / pyright / smoke test)
 - Step 7. Update sequence diagram in `docs/sequence/new-signup.mmd`
 - Step 8. (Deferred) PDF export of a completed form
