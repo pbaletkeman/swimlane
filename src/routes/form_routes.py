@@ -7,10 +7,16 @@ following the same class-based router pattern as FacilityRoutes.
 
 import logging
 from datetime import datetime, timezone
+from io import BytesIO
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.platypus import Flowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from src.data.facility.facility import Facility
 from src.data.facility.sqlite import SQLite as FacilitySQLite
 from src.data.facility_rule.facility_rule import FacilityRule
 from src.data.facility_rule.sqlite import SQLite as FacilityRuleSQLite
@@ -19,8 +25,11 @@ from src.data.form_question.sqlite import SQLite as FormQuestionSQLite
 from src.data.form_submission.form_response import FormResponse
 from src.data.form_submission.form_submission import FormSubmission
 from src.data.form_submission.sqlite import SQLite as FormSubmissionSQLite
+from src.data.users.sqlite import SQLite as UsersSQLite
 from src.data.users.user import User
+from src.encryption import decrypt_field
 from src.roles.roles import admin_role, all_users, facility_manager_role, member_role
+from src.roles.user_role import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +109,12 @@ class FormRoutes:
             "/{facility_id}/submit",
             self.submit_form,
             methods=["POST"],
+            dependencies=[Depends(member_role)],
+        )
+        self.router.add_api_route(
+            "/submissions/{submission_id}/pdf",
+            self.export_submission_pdf,
+            methods=["GET"],
             dependencies=[Depends(member_role)],
         )
 
@@ -253,6 +268,126 @@ class FormRoutes:
         except Exception as exc:
             logger.exception("Failed to submit form")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def export_submission_pdf(self, submission_id: int, current_user: User = Depends(member_role)) -> Response:
+        """Export a member's completed submission as a PDF record."""
+        try:
+            db = self._get_form_db()
+            submission = db.get_submission_by_id(submission_id)
+            if not submission:
+                raise HTTPException(status_code=404, detail="Submission not found")
+            if current_user.role == UserRole.MEMBER.value and submission.sub != current_user.sub:
+                raise HTTPException(status_code=403, detail="Cannot access another member's submission")
+            facility = self._get_facility_db().get_facility_by_id(submission.facility_id)
+            questions = self._get_question_db().list_form_questions_by_facility(submission.facility_id) or []
+            responses = db.get_responses_by_submission_id(submission_id) or []
+            pdf_bytes = self._build_submission_pdf(submission, facility, questions, responses)
+            return Response(
+                content=pdf_bytes,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f'attachment; filename="submission-{submission_id}.pdf"'},
+            )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to export submission PDF")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    def _get_member_name(self, sub: str) -> str:
+        """Return the member's decrypted display name, falling back to their sub."""
+        try:
+            user = UsersSQLite().get_user_by_sub(sub)
+            if not user or not user.first_name_nonce or not user.first_name_ciphertext:
+                return sub
+            first = decrypt_field(user.first_name_nonce, user.first_name_ciphertext)
+            last = ""
+            if user.last_name_nonce and user.last_name_ciphertext:
+                last = decrypt_field(user.last_name_nonce, user.last_name_ciphertext)
+            return f"{first} {last}".strip() or sub
+        except Exception:
+            return sub
+
+    # ------------------------------------------------------------------
+    def _build_submission_pdf(
+        self,
+        submission: FormSubmission,
+        facility: Facility | None,
+        questions: list[FormQuestion],
+        responses: list[FormResponse],
+    ) -> bytes:
+        """Render a submission (facility, member, answers) into a PDF document."""
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle("FormTitle", parent=styles["Title"], fontSize=16, spaceAfter=12)
+        label_style = ParagraphStyle("Label", parent=styles["Normal"], fontSize=9, textColor=colors.grey)
+        value_style = styles["Normal"]
+        cell_style = ParagraphStyle("Cell", parent=styles["Normal"], fontSize=10, leading=13)
+
+        buf = BytesIO()
+        doc = SimpleDocTemplate(buf, pagesize=letter, rightMargin=54, leftMargin=54, topMargin=54, bottomMargin=54)
+        story: list[Flowable] = []
+
+        story.append(Paragraph("Facility Signup Form", title_style))
+
+        meta: list[tuple[str, str]] = [
+            ("Facility", facility.name if facility is not None else str(submission.facility_id)),
+            ("Member", self._get_member_name(submission.sub)),
+            ("Submission ID", str(submission.submission_id)),
+            ("Submitted", str(submission.submitted_at) if submission.submitted_at else "-"),
+            ("Signed", str(submission.signed_at) if submission.signed_at else "-"),
+        ]
+        for label, value in meta:
+            story.append(Paragraph(label, label_style))
+            story.append(Paragraph(value or "-", value_style))
+        story.append(Spacer(1, 14))
+
+        question_map: dict[int, FormQuestion] = {
+            q.form_question_id: q for q in questions if q.form_question_id is not None
+        }
+
+        def answer_text(response: FormResponse) -> str:
+            if response.answer_text is not None:
+                return response.answer_text
+            if response.answer_bool is not None:
+                return "Yes" if response.answer_bool else "No"
+            return "-"
+
+        def sort_key(response: FormResponse) -> tuple[int, int]:
+            question = question_map.get(response.question_id)
+            if question is not None:
+                return question.sort_order, response.response_id or 0
+            return 0, response.response_id or 0
+
+        rows: list[list[Flowable]] = [
+            [
+                Paragraph("Question", ParagraphStyle("H", parent=cell_style, fontName="Helvetica-Bold")),
+                Paragraph("Answer", ParagraphStyle("H2", parent=cell_style, fontName="Helvetica-Bold")),
+            ]
+        ]
+        for response in sorted(responses, key=sort_key):
+            question = question_map.get(response.question_id)
+            prompt = question.prompt if question else f"(question {response.question_id})"
+            rows.append([Paragraph(prompt, cell_style), Paragraph(answer_text(response), cell_style)])
+
+        table = Table(rows, colWidths=[280, 210])
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e8e8e8")),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
+        story.append(table)
+
+        doc.build(story)
+        return buf.getvalue()
 
     # ------------------------------------------------------------------
     # Questions

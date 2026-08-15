@@ -341,7 +341,25 @@ added, and PDF export stays deferred.
 - Verified: reportlab imports and renders a minimal PDF on Python 3.14 (canvas →
   letter-size page → valid file).
 
+### 8.2 — Submission PDF export endpoint (done)
+
+- Added `GET /forms/submissions/{submission_id}/pdf` (dependency `member_role`):
+  - Injects `current_user: User = Depends(member_role)`; members may only export their own
+    submission (403 otherwise); managers/coaches/admins may export any submission.
+  - 404 when the submission does not exist.
+  - Builds the PDF via reportlab Platypus (`SimpleDocTemplate` → `BytesIO`): title, facility
+    name, member display name (decrypted via `decrypt_field` from the encrypted user PII,
+    falling back to `sub`), submission id, submitted/signed timestamps, then a
+    question/answer table sorted by question `sort_order`.
+  - Answers: `answer_text` preferred; checkbox answers rendered as "Yes"/"No".
+  - Returns `Response(content=..., media_type="application/pdf")` with a
+    `Content-Disposition: attachment` filename `submission-{id}.pdf`.
+- Added `itsdangerous` back to deps: `uv sync` (for reportlab) had pruned it, but
+  `main.py`'s `SessionMiddleware` requires it.
+- Verified via `TestClient` on the full app: 401 (no token), 404 (missing submission),
+  403 (member → another member's submission), 200 with a valid `%PDF` payload for the
+  member's own submission and for a facility manager exporting any submission.
+
 ## Pending
 
-- Step 8 (remaining): 8.2 endpoint to render a member's completed submission as PDF,
-  8.3 optional: fold facility rules into the export
+- Step 8 (remaining): 8.3 optional — fold facility rules into the exported PDF
