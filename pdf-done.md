@@ -58,34 +58,53 @@ Files created in `src/data/facility_rule/`:
 - Cascade confirmed: hard-deleting a facility removes its rules
   (`list_rules_by_facility` returns `None` afterward).
 
-## Step 3. Create `src/data/form_submission/` (partial: 3.1–3.3) ⏳
+## Step 3. Create `src/data/form_submission/` (complete) ✅
 
 Files created in `src/data/form_submission/`:
 
 | File | Description |
 |------|-------------|
 | `form_submission.py` | Pydantic model — `FormSubmission` (`submission_id`, `facility_id`, `sub`, `signed_at`, `submitted_at`, `is_complete`); `sub` is the JWT subject claim, timestamps are `datetime.datetime` |
-| `form_response.py` | Pydantic model — `FormResponse` (`response_id`, `submission_id`, `question_id`, `answer_text`, `answer_bool`) |
+| `form_response.py` | Pydantic model — `FormResponse` (`response_id`, `submission_id`, `question_id`, `answer_text`, `answer_bool`); `submission_id` optional (assigned during atomic create) |
 | `form_submission_interface.py` | ABC — `init`, `get_form_by_facility` (returns active questions + rules tuple), `create_submission` (atomic submission + responses), `get_submission_by_id`, `list_submissions_by_facility`, `list_submissions_by_sub`, soft/hard delete (single + bulk), `submission_exists` |
+| `sqlite.py` | SQLite implementation — two-table DDL with FKs + `UNIQUE (sub, facility_id)`, transactional submission upsert, response helpers |
+| `__init__.py` | Empty package marker |
+| `README.md` | Entity docs including schema + behavior notes |
 
 ### Details
 
-- `get_form_by_facility` returns `tuple[list[FormQuestion], list[FacilityRule]]`.
-- `create_submission` takes `FormSubmission` + `list[FormResponse]`; the single-transaction
-  implementation lands in 3.4–3.5.
-- 3.4–3.8 (sqlite DDL + transaction, one-token-per-`(sub, facility)` rule, `__init__.py`,
-  `README.md`) still pending.
+- **DDL (3.4)**: `form_submission` (`submission_id` PK, `facility_id` FK → `facility`,
+  `sub` FK → `users.sub`, `signed_at`, `submitted_at`, `is_complete`,
+  `UNIQUE (sub, facility_id)`) and `form_response` (`response_id` PK, `submission_id`
+  FK → `form_submission`, `question_id` FK → `form_question`, `answer_text`,
+  `answer_bool`). All FKs CASCADE; `PRAGMA foreign_keys = ON` on every connection.
+- **Atomic submission (3.5)**: `create_submission` wraps insert/update + response
+  replacement in a single `with self._connect()` transaction (commit on success,
+  rollback on error); uses `cursor.lastrowid` after insert.
+- **One token per `(sub, facility)` (3.6)**: enforced both by the `UNIQUE` constraint
+  and by upsert logic — a re-submit updates the existing row and replaces its responses.
+  `signed_at` is persisted from the checkbox acceptance passed on the submission.
+- **Soft delete**: no `is_active` column on this entity (per plan); soft delete sets
+  `is_complete = 0`. Documented in README.
+- `get_form_by_facility` returns active questions + active rules (ordered by
+  `sort_order`) for display.
+- `FormResponse.submission_id` made optional so responses can be built before the
+  submission exists; the SQLite layer assigns it during `create_submission`.
 
 ### Verification
 
 - `uv run ruff check src/data/form_submission/` — pass
 - `uv run ruff format --check src/data/form_submission/` — pass
 - `uv run pyright src/data/form_submission/` — 0 errors
-- No functional smoke test yet (sqlite implementation is pending).
+- Functional smoke test: form view returns active-only questions/rules; atomic create
+  persists submission + text/bool responses; get/list by id, facility, sub; re-submit
+  keeps same `submission_id` and replaces responses; `UNIQUE` constraint confirmed at DB
+  level; soft delete sets `is_complete=0`; hard delete cascades responses.
+- `uv run ruff check src/` — pass (pre-existing issues only in `referances/` and
+  `seed_admins.py`, unrelated to this work).
 
 ## Pending
 
-- Step 3 (remaining): 3.4–3.8
 - Step 4. Create `src/routes/form_routes.py`
 - Step 5. Register router in `main.py`
 - Step 6. Verify (ruff / pyright / smoke test)

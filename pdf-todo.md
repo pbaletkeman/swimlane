@@ -105,7 +105,7 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
 - 2.4 [x] `__init__.py`
 - 2.5 [x] `README.md`
 
-### 3. Create `src/data/form_submission/`
+### 3. Create `src/data/form_submission/` ✅
 
 - 3.1 [x] `form_submission.py` — Pydantic model: `submission_id`, `facility_id`, `sub`,
       `signed_at`, `submitted_at`, `is_complete`
@@ -115,17 +115,17 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
       questions + rules), `create_submission` (atomic: insert submission + responses in a
       single transaction), `get_submission_by_id`, `list_submissions_by_facility`,
       `list_submissions_by_sub`, soft/hard delete
-- 3.4 [ ] `sqlite.py` — SQLite class; `get_create_table()` DDL creates **both** tables
+- 3.4 [x] `sqlite.py` — SQLite class; `get_create_table()` DDL creates **both** tables
       (`form_submission`, `form_response`) with FKs:
       `form_submission.facility_id → facility`, `form_submission.sub → users.sub`,
       `form_response.submission_id → form_submission`, `form_response.question_id → form_question`
       (all CASCADE), `PRAGMA foreign_keys = ON`
-- 3.5 [ ] `sqlite.py` — submission uses a single `BEGIN`/`commit`/`rollback` transaction so
+- 3.5 [x] `sqlite.py` — submission uses a single `BEGIN`/`commit`/`rollback` transaction so
       responses are all-or-nothing; insert submission, capture `last_insert_rowid()`, insert responses
-- 3.6 [ ] Enforce one submission token per `(sub, facility)`; `signed_at` recorded from the
+- 3.6 [x] Enforce one submission token per `(sub, facility)`; `signed_at` recorded from the
       checkbox acceptance on (re)submit
-- 3.7 [ ] `__init__.py`
-- 3.8 [ ] `README.md`
+- 3.7 [x] `__init__.py`
+- 3.8 [x] `README.md`
 
 ### 4. Create `src/routes/form_routes.py`
 
