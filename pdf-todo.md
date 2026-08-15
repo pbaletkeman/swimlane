@@ -127,7 +127,7 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
 - 3.7 [x] `__init__.py`
 - 3.8 [x] `README.md`
 
-### 4. Create `src/routes/form_routes.py` (partial: 4.1–4.3) ⏳
+### 4. Create `src/routes/form_routes.py` ✅
 
 - 4.1 [x] Class-based router `FormRoutes` with `APIRouter(prefix="/forms", tags=["forms"])`
       (mirror `FacilityRoutes`)
@@ -137,7 +137,7 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
       `DELETE /forms/rules/{id}` (soft), bulk variants
 - 4.4 [x] `all_users` GET — `GET /forms/{facility_id}` returns facility questions + rules
       (sorted by `sort_order`, active only) for display
-- 4.5 [ ] `member_role` POST — `POST /forms/{facility_id}/submit`; attaches
+- 4.5 [x] `member_role` POST — `POST /forms/{facility_id}/submit`; attaches
       `current_user.sub` (via `RoleChecker`), sets `signed_at`, calls
       `create_submission` transactionally
 - 4.6 [x] Request/response Pydantic bodies + 404/409/500 `HTTPException` handling matching

@@ -103,7 +103,7 @@ Files created in `src/data/form_submission/`:
 - `uv run ruff check src/` — pass (pre-existing issues only in `referances/` and
   `seed_admins.py`, unrelated to this work).
 
-## Step 4. Create `src/routes/form_routes.py` (partial: 4.1–4.3) ⏳
+## Step 4. Create `src/routes/form_routes.py` (complete) ✅
 
 Files created/modified:
 
@@ -180,9 +180,30 @@ Files created/modified:
   - 401 with no token; 404 for a missing facility; 200 `{questions: [], rules: []}` for a
     facility with no form configured.
 
+### 4.5 — `member_role` POST submit (done)
+
+- `POST /forms/{facility_id}/submit` → `submit_form`, dependency `member_role`.
+- Injects `current_user: User = Depends(member_role)` (RoleChecker) and attaches
+  `current_user.sub` to the submission — same pattern as `auth_routes.me`.
+- Body: `SubmissionRequest { signed: bool, responses: list[ResponseItem] }` where
+  `ResponseItem { question_id, answer_text, answer_bool }`.
+- Requires `signed=True` (checkbox acceptance) → 400 otherwise; sets
+  `signed_at = datetime.now(timezone.utc)`, `is_complete=True`, then calls
+  `create_submission` transactionally. 404 when the facility is missing.
+- `GET /forms/{facility_id}` (4.4) and `POST /forms/{facility_id}/submit` (4.5) share the
+  `/{facility_id}` path but differ by method.
+
+### Verification (4.5)
+
+- Functional test via `TestClient` with a real member JWT and matching `users` row:
+  - 200 submit attaches `current_user.sub`, sets `signed_at` and `is_complete=True`,
+    persists text + bool responses.
+  - 400 when `signed` is False; 404 for a missing facility; 401 with no token.
+  - Re-submit returns the same `submission_id` and replaces the responses (one token per
+    `(sub, facility)`).
+
 ## Pending
 
-- Step 4 (remaining): 4.5 (member_role submit)
 - Step 5. Register router in `main.py`
 - Step 6. Verify (ruff / pyright / smoke test)
 - Step 7. Update sequence diagram in `docs/sequence/new-signup.mmd`

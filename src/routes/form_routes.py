@@ -6,6 +6,7 @@ following the same class-based router pattern as FacilityRoutes.
 """
 
 import logging
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -15,10 +16,28 @@ from src.data.facility_rule.facility_rule import FacilityRule
 from src.data.facility_rule.sqlite import SQLite as FacilityRuleSQLite
 from src.data.form_question.form_question import FormQuestion, QuestionType
 from src.data.form_question.sqlite import SQLite as FormQuestionSQLite
+from src.data.form_submission.form_response import FormResponse
+from src.data.form_submission.form_submission import FormSubmission
 from src.data.form_submission.sqlite import SQLite as FormSubmissionSQLite
-from src.roles.roles import admin_role, all_users, facility_manager_role
+from src.data.users.user import User
+from src.roles.roles import admin_role, all_users, facility_manager_role, member_role
 
 logger = logging.getLogger(__name__)
+
+
+class ResponseItem(BaseModel):
+    """Request body for a single answer to a form question."""
+
+    question_id: int
+    answer_text: str | None = None
+    answer_bool: bool | None = None
+
+
+class SubmissionRequest(BaseModel):
+    """Request body for submitting a completed facility signup form."""
+
+    signed: bool = False
+    responses: list[ResponseItem]
 
 
 class FacilityFormResponse(BaseModel):
@@ -74,6 +93,14 @@ class FormRoutes:
             self.get_form,
             methods=["GET"],
             dependencies=[Depends(all_users)],
+        )
+
+        # --- Submission ---
+        self.router.add_api_route(
+            "/{facility_id}/submit",
+            self.submit_form,
+            methods=["POST"],
+            dependencies=[Depends(member_role)],
         )
 
         # --- Questions ---
@@ -195,6 +222,36 @@ class FormRoutes:
             raise
         except Exception as exc:
             logger.exception("Failed to get form")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    # Submission
+    # ------------------------------------------------------------------
+    async def submit_form(
+        self, facility_id: int, body: SubmissionRequest, current_user: User = Depends(member_role)
+    ) -> FormSubmission:
+        """Submit a completed signup form for the authenticated member."""
+        try:
+            if not body.signed:
+                raise HTTPException(status_code=400, detail="Signature required")
+            facility = self._get_facility_db().get_facility_by_id(facility_id)
+            if not facility:
+                raise HTTPException(status_code=404, detail="Facility not found")
+            submission = FormSubmission(
+                facility_id=facility_id,
+                sub=current_user.sub,
+                signed_at=datetime.now(timezone.utc),
+                is_complete=True,
+            )
+            responses = [FormResponse(**r.model_dump()) for r in body.responses]
+            created = self._get_form_db().create_submission(submission, responses)
+            if not created:
+                raise HTTPException(status_code=500, detail="Failed to submit form")
+            return created
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to submit form")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
