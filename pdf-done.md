@@ -163,9 +163,26 @@ Files created/modified:
   - `admin_role` enforcement: `web_admin` hard-deletes OK, `facility_manager` gets 403.
   - Route ordering verified: `DELETE /forms/questions/bulk` hits the bulk handler.
 
+### 4.4 — `all_users` GET facility form (done)
+
+- `GET /forms/{facility_id}` → `get_form`, dependency `all_users` (any authenticated role).
+- Returns `FacilityFormResponse` (`facility_id`, `questions`, `rules`) built from
+  `FormSubmissionSQLite.get_form_by_facility` — active questions + active rules, both
+  ordered by `sort_order` then id.
+- 404 when the facility does not exist; 200 with empty lists for a facility with no
+  configured form. Registered before other `/forms/...` routes.
+
+### Verification (4.4)
+
+- Functional test via `TestClient`:
+  - 200 returns active-only questions/rules ordered by `sort_order` (inactive excluded).
+  - `web_admin` and `member` roles both allowed (all_users).
+  - 401 with no token; 404 for a missing facility; 200 `{questions: [], rules: []}` for a
+    facility with no form configured.
+
 ## Pending
 
-- Step 4 (remaining): 4.4 (all_users GET facility form) and 4.5 (member_role submit)
+- Step 4 (remaining): 4.5 (member_role submit)
 - Step 5. Register router in `main.py`
 - Step 6. Verify (ruff / pyright / smoke test)
 - Step 7. Update sequence diagram in `docs/sequence/new-signup.mmd`

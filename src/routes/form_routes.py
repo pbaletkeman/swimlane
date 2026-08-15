@@ -10,13 +10,23 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from src.data.facility.sqlite import SQLite as FacilitySQLite
 from src.data.facility_rule.facility_rule import FacilityRule
 from src.data.facility_rule.sqlite import SQLite as FacilityRuleSQLite
 from src.data.form_question.form_question import FormQuestion, QuestionType
 from src.data.form_question.sqlite import SQLite as FormQuestionSQLite
-from src.roles.roles import admin_role, facility_manager_role
+from src.data.form_submission.sqlite import SQLite as FormSubmissionSQLite
+from src.roles.roles import admin_role, all_users, facility_manager_role
 
 logger = logging.getLogger(__name__)
+
+
+class FacilityFormResponse(BaseModel):
+    """Response body for a facility's signup form (questions + rules) for display."""
+
+    facility_id: int
+    questions: list[FormQuestion]
+    rules: list[FacilityRule]
 
 
 class QuestionRequest(BaseModel):
@@ -57,6 +67,14 @@ class FormRoutes:
 
     def __init__(self):
         self.router = APIRouter(prefix="/forms", tags=["forms"])
+
+        # --- Facility form (display) ---
+        self.router.add_api_route(
+            "/{facility_id}",
+            self.get_form,
+            methods=["GET"],
+            dependencies=[Depends(all_users)],
+        )
 
         # --- Questions ---
         self.router.add_api_route(
@@ -153,6 +171,31 @@ class FormRoutes:
     # ------------------------------------------------------------------
     def _get_rule_db(self) -> FacilityRuleSQLite:
         return FacilityRuleSQLite()
+
+    # ------------------------------------------------------------------
+    def _get_form_db(self) -> FormSubmissionSQLite:
+        return FormSubmissionSQLite()
+
+    # ------------------------------------------------------------------
+    def _get_facility_db(self) -> FacilitySQLite:
+        return FacilitySQLite()
+
+    # ------------------------------------------------------------------
+    # Facility form (display)
+    # ------------------------------------------------------------------
+    async def get_form(self, facility_id: int) -> FacilityFormResponse:
+        """Fetch a facility's signup form: active questions + active rules for display."""
+        try:
+            facility = self._get_facility_db().get_facility_by_id(facility_id)
+            if not facility:
+                raise HTTPException(status_code=404, detail="Facility not found")
+            questions, rules = self._get_form_db().get_form_by_facility(facility_id) or ([], [])
+            return FacilityFormResponse(facility_id=facility_id, questions=questions, rules=rules)
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to get form")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
     # Questions

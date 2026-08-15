@@ -135,7 +135,7 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
       `PUT /forms/questions/{id}`, `DELETE /forms/questions/{id}` (soft), bulk variants
 - 4.3 [x] `facility_manager_role` — rule CRUD: `POST /forms/rules`, `PUT /forms/rules/{id}`,
       `DELETE /forms/rules/{id}` (soft), bulk variants
-- 4.4 [ ] `all_users` GET — `GET /forms/{facility_id}` returns facility questions + rules
+- 4.4 [x] `all_users` GET — `GET /forms/{facility_id}` returns facility questions + rules
       (sorted by `sort_order`, active only) for display
 - 4.5 [ ] `member_role` POST — `POST /forms/{facility_id}/submit`; attaches
       `current_user.sub` (via `RoleChecker`), sets `signed_at`, calls
