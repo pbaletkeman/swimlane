@@ -301,7 +301,21 @@ Files created/modified:
 All of 6.1–6.4 pass: `ruff check .`, `ruff format .`, `pyright`, and the end-to-end smoke
 test.
 
+## Step 7. Update sequence diagram (partial: 7.1) ⏳
+
+### 7.1 — Replace PDF round-trip with web-form flow (done)
+
+- In `docs/sequence/new-signup.mmd`, replaced the `else Member has NOT swum before` branch
+  lines:
+  - Before: `Site-->>User: Fill out and sign PDF forms` / `User-->>Site: Completed forms`.
+  - After:
+    - `Site-->>User: Serve facility questions and rules`
+    - `User-->>Site: Answer questions and check signature box`
+    - `User-->>Site: Submit completed form`
+- No PDF round-trip remains in the diagram (matches the Option B decision).
+
 ## Pending
 
-- Step 7. Update sequence diagram in `docs/sequence/new-signup.mmd`
+- Step 7 (remaining): 7.2 add `Site->>Record: Save form submission` step,
+  7.3 keep PDF export deferred
 - Step 8. (Deferred) PDF export of a completed form

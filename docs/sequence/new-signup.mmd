@@ -32,8 +32,9 @@ sequenceDiagram
         Site-->>User: Great, proceed to invoice
     else Member has NOT swum before
         User-->>Site: No
-        Site-->>User: Fill out and sign PDF forms
-        User-->>Site: Completed forms
+        Site-->>User: Serve facility questions and rules
+        User-->>Site: Answer questions and check signature box
+        User-->>Site: Submit completed form
     end
 
     User-->>Site: Pay invoice online

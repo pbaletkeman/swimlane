@@ -161,7 +161,7 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
 
 ### 7. Update sequence diagram in `docs/sequence/new-signup.mmd`
 
-- 7.1 [ ] Replace lines 35-36 ("Fill out and sign PDF forms" / "Completed forms") with the
+- 7.1 [x] Replace lines 35-36 ("Fill out and sign PDF forms" / "Completed forms") with the
       web-form flow: Site serves facility questions + rules, Member answers + checks
       signature box, Member posts submission
 - 7.2 [ ] Add `Site->>Record: Save form submission (questions, answers, signed_at)` step
