@@ -96,6 +96,49 @@ Branch: `feature/api-types`
 - `getSubmissionPdf` returns a `Blob` (caller triggers the browser download); `client.ts` parses PDF/other non-JSON bodies via `responseType: 'blob'`.
 - The `createCrudApi` factory is generic over `Entity`/`Input` and typed per entity; bulk deletes of the flat entities send the full input objects (matched by fields server-side), while form question/rule bulk deletes send id wrappers — the latter stays bespoke in `forms.ts`.
 
+## Phase 5 — Shared CRUD building blocks (complete: 5.0–5.6)
+
+Branch: `feature/crud-building-blocks`
+
+- [x] 5.0: branch created from `main` (after Phase 4 merged as `e0730c3`)
+- [x] `src/components/EntityDataTable.tsx` (5.1) — generic `EntityDataTable<T>` built on the PrimeReact 11 compound `DataTable`:
+  - `DataTable.Root` with `data`, `dataKey`, `loading`, `paginator`, `defaultRows`/`rowsPerPageOptions`, `globalFilter`/`globalFilterFields`, `defaultSortField`/`defaultSortOrder`, `removableSort`, `stripedRows`, `size="small"`
+  - Global filter box (`pi-search`) via `IconField.Root` + `IconField.Inset` + `InputText` (controlled state)
+  - Sortable `THeadCell`s using `DataTable.Sort` (prop `field`) with `DataTable.SortIndicator` matches `asc`/`desc`/`unsorted`
+  - `DataTable.TBody` render prop maps rows into `DataTable.Row`/`Cell`; column defs are `EntityDataTableColumn<T>` (`field`, `header`, `sortable?`, `body?`)
+  - `DataTable.EmptyTBody` empty message; `DataTable.Loading` overlay with a `pi-spin pi-spinner` icon
+  - Custom `DataTable.Pagination` render prop typed with `DataTablePaginationExposes` (`page`/`pageCount`/`rows`/`totalRecords`/`canPrev`/`canNext`/`onPageChange`/`onRowsChange`): prev/next icon `Button`s, rows-per-page `<select>`, record count
+  - Optional `actions` render prop appends a `__actions` column (row action buttons)
+- [x] `src/components/EntityFormDialog.tsx` (5.2) — generic `EntityFormDialog<T>` schema-driven form in a PrimeReact 11 compound `Dialog`:
+  - `Dialog.Root` (`visible`, `modal`, `dismissable`, `blockScroll`, `onOpenChange` → `onHide`) wrapping `Portal`/`Positioner`/`Content`/`Header`/`Title`/`HeaderActions`/`Close`/`Footer`
+  - Field schema `EntityFormField<T>` (`name`, `label`, `type`, `required?`, `placeholder?`, `options?`, `min?`, `max?`, `minLength?`, `validate?`)
+  - Field types: `text` (`InputText`), `number` (`InputNumber.Root`/`Input`), `checkbox` (`Checkbox.Root`/`Box`/`Indicator`), `select` (v11 `Select.Root`/`Trigger`/`Value`/`Indicator`/`Portal`/`Positioner`/`Popup`/`List` — options auto-rendered via `optionLabel`/`optionValue`)
+  - Validation: required, numeric min/max, min-length, custom `validate`; inline `small` error text; errors clear on edit
+  - Values reset from `initialValues` (or field defaults) whenever the dialog opens; refs mirror latest `fields`/`values` so the submit handler and open-reset use fresh data without re-running on prop identity changes
+  - Submit/cancel `Button`s in `Dialog.Footer`; submit disabled while `submitting`; `p-button-label` span for the button text (v11 `Button` is a pass-through that renders children only)
+- [x] `src/components/ConfirmDelete.tsx` (5.3) — delete action buttons + confirm `Dialog`:
+  - Soft-delete trigger: `pi-trash` icon button (`variant="text" severity="danger"`, `iconOnly`) opening a confirm dialog ("Delete {itemName}? It will be deactivated and can be reactivated later.")
+  - Hard-delete path: `pi-times` icon button shown only when `onHardDelete` is provided AND `useAuth().hasRole(hardRole)` (default `WEB_ADMIN`); dialog warns the action cannot be undone and requires a typed `reason` (`InputText`, required — confirm disabled until non-empty), passed as `onHardDelete(reason)`
+  - Built on the v11 compound `Dialog` (`Root`/`Portal`/`Positioner`/`Content`/`Header`/`Title`/`HeaderActions`/`Close`/`Footer`); mode state `'soft' | 'hard' | null` drives one dialog; reason resets on open/close; v11 has no `ConfirmDialog` component
+- [x] `src/components/PageHeader.tsx` (5.4) — page header with `title` (`<h1>`), optional `subtitle` (`<p>`), and an optional "New" `Button` (`pi-plus`, `newLabel` default `'New'`) rendered only when `onNew` is provided
+- [x] `src/components/ToastProvider.tsx` (5.5) — global toast host + feedback helpers:
+  - Renders the v11 compound `Toaster`/`Toast`: `Toaster.Root` (`position`, default `top-right`) > `Toaster.Portal` > `Toaster.Region` whose render-prop iterates `toaster.toasts` into `Toast.Root` templates (`Toast.Content`/`Icon match="success|error|warn|info"`/`Message`/`Title`/`Description`/`Close`); success `pi-check`, error `pi-times-circle`
+  - `src/toast/toast-context.ts` — `showToast(options)`, `showToastSuccess(title, description?)`, `showToastError(title, description?)`, and `useToast()` hook, all wrapping the global `toast()` function from `primereact/toaster` (severity shortcuts `toast.success`/`toast.error`); `ToastType` imported from `@primereact/types/primitive/toaster`
+- [x] `src/components/EmptyState.tsx` (5.6) — centered empty-list placeholder: `EmptyStateProps` (`message`, `hint?`, `icon?` default `pi-inbox`, `action?` for the optional primary-action button from 9.5)
+
+## Verification
+
+- [x] `npm run lint` (oxlint) — clean
+- [x] `npm run build` (`tsc -b && vite build`) — passes
+
+## Notes
+
+- PrimeReact 11 removed the classic `DataTable value`/`Column`/`globalFilter`-props API and the `Dropdown` component entirely. Everything is now compound parts: `DataTable.*`, `Dialog.*`, `InputNumber.*`, `Checkbox.*`, and `Select.*` (the Dropdown successor). `InputIcon` no longer exists — icons render as plain `<i className="pi pi-...">` children (the `IconField.Inset` positions the search icon).
+- v11 renders part-level event props (`onChange`, `onClick`, `onValueChange`, `onCheckedChange`, `onOpenChange`) with `unknown`/pass-through types, so handlers must be annotated explicitly with the event types imported from `@primereact/types/primitive/*` (e.g. `DataTablePaginationExposes`, `InputNumberRootValueChangeEvent`, `CheckboxRootChangeEvent`, `SelectValueChangeEvent`, `DialogRootChangeEvent`).
+- `Button` in v11 is a bare pass-through: no `label`/`icon` props; pass `<span className="p-button-label">`/`<i className="p-button-icon pi pi-...">` as children.
+- `DataTable.Root` types `data` as `Record<string, unknown>[] | object[]`, so generic rows are passed as `data as object[]`.
+- All 5.1–5.6 components built. Remaining in Phase 5: 5.7 commit + 5.8 PR description.
+
 ## Phase 1 — Scaffolding (complete)
 
 - [x] Created `frontend/` via `npm create vite@latest frontend -- --template react-ts` (Vite 8, React 19, TS 6, oxlint)
