@@ -2,7 +2,7 @@
 
 Progress log for the React + TypeScript + PrimeReact UI work tracked in `frontend-todo.md`.
 
-## Phase 2 — Theming (dark / light / system) (complete: 2.0–2.5)
+## Phase 2 — Theming (dark / light / system) (complete: 2.0–2.9)
 
 Branch: `feature/theming`
 
@@ -11,10 +11,12 @@ Branch: `feature/theming`
 - [x] `src/theme/theme-context.ts` — `Theme` type (`light | dark | system`), `ThemeContext`, `useTheme`
 - [x] Wired `<ThemeProvider>` (PrimeReact v11) with the `Aura` preset; `darkModeSelector` = `"system"` (OS `prefers-color-scheme`) or `[data-theme='dark']` (forced modes)
 - [x] Effective theme resolved from `window.matchMedia("(prefers-color-scheme: dark)")` when `system`
+- [x] Live OS tracking: `useSyncExternalStore` subscribes to `matchMedia` `change` events, so `system` follows the OS in real time (2.6)
 - [x] `data-theme` + `color-scheme` set on `<html>` per effective theme
 - [x] Persist override in `localStorage["theme"]`, default `system`
 - [x] `main.tsx`: wrapped app in `ThemeProvider`, imported `primeicons.css` + `primeflex.css`
-- [x] Temporary switcher in `App.tsx` (`pi-sun` / `pi-moon` / `pi-desktop` PrimeReact Buttons) to exercise the theme — to be replaced by the topbar control in 2.7
+- [x] `src/components/ThemeSwitch.tsx`: topbar theme control — `pi-sun`/`pi-moon` trigger (by effective theme) opens a compound `Menu` with Light / Dark / System items and a check on the active one (2.7)
+- [x] `App.tsx`: replaced the temp 3-button switcher with `<ThemeSwitch />` in a fixed top-right `header` (topbar stand-in; moves into `AppLayout` in Phase 6)
 
 ## Verification
 
@@ -25,8 +27,7 @@ Branch: `feature/theming`
 ## Notes
 
 - PrimeReact 11 adaptation: the plan's `aura-light`/`aura-dark` CSS files no longer exist in v11. Used the v11 `ThemeProvider` + `@primeuix/themes/aura` preset instead; the `darkModeSelector` option replaces stylesheet swapping.
-- `2.6` (live `matchMedia` tracking) and `2.7` (topbar switch) remain — deliberately left for later steps.
-- `@primereact/core/theme` exports `ThemeProvider`; `@primeuix/themes/aura` default-exports the preset.
+- v11 `Menu` is a compound component (`Menu.Root` / `Trigger` / `Portal` / `Positioner` / `Popup` / `List` / `Item`) — the old `model` + `popup` + `ref.toggle()` API is gone. The `Trigger` is itself the toggle `<button>`, so the trigger renders the icon directly (no nested `Button`).
 - `theme-context.ts` split from `ThemeContext.tsx` to satisfy the `react(only-export-components)` Fast Refresh lint rule.
 
 ## Phase 1 — Scaffolding (complete)

@@ -40,10 +40,10 @@ Only continue if previous commit was merged into main branch.
 - 2.3 [x] Resolve effective theme from `window.matchMedia("(prefers-color-scheme: dark)")` when `system`
 - 2.4 [x] Toggle by swapping the active theme stylesheet (or `PrimeReact.setTheme`) and setting `data-theme` on `<html>` — v11: `darkModeSelector` is `system` for OS-follow, `[data-theme='dark']` for forced modes; `data-theme` + `color-scheme` set on `<html>`.
 - 2.5 [x] Persist user override in `localStorage["theme"]`; default to `system`
-- 2.6 [ ] Listen to `matchMedia` change events so `system` tracks the OS live
-- 2.7 [ ] Theme switch control in the topbar: `pi-sun` / `pi-moon` (and a `system` option in a menu)
-- 2.8 [ ] git commit
-- 2.9 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+- 2.6 [x] Listen to `matchMedia` change events so `system` tracks the OS live
+- 2.7 [x] Theme switch control in the topbar: `pi-sun` / `pi-moon` (and a `system` option in a menu)
+- 2.8 [x] git commit
+- 2.9 [x] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
   - Summary
   - What's Included
   - Verification

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
 import { ThemeProvider as PrimeReactThemeProvider } from '@primereact/core/theme'
 import Aura from '@primeuix/themes/aura'
@@ -7,21 +7,29 @@ import type { Theme, ThemeContextValue } from './theme-context.ts'
 
 const STORAGE_KEY = 'theme'
 const THEME_ATTR = 'data-theme'
+const SYSTEM_DARK_QUERY = '(prefers-color-scheme: dark)'
 
 function readStoredTheme(): Theme {
   const stored = localStorage.getItem(STORAGE_KEY)
   return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system'
 }
 
-function systemPrefersDark(): boolean {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
+function subscribeSystemDark(callback: () => void): () => void {
+  const query = window.matchMedia(SYSTEM_DARK_QUERY)
+  query.addEventListener('change', callback)
+  return () => query.removeEventListener('change', callback)
+}
+
+function getSystemDarkSnapshot(): boolean {
+  return window.matchMedia(SYSTEM_DARK_QUERY).matches
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(readStoredTheme)
+  const systemPrefersDark = useSyncExternalStore(subscribeSystemDark, getSystemDarkSnapshot)
 
   const effectiveTheme: 'light' | 'dark' =
-    theme === 'system' ? (systemPrefersDark() ? 'dark' : 'light') : theme
+    theme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : theme
 
   // PrimeReact emits dark-scheme tokens under this selector. When the user
   // picks "system", we defer to the OS via the built-in `system` option
