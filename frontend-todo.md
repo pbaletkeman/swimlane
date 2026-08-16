@@ -26,8 +26,8 @@ The FastAPI app needs two small accommodations for a browser SPA:
 - 1.6 [x] `src/api/client.ts`: fetch wrapper — prepends `VITE_API_URL`, adds `Authorization: Bearer <token>`, JSON parse, error normalization (`{status, detail}`), 401 handling (clears token, fires `swimlane:auth-unauthorized`; refresh/redirect in Phase 3)
 - 1.7 [x] tsconfig strict mode; `paths` alias `@/*` → `src/*`
 - 1.8 [x] Clean default Vite boilerplate (App.css, logos)
-- 1.9 [ ] git commit
-- 1.9.1 [ ] provide ONLY a PR title and a PR Description
+- 1.9 [x] git commit
+- 1.9.1 [x] provide ONLY a PR title and a PR Description
 
 ## Phase 2 — Theming (dark / light / system)
 
@@ -43,7 +43,11 @@ Only continue if previous commit was merged into main branch.
 - 2.6 [ ] Listen to `matchMedia` change events so `system` tracks the OS live
 - 2.7 [ ] Theme switch control in the topbar: `pi-sun` / `pi-moon` (and a `system` option in a menu)
 - 2.8 [ ] git commit
-- 2.9 [ ] provide ONLY a PR title and a PR Description
+- 2.9 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+  - Summary
+  - What's Included
+  - Verification
+  - Notes
 
 ## Phase 3 — Authentication
 
@@ -60,7 +64,11 @@ Only continue if previous commit was merged into main branch.
 - 3.7 [ ] `RouteGuard` component: redirects to `/login` when unauthenticated; supports `requiredRole` prop
 - 3.8 [ ] Login page: centered card, "Sign in with Google" button (`pi-google`), app title, loading state while checking stored token
 - 3.9 [ ] git commit
-- 3.9.1 [ ] provide ONLY a PR title and a PR Description
+- 3.9.1 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+  - Summary
+  - What's Included
+  - Verification
+  - Notes
 
 ## Phase 4 — API types and endpoint modules
 
@@ -75,7 +83,11 @@ Only continue if previous commit was merged into main branch.
 - 4.5 [ ] `src/api/forms.ts`: `getFacilityForm`, `submitForm`, `getSubmissionPdf`, `createQuestion`, `updateQuestion`, `deleteQuestion`, `hardDeleteQuestion`, `createRule`, `updateRule`, `deleteRule`, `hardDeleteRule` (+ bulk variants)
 - 4.6 [ ] Shared `src/api/crud.ts` factory to avoid duplicating the same CRUD method bodies per entity
 - 4.7 [ ] git commit
-- 4.8 [ ] provide ONLY a PR title and a PR Description
+- 4.8 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+  - Summary
+  - What's Included
+  - Verification
+  - Notes
 
 ## Phase 5 — Shared CRUD building blocks
 
@@ -90,7 +102,11 @@ Only continue if previous commit was merged into main branch.
 - 5.5 [ ] `src/components/ToastProvider.tsx`: global `Toast` for success (`pi-check`) / error (`pi-times-circle`) feedback
 - 5.6 [ ] `src/components/EmptyState.tsx`: placeholder text when list is empty ("No facilities yet…")
 - 5.7 [ ] git commit
-- 5.8 [ ] provide ONLY a PR title and a PR Description
+- 5.8 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+  - Summary
+  - What's Included
+  - Verification
+  - Notes
 
 ## Phase 6 — Layout and navigation
 
@@ -111,7 +127,11 @@ Only continue if previous commit was merged into main branch.
 - 6.4 [ ] Router (`src/router/index.tsx`): lazy-load routes, wrap authenticated routes in `RouteGuard`
 - 6.5 [ ] Dashboard page: welcome card, role badge (`Tag`), quick links
 - 6.6 [ ] git commit
-- 6.7 [ ] provide ONLY a PR title and a PR Description
+- 6.7 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+  - Summary
+  - What's Included
+  - Verification
+  - Notes
 
 ## Phase 7 — Entity CRUD pages
 
@@ -128,7 +148,11 @@ Each page: list + search, create/edit dialog, soft delete (confirm), hard delete
 - 7.5 [ ] **Schedules** `/schedules`: columns `venue_id`, `member_id`, `event_id`, `is_active`; venue + event `Dropdown`s; `member_id` = user `sub` (free-text, placeholder "Google sub ID") — note: no user-list endpoint exists
 - 7.6 [ ] **Bulk ops** (optional per page): "Bulk delete" toolbar with selected rows (`pi-trash`), using the `/bulk` endpoints
 - 7.7 [ ] git commit
-- 7.8 [ ] provide ONLY a PR title and a PR Description
+- 7.8 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+  - Summary
+  - What's Included
+  - Verification
+  - Notes
 
 ## Phase 8 — Signup Forms
 
@@ -148,7 +172,11 @@ Only continue if previous commit was merged into main branch.
   - Rules `DataTable`: `title`, `content`, `sort_order`, `is_active`; rule dialog with `content` textarea
   - Soft/hard delete per row + bulk via `/forms/questions/bulk` and `/forms/rules/bulk`
 - 8.4 [ ] git commit
-- 8.5 [ ] provide ONLY a PR title and a PR Description
+- 8.5 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+  - Summary
+  - What's Included
+  - Verification
+  - Notes
 
 ## Phase 9 — Polish and validation
 
@@ -164,7 +192,11 @@ Only continue if previous commit was merged into main branch.
 - 9.6 [ ] Responsive: collapse menu to `Siderbar`/drawer on small screens
 - 9.7 [ ] Accessible labels (`aria-label`) on icon-only buttons
 - 9.8 [ ] git commit
-- 9.9 [ ] provide ONLY a PR title and a PR Description
+- 9.9 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+  - Summary
+  - What's Included
+  - Verification
+  - Notes
 
 ## Phase 10 — Build, verify, document
 
@@ -179,4 +211,8 @@ Only continue if previous commit was merged into main branch.
 - 10.5 [ ] Write `frontend/README.md`: run instructions (`uv run python main.py` + `npm run dev`), `VITE_API_URL` config, theme behavior
 - 10.6 [ ] Update root `readme.md` with frontend setup and structure
 - 10.7 [ ] git commit
-- 10.8 [ ] provide ONLY a PR title and a PR Description
+- 10.8 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+  - Summary
+  - What's Included
+  - Verification
+  - Notes
