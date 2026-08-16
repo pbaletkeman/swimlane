@@ -75,6 +75,8 @@ async function refreshAccessToken(): Promise<string> {
 interface RequestOptions {
   /** True when this request is a retry after a successful token refresh. */
   retried?: boolean
+  /** How to parse the response body; defaults to JSON-or-text. */
+  responseType?: 'json' | 'text' | 'blob'
 }
 
 async function request<T>(method: string, path: string, body?: unknown, options: RequestOptions = {}): Promise<T> {
@@ -121,7 +123,7 @@ async function request<T>(method: string, path: string, body?: unknown, options:
       if (!options.retried && getRefreshToken()) {
         try {
           await refreshAccessToken()
-          return request<T>(method, path, body, { retried: true })
+          return request<T>(method, path, body, { ...options, retried: true })
         } catch {
           // Fall through to sign-out.
         }
@@ -138,16 +140,20 @@ async function request<T>(method: string, path: string, body?: unknown, options:
     return undefined as T
   }
 
-  const contentType = response.headers.get('content-type') ?? ''
-  if (contentType.includes('application/json')) {
-    return (await response.json()) as T
+  if (options.responseType === 'blob') {
+    return (await response.blob()) as T
   }
 
-  return (await response.text()) as unknown as T
+  const contentType = response.headers.get('content-type') ?? ''
+  if (options.responseType === 'text' || !contentType.includes('application/json')) {
+    return (await response.text()) as unknown as T
+  }
+
+  return (await response.json()) as T
 }
 
 export const api = {
-  get: <T>(path: string): Promise<T> => request<T>('GET', path),
+  get: <T>(path: string, options?: RequestOptions): Promise<T> => request<T>('GET', path, undefined, options),
   post: <T>(path: string, body?: unknown): Promise<T> => request<T>('POST', path, body),
   put: <T>(path: string, body?: unknown): Promise<T> => request<T>('PUT', path, body),
   delete: <T>(path: string, body?: unknown): Promise<T> => request<T>('DELETE', path, body),

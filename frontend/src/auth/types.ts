@@ -1,4 +1,6 @@
-export type UserRole = 'WEB_ADMIN' | 'FACILITY_MANAGER' | 'COACH' | 'MEMBER'
+import type { Role } from '../api/types.ts'
+
+export type UserRole = Role
 
 /** Mirrors the backend's hierarchical roles (WEB_ADMIN highest). */
 export const ROLE_RANK: Record<UserRole, number> = {
