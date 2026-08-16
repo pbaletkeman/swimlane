@@ -30,6 +30,45 @@ Branch: `feature/theming`
 - v11 `Menu` is a compound component (`Menu.Root` / `Trigger` / `Portal` / `Positioner` / `Popup` / `List` / `Item`) — the old `model` + `popup` + `ref.toggle()` API is gone. The `Trigger` is itself the toggle `<button>`, so the trigger renders the icon directly (no nested `Button`).
 - `theme-context.ts` split from `ThemeContext.tsx` to satisfy the `react(only-export-components)` Fast Refresh lint rule.
 
+## Phase 3 — Authentication (complete: 3.0–3.9.1)
+
+Branch: `feature/authentication`
+
+### Backend prerequisite (done)
+
+- [x] `src/routes/auth_routes.py`: `auth_callback` now redirects the browser to the SPA with `access_token` / `refresh_token` / `user` (JSON) appended as query params (was a JSON body)
+- [x] `config.yaml`: added `security.frontend_url` (`http://localhost:5173`), overridable via the `FRONTEND_URL` env var
+
+### Frontend
+
+- [x] `src/auth/types.ts` — `User` (Google userinfo), `UserRole`, `ROLE_RANK` hierarchy (WEB_ADMIN > FACILITY_MANAGER > COACH > MEMBER)
+- [x] `src/auth/tokens.ts` — single token store: localStorage access/refresh/user, clear-on-logout, JWT payload decode, role-from-token
+- [x] `src/auth/AuthContext.tsx` (+ `auth-context.ts`) — `user`, `accessToken`, `refreshToken`, `loading`, `login()`, `logout()`, `hasRole()`; listens for `swimlane:auth-unauthorized` and hard-redirects to `/login`
+- [x] `src/auth/AuthCallbackPage.tsx` — reads the URL params, stores tokens + user, `window.location.replace('/')` to reload the app so `AuthProvider` rehydrates
+- [x] `src/api/client.ts` — refactored to the token store; on 401: deduplicated `POST /refresh` + single retry; on refresh failure (or no refresh token) clears tokens and dispatches `swimlane:auth-unauthorized`; exports `apiBaseUrl`
+- [x] `src/App.tsx` — minimal `BrowserRouter` with `/login`, `/auth/callback` + `*` routes; main app wrapped in `RouteGuard` (full router + layout land in Phase 6)
+- [x] `src/main.tsx` — `AuthProvider` mounted (inside `ThemeProvider`)
+- [x] `src/auth/RouteGuard.tsx` — redirects to `/login` when unauthenticated; `requiredRole` prop redirects to `/` when the role is insufficient; spinner while `loading` (3.7)
+- [x] `src/auth/LoginPage.tsx` — centered card with app title and "Sign in with Google" (`pi-google`) button; shows a spinner while checking the stored session; redirects to `/` when already authenticated (3.8)
+- [x] `logout()` now fires best-effort `GET /logout` (server session clear) before clearing local tokens and redirecting to `/login` (3.6)
+- [x] `AuthProvider.loading` — brief initial `true` phase during synchronous hydration so `LoginPage`/`RouteGuard` don't flash
+
+## Verification
+
+- [x] `npm run lint` (oxlint) — clean
+- [x] `npm run build` (`tsc -b && vite build`) — passes
+- [x] `uv run ruff check` + `uv run ruff format --check` on `auth_routes.py` — clean
+- [x] `uv run pyright src/routes/auth_routes.py` — 0 errors
+- [ ] Manual smoke test of the Google OAuth round-trip (pending — needs a browser + Google console callback URI)
+
+## Notes
+
+- Security trade-off (per the plan's prerequisite): tokens are passed via URL query params on the callback redirect; the callback page uses `window.location.replace('/')` so the token-bearing URL never stays in the browser history. A cookie/`code`-exchange flow would be more robust in production.
+- The access token is in `localStorage` by design (plan decision); the refresh token also lives there for now — a hardened release should move the refresh token out of `localStorage` (e.g. httpOnly cookie).
+- `/refresh` returns only a new `access_token` (no rotation) — the stored refresh token is reused until it expires (7 days).
+- `RouteGuard` role enforcement is UI-level only; the backend remains the source of truth for authorization.
+- 3.9/3.9.1: committed and PR description provided.
+
 ## Phase 1 — Scaffolding (complete)
 
 - [x] Created `frontend/` via `npm create vite@latest frontend -- --template react-ts` (Vite 8, React 19, TS 6, oxlint)

@@ -3,16 +3,15 @@
  *
  * - Resolves the request URL against VITE_API_URL when set; otherwise falls
  *   back to the dev proxy path `/api/...` (stripped by vite.config.ts).
- * - Attaches `Authorization: Bearer <token>` from localStorage.
+ * - Attaches `Authorization: Bearer <token>` from the auth token store.
+ * - On 401, attempts a single token refresh via `POST /refresh` and retries the
+ *   request once. If that fails (or no refresh token exists), clears tokens and
+ *   dispatches `swimlane:auth-unauthorized` so the auth layer redirects to login.
  * - Normalizes non-2xx responses into an `ApiError` carrying the status code
  *   and the backend's `detail` message.
  */
 
-const TOKEN_KEY = 'swimlane.accessToken'
-
-export const getAccessToken = (): string | null => localStorage.getItem(TOKEN_KEY)
-
-export const clearAccessToken = (): void => localStorage.removeItem(TOKEN_KEY)
+import { clearTokens, getAccessToken, getRefreshToken, setAccessToken } from '../auth/tokens.ts'
 
 /** Dispatched when the backend rejects a request with 401 (see client.ts). */
 export const AUTH_UNAUTHORIZED_EVENT = 'swimlane:auth-unauthorized'
@@ -27,18 +26,58 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL: string = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') ?? ''
+/** Base URL for API calls; `/api` in dev (Vite proxy) or the configured origin. */
+export const apiBaseUrl: string = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') ?? '/api'
 
 function resolve(path: string): string {
   const trimmed = path.startsWith('/') ? path : `/${path}`
-  if (BASE_URL) {
-    return `${BASE_URL}${trimmed}`
-  }
-  // Dev: go through the Vite proxy, which strips the /api prefix.
-  return `/api${trimmed}`
+  return `${apiBaseUrl}${trimmed}`
 }
 
-async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+let refreshInFlight: Promise<string> | null = null
+
+/** Exchange the stored refresh token for a new access token (deduplicated). */
+async function refreshAccessToken(): Promise<string> {
+  const refreshToken = getRefreshToken()
+  if (!refreshToken) {
+    throw new ApiError(401, 'No refresh token available')
+  }
+
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      let response: Response
+      try {
+        response = await fetch(resolve('/refresh'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        })
+      } catch {
+        throw new ApiError(0, 'Network error — could not reach the server')
+      }
+      if (!response.ok) {
+        throw new ApiError(response.status, 'Token refresh failed')
+      }
+      const data = (await response.json()) as { access_token?: string }
+      if (!data.access_token) {
+        throw new ApiError(response.status, 'Token refresh returned no access token')
+      }
+      setAccessToken(data.access_token)
+      return data.access_token
+    })().finally(() => {
+      refreshInFlight = null
+    })
+  }
+
+  return refreshInFlight
+}
+
+interface RequestOptions {
+  /** True when this request is a retry after a successful token refresh. */
+  retried?: boolean
+}
+
+async function request<T>(method: string, path: string, body?: unknown, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {}
   const token = getAccessToken()
   if (token) {
@@ -75,12 +114,23 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     } catch {
       // Not JSON — keep statusText.
     }
+
     if (response.status === 401) {
-      // The access token is no longer accepted. Clear it and notify listeners
-      // (the auth layer in Phase 3 uses this to redirect to login / refresh).
-      clearAccessToken()
+      // The access token was rejected. Try refreshing once and retrying; if the
+      // refresh fails (or there's no refresh token), sign the user out.
+      if (!options.retried && getRefreshToken()) {
+        try {
+          await refreshAccessToken()
+          return request<T>(method, path, body, { retried: true })
+        } catch {
+          // Fall through to sign-out.
+        }
+      }
+      clearTokens()
       window.dispatchEvent(new Event(AUTH_UNAUTHORIZED_EVENT))
+      throw new ApiError(response.status, detail)
     }
+
     throw new ApiError(response.status, detail)
   }
 

@@ -8,11 +8,11 @@ Build a React + TypeScript UI for the Swimlane FastAPI backend, styled with Prim
 
 The FastAPI app needs two small accommodations for a browser SPA:
 
-- [ ] **CORS**: add CORS middleware in `main.py` (allow the frontend origin) if the SPA is served from a different origin. Avoid in dev by using a Vite proxy (see Phase 1).
-- [ ] **OAuth callback hand-off**: `GET /auth/callback` currently returns a JSON body (`access_token`, `refresh_token`, `user`). Decide one:
-  - Extend `auth_callback` to redirect to the SPA with tokens appended, e.g. `GET {FRONTEND_URL}/auth/callback?access_token=...&refresh_token=...`
+- [x] **CORS**: add CORS middleware in `main.py` (allow the frontend origin) if the SPA is served from a different origin. Avoid in dev by using a Vite proxy (see Phase 1).
+- [x] **OAuth callback hand-off**: `GET /auth/callback` currently returns a JSON body (`access_token`, `refresh_token`, `user`). Decide one:
+  - Extend `auth_callback` to redirect to the SPA with tokens appended, e.g. `GET {FRONTEND_URL}/auth/callback?access_token=...&refresh_token=...` — DONE: `auth_callback` now redirects with `access_token`/`refresh_token`/`user` (JSON) query params; `frontend_url` in `config.yaml` (env override `FRONTEND_URL`).
   - COMMENT OUT JSON and have the SPA open `/login` in a popup and poll the session (more complex).
-- [ ] Confirm whether `/me` is needed: it returns the raw user row (encrypted PII fields) — use the Google `user` object from the login response for profile display instead.
+- [x] Confirm whether `/me` is needed: it returns the raw user row (encrypted PII fields) — use the Google `user` object from the login response for profile display instead. — Confirmed: frontend stores the Google `user` object from the callback; `/me` not needed.
 
 ## Phase 1 — Scaffolding
 
@@ -53,18 +53,18 @@ Only continue if previous commit was merged into main branch.
 
 Only continue if previous commit was merged into main branch.
 
-- 3.0 [ ] Set Git Branch to `feature/authentication`
+- 3.0 [x] Set Git Branch to `feature/authentication`
 
-- 3.1 [ ] `src/auth/AuthContext.tsx`: `user`, `accessToken`, `refreshToken`, `loading`, `login()`, `logout()`, `hasRole(role)`
-- 3.2 [ ] Token storage helper (`src/auth/tokens.ts`): localStorage access + refresh; clear on logout
-- 3.3 [ ] Auto token refresh: on 401 from `api/client.ts`, call `POST /refresh` with refresh token, retry original request; hard redirect to login if refresh fails
-- 3.4 [ ] `login()`: `window.location.href = "${VITE_API_URL}/login"` (Google consent screen)
-- 3.5 [ ] `/auth/callback` page: read `access_token` / `refresh_token` (and `user`) from URL params (per prerequisite), store them, redirect to `/`
-- 3.6 [ ] `logout()`: call `GET /logout`, clear tokens, redirect to `/login`
-- 3.7 [ ] `RouteGuard` component: redirects to `/login` when unauthenticated; supports `requiredRole` prop
-- 3.8 [ ] Login page: centered card, "Sign in with Google" button (`pi-google`), app title, loading state while checking stored token
-- 3.9 [ ] git commit
-- 3.9.1 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+- 3.1 [x] `src/auth/AuthContext.tsx`: `user`, `accessToken`, `refreshToken`, `loading`, `login()`, `logout()`, `hasRole(role)` — plus `src/auth/auth-context.ts` (context/hook, Fast Refresh) and `src/auth/types.ts` (`User`, `UserRole`, `ROLE_RANK`)
+- 3.2 [x] Token storage helper (`src/auth/tokens.ts`): localStorage access + refresh; clear on logout — also stores the Google `user` object and decodes the JWT payload for `hasRole`
+- 3.3 [x] Auto token refresh: on 401 from `api/client.ts`, call `POST /refresh` with refresh token, retry original request; hard redirect to login if refresh fails
+- 3.4 [x] `login()`: `window.location.href = "${VITE_API_URL}/login"` (Google consent screen) — uses `/api/login` via the Vite proxy when `VITE_API_URL` is unset
+- 3.5 [x] `/auth/callback` page: read `access_token` / `refresh_token` (and `user`) from URL params (per prerequisite), store them, redirect to `/` — `AuthCallbackPage.tsx`; minimal `BrowserRouter` with `/auth/callback` + `*` routes (full router in Phase 6.4)
+- 3.6 [x] `logout()`: call `GET /logout`, clear tokens, redirect to `/login` — best-effort `GET {apiBaseUrl}/logout` (no access token needed) then local clear + redirect
+- 3.7 [x] `RouteGuard` component: redirects to `/login` when unauthenticated; supports `requiredRole` prop — `src/auth/RouteGuard.tsx`; also shows a spinner while `loading`; wraps the main app route
+- 3.8 [x] Login page: centered card, "Sign in with Google" button (`pi-google`), app title, loading state while checking stored token — `src/auth/LoginPage.tsx`, route `/login`; redirects to `/` when already authenticated
+- 3.9 [x] git commit
+- 3.9.1 [x] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
   - Summary
   - What's Included
   - Verification

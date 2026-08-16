@@ -9,6 +9,10 @@ security:
     15
   refresh_token_expire_days:
     7
+  # SPA origin: the OAuth callback redirects here with the local JWTs appended.
+  # Override with the FRONTEND_URL env var.
+  frontend_url:
+    http://localhost:5173
   web_admins:
     # pete@letkeman.ca = 111122296393493391055
     - 111122296393493391055

@@ -40,10 +40,12 @@ for authentication and authorization, combining third‑party identity with
 first‑party role enforcement.
 """
 
+import json
 import logging
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
+from urllib.parse import urlencode
 
 from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -64,6 +66,10 @@ logger = logging.getLogger(__name__)
 
 config: dict = Config.yaml_config()  # type: ignore
 Config.google_config()
+
+# Origin of the browser SPA. The OAuth callback redirects the browser here with
+# the local JWTs appended as query params so the SPA can store them.
+frontend_url: str = os.getenv("FRONTEND_URL", config["security"].get("frontend_url", "http://localhost:5173"))
 
 db_connect = Config().db
 
@@ -255,7 +261,7 @@ class AuthRoutes:
         return await self.oauth.google.authorize_redirect(request, redirect_uri)  # type: ignore
 
     # ------------------------------------------------------------------
-    async def auth_callback(self, request: Request) -> dict[str, Any]:
+    async def auth_callback(self, request: Request) -> Any:
         """
         Handle Google's OAuth callback, extract user info, and issue a local JWT.
 
@@ -268,15 +274,14 @@ class AuthRoutes:
         3. Look up or auto‑register the user in the local database.
         4. Generate a local JWT embedding the user's role.
         5. Store the Google profile in the session.
+        6. Redirect the browser to the SPA with the local JWTs appended.
 
         Args:
             request: The incoming FastAPI request.
 
         Returns:
-            A dictionary containing:
-            - A success message
-            - The local JWT
-            - The Google user profile
+            A redirect to `{frontend_url}/auth/callback` carrying `access_token`,
+            `refresh_token`, and the JSON-encoded Google `user` profile.
 
         Raises:
             HTTPException: If OAuth fails or user info is missing.
@@ -321,13 +326,17 @@ class AuthRoutes:
         refresh_token = create_refresh_token(data=token_payload)
 
         request.session["user"] = dict(user_info)  # type: ignore
-        return {
-            "message": "Login successful",
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "token_type": "bearer",
-            "user": user_info,
-        }
+        # Hand the local JWTs (and Google profile) to the browser SPA by
+        # redirecting to its /auth/callback page with the tokens appended.
+        params: str = urlencode(
+            {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "user": json.dumps(user_info),
+            }
+        )
+        logger.info("Login successful, redirecting to frontend for sub=%s", sub)
+        return RedirectResponse(url=f"{frontend_url}/auth/callback?{params}")
 
     # ------------------------------------------------------------------
     async def me(self, current_user: User = Depends(member_role)) -> dict:
