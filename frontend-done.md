@@ -69,6 +69,33 @@ Branch: `feature/authentication`
 - `RouteGuard` role enforcement is UI-level only; the backend remains the source of truth for authorization.
 - 3.9/3.9.1: committed and PR description provided.
 
+## Phase 4 — API types and endpoint modules (complete: 4.0–4.8)
+
+Branch: `feature/api-types`
+
+- [x] `src/api/types.ts` — TS mirrors of the backend Pydantic models: `Frequency`, `Facility`, `Event`, `Venue`, `Schedule`, `FormQuestion` (+ `QuestionType`), `FacilityRule`, `FormSubmission`, `FormResponse`, `FacilityForm`, `User` (backend row), `Role` — plus request DTOs: `FrequencyInput`, `FacilityInput`, `EventInput`, `VenueInput`, `ScheduleInput`, `QuestionInput`, `RuleInput`, `FormResponseInput`, `FormSubmissionInput`, and the shared `MessageResponse`
+- [x] `src/api/auth.ts` — endpoint wrappers: `login()` (returns the Google OAuth URL), `logout`, `refresh`, `me`; `MessageResponse` now imported from `types.ts`
+- [x] `src/auth/types.ts` — `UserRole` now aliases the canonical `Role` union from `api/types.ts` (single source of truth); Google OIDC `User` unchanged
+- [x] `src/api/frequencies.ts` (4.3) — `list`, `get`, `create`, `update`, `delete`, `hardDelete`, `createBulk`, `deleteBulk`, `hardDeleteBulk` (paths `/{id}`, `/{id}/hard`, `/bulk`, `/bulk/hard`)
+- [x] `src/api/facilities.ts`, `src/api/events.ts`, `src/api/venues.ts`, `src/api/schedules.ts` (4.4) — same CRUD shape per entity
+- [x] `src/api/forms.ts` (4.5) — `getFacilityForm`, `submitForm`, `getSubmissionPdf`, question CRUD (`createQuestion`, `updateQuestion`, `deleteQuestion`, `hardDeleteQuestion`, `createQuestionsBulk`, `deleteQuestionsBulk`, `hardDeleteQuestionsBulk`), rule CRUD (`createRule`, `updateRule`, `deleteRule`, `hardDeleteRule`, `createRulesBulk`, `deleteRulesBulk`, `hardDeleteRulesBulk`); question/rule bulk deletes take `ids: number[]` and map to `{form_question_id}`/`{rule_id}` bodies
+- [x] `src/api/crud.ts` (4.6) — shared `createCrudApi<Entity, Input>(basePath)` factory returning a `CrudApi<Entity, Input>` object with the standard 9 methods; the five flat entity modules now delegate to it (no duplicated method bodies). `forms.ts` keeps its custom shape (nested paths, id-based bulk deletes).
+- [x] `src/api/client.ts` — new `RequestOptions.responseType: 'json' | 'text' | 'blob'` (blob needed for the PDF endpoint); preserved through the 401 refresh-retry
+- [x] 4.7 committed; 4.8 PR title + description provided
+
+## Verification
+
+- [x] `npm run lint` (oxlint) — clean
+- [x] `npm run build` (`tsc -b && vite build`) — passes
+
+## Notes
+
+- Field names/optionality mirror `src/data/`; datetimes serialize as ISO-8601 strings.
+- `api/types.ts` `User` is the backend row (PII ciphertext columns); `auth/types.ts` `User` is the Google OIDC profile used for display — two intentionally distinct shapes.
+- `login()` returns the URL string rather than performing the redirect so `AuthContext` stays the orchestrator (backend redirects to `/auth/callback` with tokens).
+- `getSubmissionPdf` returns a `Blob` (caller triggers the browser download); `client.ts` parses PDF/other non-JSON bodies via `responseType: 'blob'`.
+- The `createCrudApi` factory is generic over `Entity`/`Input` and typed per entity; bulk deletes of the flat entities send the full input objects (matched by fields server-side), while form question/rule bulk deletes send id wrappers — the latter stays bespoke in `forms.ts`.
+
 ## Phase 1 — Scaffolding (complete)
 
 - [x] Created `frontend/` via `npm create vite@latest frontend -- --template react-ts` (Vite 8, React 19, TS 6, oxlint)

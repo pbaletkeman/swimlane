@@ -74,16 +74,16 @@ Only continue if previous commit was merged into main branch.
 
 Only continue if previous commit was merged into main branch.
 
-- 4.0 [ ] Set Git Branch to `feature/api-types`
+- 4.0 [x] Set Git Branch to `feature/api-types`
 
-- 4.1 [ ] `src/api/types.ts`: TS interfaces for `Frequency`, `Facility`, `Event`, `Venue`, `Schedule`, `FormQuestion`, `FacilityRule`, `FormSubmission`, `FormResponse`, `FacilityForm`, `User`, `Role`
-- 4.2 [ ] `src/api/auth.ts`: `login`, `logout`, `refresh`, `me`
-- 4.3 [ ] `src/api/frequencies.ts`: `list`, `get`, `create`, `update`, `delete`, `hardDelete`, `createBulk`, `deleteBulk`, `hardDeleteBulk`
-- 4.4 [ ] `src/api/facilities.ts`, `src/api/events.ts`, `src/api/venues.ts`, `src/api/schedules.ts`: same CRUD shape
-- 4.5 [ ] `src/api/forms.ts`: `getFacilityForm`, `submitForm`, `getSubmissionPdf`, `createQuestion`, `updateQuestion`, `deleteQuestion`, `hardDeleteQuestion`, `createRule`, `updateRule`, `deleteRule`, `hardDeleteRule` (+ bulk variants)
-- 4.6 [ ] Shared `src/api/crud.ts` factory to avoid duplicating the same CRUD method bodies per entity
-- 4.7 [ ] git commit
-- 4.8 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+- 4.1 [x] `src/api/types.ts`: TS interfaces for `Frequency`, `Facility`, `Event`, `Venue`, `Schedule`, `FormQuestion`, `FacilityRule`, `FormSubmission`, `FormResponse`, `FacilityForm`, `User`, `Role` — mirrors backend Pydantic models; `Role` is the canonical union and `src/auth/types.ts` now aliases `UserRole = Role`
+- 4.2 [x] `src/api/auth.ts`: `login`, `logout`, `refresh`, `me` — `login()` returns the Google OAuth URL (caller assigns `window.location.href`); `logout`/`refresh`/`me` wrap the endpoints
+- 4.3 [x] `src/api/frequencies.ts`: `list`, `get`, `create`, `update`, `delete`, `hardDelete`, `createBulk`, `deleteBulk`, `hardDeleteBulk`
+- 4.4 [x] `src/api/facilities.ts`, `src/api/events.ts`, `src/api/venues.ts`, `src/api/schedules.ts`: same CRUD shape
+- 4.5 [x] `src/api/forms.ts`: `getFacilityForm`, `submitForm`, `getSubmissionPdf`, `createQuestion`, `updateQuestion`, `deleteQuestion`, `hardDeleteQuestion`, `createRule`, `updateRule`, `deleteRule`, `hardDeleteRule` (+ bulk variants) — `getSubmissionPdf` fetches with `responseType: 'blob'` (new `client.ts` option); question/rule bulk deletes accept `ids: number[]` and map to `{form_question_id}`/`{rule_id}` bodies; added input DTOs (`*Input`, `FormResponseInput`, `FormSubmissionInput`) + shared `MessageResponse` to `api/types.ts`
+- 4.6 [x] Shared `src/api/crud.ts` factory to avoid duplicating the same CRUD method bodies per entity — `createCrudApi<Entity, Input>(basePath)` returns a `CrudApi` object (`list`/`get`/`create`/`update`/`delete`/`hardDelete`/`createBulk`/`deleteBulk`/`hardDeleteBulk`); frequencies/facilities/events/venues/schedules now delegate to it
+- 4.7 [x] git commit
+- 4.8 [x] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
   - Summary
   - What's Included
   - Verification
