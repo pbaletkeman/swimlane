@@ -33,13 +33,13 @@ The FastAPI app needs two small accommodations for a browser SPA:
 
 Only continue if previous commit was merged into main branch.
 
-- 2.0 [ ] Set Git Branch to `feature/theming`
+- 2.0 [x] Set Git Branch to `feature/theming`
 
-- 2.1 [ ] Import PrimeReact theme styles: light + dark variants (e.g. `aura-light` / `aura-dark`) plus `primeicons.css` and `primeflex.css`
-- 2.2 [ ] `src/theme/ThemeContext.tsx`: `Theme = "light" | "dark" | "system"`; provider state
-- 2.3 [ ] Resolve effective theme from `window.matchMedia("(prefers-color-scheme: dark)")` when `system`
-- 2.4 [ ] Toggle by swapping the active theme stylesheet (or `PrimeReact.setTheme`) and setting `data-theme` on `<html>`
-- 2.5 [ ] Persist user override in `localStorage["theme"]`; default to `system`
+- 2.1 [x] Import PrimeReact theme styles: light + dark variants (e.g. `aura-light` / `aura-dark`) plus `primeicons.css` and `primeflex.css` — PrimeReact 11 replaced CSS themes with `@primeuix/themes` presets; installed `@primeuix/themes` and wired the `Aura` preset via the v11 `ThemeProvider` (`darkModeSelector` drives dark scheme). `primeicons.css` + `primeflex.css` imported in `main.tsx`.
+- 2.2 [x] `src/theme/ThemeContext.tsx`: `Theme = "light" | "dark" | "system"`; provider state — plus `src/theme/theme-context.ts` holding the context/hook/type (Fast Refresh lint).
+- 2.3 [x] Resolve effective theme from `window.matchMedia("(prefers-color-scheme: dark)")` when `system`
+- 2.4 [x] Toggle by swapping the active theme stylesheet (or `PrimeReact.setTheme`) and setting `data-theme` on `<html>` — v11: `darkModeSelector` is `system` for OS-follow, `[data-theme='dark']` for forced modes; `data-theme` + `color-scheme` set on `<html>`.
+- 2.5 [x] Persist user override in `localStorage["theme"]`; default to `system`
 - 2.6 [ ] Listen to `matchMedia` change events so `system` tracks the OS live
 - 2.7 [ ] Theme switch control in the topbar: `pi-sun` / `pi-moon` (and a `system` option in a menu)
 - 2.8 [ ] git commit

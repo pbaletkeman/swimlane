@@ -17,3 +17,13 @@ body {
   min-height: 100vh;
   gap: 0.5rem;
 }
+
+.theme-switcher {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.theme-status {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}

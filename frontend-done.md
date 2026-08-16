@@ -2,6 +2,33 @@
 
 Progress log for the React + TypeScript + PrimeReact UI work tracked in `frontend-todo.md`.
 
+## Phase 2 — Theming (dark / light / system) (complete: 2.0–2.5)
+
+Branch: `feature/theming`
+
+- [x] Installed `@primeuix/themes` (PrimeReact 11 ships no `resources/themes/*.css`; theming is now CSS-in-JS via `@primeuix/themes` presets + `@primeuix/styled` runtime)
+- [x] `src/theme/ThemeContext.tsx` — provider component only (Fast Refresh-friendly)
+- [x] `src/theme/theme-context.ts` — `Theme` type (`light | dark | system`), `ThemeContext`, `useTheme`
+- [x] Wired `<ThemeProvider>` (PrimeReact v11) with the `Aura` preset; `darkModeSelector` = `"system"` (OS `prefers-color-scheme`) or `[data-theme='dark']` (forced modes)
+- [x] Effective theme resolved from `window.matchMedia("(prefers-color-scheme: dark)")` when `system`
+- [x] `data-theme` + `color-scheme` set on `<html>` per effective theme
+- [x] Persist override in `localStorage["theme"]`, default `system`
+- [x] `main.tsx`: wrapped app in `ThemeProvider`, imported `primeicons.css` + `primeflex.css`
+- [x] Temporary switcher in `App.tsx` (`pi-sun` / `pi-moon` / `pi-desktop` PrimeReact Buttons) to exercise the theme — to be replaced by the topbar control in 2.7
+
+## Verification
+
+- [x] `npm run lint` (oxlint) — clean
+- [x] `npm run build` (`tsc -b && vite build`) — passes; Aura preset tokens emitted as CSS variables, primeicons fonts bundled
+- [ ] Manual browser check of light/dark/system switching (pending)
+
+## Notes
+
+- PrimeReact 11 adaptation: the plan's `aura-light`/`aura-dark` CSS files no longer exist in v11. Used the v11 `ThemeProvider` + `@primeuix/themes/aura` preset instead; the `darkModeSelector` option replaces stylesheet swapping.
+- `2.6` (live `matchMedia` tracking) and `2.7` (topbar switch) remain — deliberately left for later steps.
+- `@primereact/core/theme` exports `ThemeProvider`; `@primeuix/themes/aura` default-exports the preset.
+- `theme-context.ts` split from `ThemeContext.tsx` to satisfy the `react(only-export-components)` Fast Refresh lint rule.
+
 ## Phase 1 — Scaffolding (complete)
 
 - [x] Created `frontend/` via `npm create vite@latest frontend -- --template react-ts` (Vite 8, React 19, TS 6, oxlint)
