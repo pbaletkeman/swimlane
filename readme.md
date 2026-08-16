@@ -109,6 +109,7 @@ uv run pyright
 | `/events` | Event | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
 | `/venues` | Venue | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
 | `/schedules` | Schedule | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
+| `/forms` | Form | question/rule CRUD, get facility form, submit, PDF export | All users / Facility manager / Member |
 
 ## Project Structure
 
@@ -128,7 +129,10 @@ swimlane/
 │   │   ├── facility/        # Physical facilities
 │   │   ├── event/           # Swim sessions
 │   │   ├── venue/           # Locations with facilities
-│   │   └── schedule/        # Member-event-venue junction
+│   │   ├── schedule/        # Member-event-venue junction
+│   │   ├── form_question/   # Facility signup-form questions
+│   │   ├── facility_rule/   # Facility signup-form rules
+│   │   └── form_submission/ # Member signup submissions + responses
 │   ├── roles/               # RBAC (UserRole, RoleChecker)
 │   ├── routes/              # API routers (auth, entity CRUD)
 │   └── util/                # Config management (YAML, DB provider)

@@ -61,6 +61,38 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 - [x] API routes (list, get, create, update, soft/hard delete, bulk) — `src/routes/schedule_routes.py`
 - [x] Router registered in `main.py`
 
+### Form Question Entity
+
+- [x] Pydantic model — `src/data/form_question/form_question.py`
+- [x] Abstract interface — `src/data/form_question/form_question_interface.py`
+- [x] SQLite CRUD — `src/data/form_question/sqlite.py`
+- [x] Table auto-creation via `init()` — `form_question` table with `facility_id` FK/index
+- [x] API routes (question CRUD, bulk, soft/hard delete) — `src/routes/form_routes.py`
+- [x] Router registered in `main.py`
+
+### Facility Rule Entity
+
+- [x] Pydantic model — `src/data/facility_rule/facility_rule.py`
+- [x] Abstract interface — `src/data/facility_rule/facility_rule_interface.py`
+- [x] SQLite CRUD — `src/data/facility_rule/sqlite.py`
+- [x] Table auto-creation via `init()` — `facility_rule` table with `facility_id` FK/index
+- [x] API routes (rule CRUD, bulk, soft/hard delete) — `src/routes/form_routes.py`
+- [x] Router registered in `main.py`
+
+### Form Submission Entity
+
+- [x] Pydantic models — `src/data/form_submission/form_submission.py`, `form_response.py`
+- [x] Abstract interface — `src/data/form_submission/form_submission_interface.py`
+- [x] SQLite CRUD — `src/data/form_submission/sqlite.py` (atomic submission + responses, `UNIQUE (sub, facility_id)` upsert)
+- [x] Table auto-creation via `init()` — `form_submission` + `form_response` tables
+- [x] API endpoints — `src/routes/form_routes.py`: GET facility form, POST submit, PDF export
+- [x] Router registered in `main.py`
+
+### Web Form Migration (PDF → web)
+
+- [x] Replaced PDF round-trip in `docs/sequence/new-signup.mmd` with web-form flow
+- [x] PDF export of a completed submission (reportlab) — `GET /forms/submissions/{id}/pdf`
+
 ### Database Constraints
 
 - [x] Add foreign key constraints per ERD relationships

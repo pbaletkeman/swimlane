@@ -29,6 +29,7 @@ No test files exist yet. `pytest` config is in `pyproject.toml` (`tests/` dir).
 - `src/routes/event_routes.py` — Event CRUD (`/events`)
 - `src/routes/venue_routes.py` — Venue CRUD (`/venues`)
 - `src/routes/schedule_routes.py` — Schedule CRUD (`/schedules`)
+- `src/routes/form_routes.py` — Form question/rule CRUD, GET facility form, POST submit, PDF export (`/forms`)
 
 **Data layer** (`src/data/<entity>/`): each entity has 3 files following the same pattern:
 
@@ -36,7 +37,7 @@ No test files exist yet. `pytest` config is in `pyproject.toml` (`tests/` dir).
 - `<entity>_interface.py` — Abstract base class (ABC)
 - `sqlite.py` — SQLite implementation (raw `sqlite3`, no ORM)
 
-Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `schedule`.
+Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `schedule`, `form_question`, `facility_rule`, `form_submission`.
 
 **Config**: `config.yaml` (root) — YAML loaded by `src/util/configs.py:Config`. Controls DB driver (`sql.active: sqlite|postgresql`) and security settings. `.secrets/client_secret.json` for Google OAuth credentials (gitignored).
 
@@ -48,7 +49,9 @@ Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `sched
 
 **DB init**: Each SQLite implementation's `init()` runs `CREATE TABLE IF NOT EXISTS` — no separate migration files. Call `Config().db().init()` to ensure tables exist. All connections enable `PRAGMA foreign_keys = ON` for FK enforcement.
 
-**Foreign Keys**: FK constraints with `ON DELETE CASCADE ON UPDATE CASCADE` are defined in `CREATE TABLE` DDL for: `venue→facility`, `event→frequency`, `schedule→venue`, `schedule→users`, `schedule→event`.
+**Foreign Keys**: FK constraints with `ON DELETE CASCADE ON UPDATE CASCADE` are defined in `CREATE TABLE` DDL for: `venue→facility`, `event→frequency`, `schedule→venue`, `schedule→users`, `schedule→event`, `form_question→facility`, `facility_rule→facility`, `form_submission→facility`, `form_submission→users`, `form_response→form_submission`, `form_response→form_question`.
+
+**PDF export**: `GET /forms/submissions/{id}/pdf` renders a member's submission with reportlab (facility, member name, answers, facility rules). Members may export only their own submission; managers/coaches/admins may export any. `itsdangerous` is a declared dep (SessionMiddleware needs it).
 
 ## Gotchas
 

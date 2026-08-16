@@ -19,3 +19,7 @@ Each entity directory contains:
 | `facility/` | Facility | Physical facilities (pool, gym) with capacity |
 | `event/` | Event | Swim sessions with start/end times and frequency |
 | `venue/` | Venue | Physical locations linked to facilities with address and cost |
+| `schedule/` | Schedule | Member-event-venue junction with dates |
+| `form_question/` | FormQuestion | Facility signup-form questions (text / checkbox) |
+| `facility_rule/` | FacilityRule | Facility signup-form rules and agreements |
+| `form_submission/` | FormSubmission + FormResponse | Member signup submissions with atomic question responses |

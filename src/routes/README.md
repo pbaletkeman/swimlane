@@ -11,6 +11,8 @@ Class-based FastAPI routers for each entity, registered in `main.py`.
 | `facility_routes.py` | `/facilities` | Facility CRUD — list, get, create, update, soft/hard delete, bulk |
 | `event_routes.py` | `/events` | Event CRUD — list, get, create, update, soft/hard delete, bulk |
 | `venue_routes.py` | `/venues` | Venue CRUD — list, get, create, update, soft/hard delete, bulk |
+| `schedule_routes.py` | `/schedules` | Schedule CRUD — list, get, create, update, soft/hard delete, bulk |
+| `form_routes.py` | `/forms` | Form question/rule CRUD (bulk, soft/hard delete), GET facility form, POST submit, PDF export |
 
 ## Pattern
 
@@ -18,3 +20,4 @@ Each route file exports a `<Entity>Routes` class with `self.router = APIRouter(.
 - `all_users` — authenticated users (GET endpoints)
 - `facility_manager_role` — facility managers and admins (POST, PUT, DELETE)
 - `admin_role` — web admins only (hard delete)
+- `member_role` — members and above (form submit, PDF export)
