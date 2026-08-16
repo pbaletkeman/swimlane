@@ -11,21 +11,21 @@ The FastAPI app needs two small accommodations for a browser SPA:
 - [ ] **CORS**: add CORS middleware in `main.py` (allow the frontend origin) if the SPA is served from a different origin. Avoid in dev by using a Vite proxy (see Phase 1).
 - [ ] **OAuth callback hand-off**: `GET /auth/callback` currently returns a JSON body (`access_token`, `refresh_token`, `user`). Decide one:
   - Extend `auth_callback` to redirect to the SPA with tokens appended, e.g. `GET {FRONTEND_URL}/auth/callback?access_token=...&refresh_token=...`
-  - COMMENT OUT  JSON and have the SPA open `/login` in a popup and poll the session (more complex).
+  - COMMENT OUT JSON and have the SPA open `/login` in a popup and poll the session (more complex).
 - [ ] Confirm whether `/me` is needed: it returns the raw user row (encrypted PII fields) — use the Google `user` object from the login response for profile display instead.
 
 ## Phase 1 — Scaffolding
 
 - Git Branch = `feature/scaffolding`
 
-- 1.1 [ ] Create `frontend/` via `npm create vite@latest frontend -- --template react-ts`
-- 1.2 [ ] Install deps: `react`, `react-dom`, `react-router-dom`
-- 1.3 [ ] Install UI deps: `primereact`, `primeicons`, `primeflex`
-- 1.4 [ ] `vite.config.ts`: add dev proxy so `fetch("/api/...")` → `http://127.0.0.1:8000/...` (avoids CORS in dev)
-- 1.5 [ ] `.env` / `.env.example`: `VITE_API_URL` (default `http://127.0.0.1:8000`)
-- 1.6 [ ] `src/api/client.ts`: fetch wrapper — prepends `VITE_API_URL`, adds `Authorization: Bearer <token>`, JSON parse, error normalization (`{status, detail}`), 401 handling
-- 1.7 [ ] tsconfig strict mode; `paths` alias `@/*` → `src/*`
-- 1.8 [ ] Clean default Vite boilerplate (App.css, logos)
+- 1.1 [x] Create `frontend/` via `npm create vite@latest frontend -- --template react-ts`
+- 1.2 [x] Install deps: `react`, `react-dom`, `react-router-dom`
+- 1.3 [x] Install UI deps: `primereact`, `primeicons`, `primeflex`
+- 1.4 [x] `vite.config.ts`: add dev proxy so `fetch("/api/...")` → `http://127.0.0.1:8000/...` (avoids CORS in dev)
+- 1.5 [x] `.env` / `.env.example`: `VITE_API_URL` (default `http://127.0.0.1:8000`)
+- 1.6 [x] `src/api/client.ts`: fetch wrapper — prepends `VITE_API_URL`, adds `Authorization: Bearer <token>`, JSON parse, error normalization (`{status, detail}`), 401 handling (clears token, fires `swimlane:auth-unauthorized`; refresh/redirect in Phase 3)
+- 1.7 [x] tsconfig strict mode; `paths` alias `@/*` → `src/*`
+- 1.8 [x] Clean default Vite boilerplate (App.css, logos)
 - 1.9 [ ] git commit
 
 ## Phase 2 — Theming (dark / light / system)
