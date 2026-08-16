@@ -101,8 +101,8 @@ Only continue if previous commit was merged into main branch.
 - 5.4 [x] `src/components/PageHeader.tsx`: title + subtitle + "New" button (`pi-plus`) �?" `PageHeaderProps` (`title`, `subtitle?`, `onNew?`, `newLabel?`); button rendered only when `onNew` is provided
 - 5.5 [x] `src/components/ToastProvider.tsx`: global `Toast` for success (`pi-check`) / error (`pi-times-circle`) feedback �?" v11 `Toaster.Root`/`Portal`/`Region` (Region render-prop iterates `toaster.toasts` -> `Toast.Root` with `Toast.Content`/`Icon`/`Message`/`Title`/`Description`/`Close`); helpers in `src/toast/toast-context.ts`: `showToast`/`showToastSuccess`/`showToastError` + `useToast()` wrapping the global `toast()` function (severity shortcuts `success`/`error`)
 - 5.6 [x] `src/components/EmptyState.tsx`: placeholder text when list is empty ("No facilities yet…") �?" `EmptyStateProps` (`message`, `hint?`, `icon?` default `pi-inbox`, `action?` ReactNode); centered icon + message + optional hint/action
-- 5.7 [ ] git commit
-- 5.8 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+- 5.7 [x] git commit �?" `1025d18` "feat: shared CRUD building blocks (table, form dialog, confirm delete, header, toasts, empty state)"
+- 5.8 [x] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
   - Summary
   - What's Included
   - Verification

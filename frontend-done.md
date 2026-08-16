@@ -96,7 +96,7 @@ Branch: `feature/api-types`
 - `getSubmissionPdf` returns a `Blob` (caller triggers the browser download); `client.ts` parses PDF/other non-JSON bodies via `responseType: 'blob'`.
 - The `createCrudApi` factory is generic over `Entity`/`Input` and typed per entity; bulk deletes of the flat entities send the full input objects (matched by fields server-side), while form question/rule bulk deletes send id wrappers — the latter stays bespoke in `forms.ts`.
 
-## Phase 5 — Shared CRUD building blocks (complete: 5.0–5.6)
+## Phase 5 — Shared CRUD building blocks (complete: 5.0–5.8)
 
 Branch: `feature/crud-building-blocks`
 
@@ -125,6 +125,8 @@ Branch: `feature/crud-building-blocks`
   - Renders the v11 compound `Toaster`/`Toast`: `Toaster.Root` (`position`, default `top-right`) > `Toaster.Portal` > `Toaster.Region` whose render-prop iterates `toaster.toasts` into `Toast.Root` templates (`Toast.Content`/`Icon match="success|error|warn|info"`/`Message`/`Title`/`Description`/`Close`); success `pi-check`, error `pi-times-circle`
   - `src/toast/toast-context.ts` — `showToast(options)`, `showToastSuccess(title, description?)`, `showToastError(title, description?)`, and `useToast()` hook, all wrapping the global `toast()` function from `primereact/toaster` (severity shortcuts `toast.success`/`toast.error`); `ToastType` imported from `@primereact/types/primitive/toaster`
 - [x] `src/components/EmptyState.tsx` (5.6) — centered empty-list placeholder: `EmptyStateProps` (`message`, `hint?`, `icon?` default `pi-inbox`, `action?` for the optional primary-action button from 9.5)
+- [x] 5.7 committed — `1025d18` "feat: shared CRUD building blocks (table, form dialog, confirm delete, header, toasts, empty state)"
+- [x] 5.8 PR title + description provided (below)
 
 ## Verification
 
@@ -137,7 +139,7 @@ Branch: `feature/crud-building-blocks`
 - v11 renders part-level event props (`onChange`, `onClick`, `onValueChange`, `onCheckedChange`, `onOpenChange`) with `unknown`/pass-through types, so handlers must be annotated explicitly with the event types imported from `@primereact/types/primitive/*` (e.g. `DataTablePaginationExposes`, `InputNumberRootValueChangeEvent`, `CheckboxRootChangeEvent`, `SelectValueChangeEvent`, `DialogRootChangeEvent`).
 - `Button` in v11 is a bare pass-through: no `label`/`icon` props; pass `<span className="p-button-label">`/`<i className="p-button-icon pi pi-...">` as children.
 - `DataTable.Root` types `data` as `Record<string, unknown>[] | object[]`, so generic rows are passed as `data as object[]`.
-- All 5.1–5.6 components built. Remaining in Phase 5: 5.7 commit + 5.8 PR description.
+- All 5.1–5.6 components built, committed (5.7), and PR description provided (5.8).
 
 ## Phase 1 — Scaffolding (complete)
 
