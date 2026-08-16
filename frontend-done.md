@@ -141,6 +141,46 @@ Branch: `feature/crud-building-blocks`
 - `DataTable.Root` types `data` as `Record<string, unknown>[] | object[]`, so generic rows are passed as `data as object[]`.
 - All 5.1–5.6 components built, committed (5.7), and PR description provided (5.8).
 
+## Phase 6 — Layout and navigation (complete)
+
+Branch: `feature/layout`
+
+- [x] 6.0: branch created from `main` (after Phase 5 merged as `6b799fb` / PR #23)
+- [x] `src/layout/AppLayout.tsx` (6.1) — app shell built on the v11 compound `Sidebar`:
+  - `Sidebar.Layout` > `Sidebar.Root` (`id="main"`, `collapsible="icon"`, `defaultOpen`) > `Sidebar.Spacer`/`Sidebar.Aside` > `Sidebar.Panel` with `Header` (logo/title), `Content` (a "Navigation" `Group`/`GroupLabel`/`GroupContent` + `Menu` with a placeholder Dashboard `MenuItem`/`MenuButton`), `Footer` (placeholder Profile item), `Rail`
+  - `Sidebar.Main` holds the topbar (`app-topbar`: `Sidebar.Trigger` collapse toggle + app title on the left, `ThemeSwitch` on the right) and `<main className="app-content"><Outlet /></main>`
+  - Wired in `App.tsx`: `*`/pathless route wrapped in `RouteGuard` renders `AppLayout`; a minimal `/` home page feeds the `Outlet` (full router + lazy loading land in 6.4; Dashboard page in 6.5)
+- [x] Topbar (6.2) — `app-topbar-right` now holds the user chip and logout:
+  - User chip: compound `Avatar.Root` (`shape="circle"`) with `Avatar.Image` (Google `user.picture`) + `Avatar.Fallback` initials (derived from `user.name`) and the display name (`user.name ?? user.email ?? 'User'`)
+  - Logout `Button` (`pi-sign-out`, icon-only, `aria-label="Sign out"`) calling `useAuth().logout()`; `ThemeSwitch` stays beside it; logo/title already in `app-topbar-left`
+- [x] Role-filtered nav menu (6.3):
+  - `src/layout/nav.ts` — `NAV_ITEMS: NavItem[]` (`label`, `icon`, `path`, `requiredRole`) for Dashboard (`pi-home`), Frequencies (`pi-calendar`), Facilities (`pi-building`), Events (`pi-bolt`), Venues (`pi-map-marker`), Schedules (`pi-users`), Signup Forms (`pi-file-edit`)
+  - `AppLayout` filters items with `useAuth().hasRole(item.requiredRole)` (hierarchical rank check) — MEMBER sees Dashboard + Signup Forms; FACILITY_MANAGER and above (WEB_ADMIN) additionally see the five CRUD pages; navigation via `useNavigate()`, active highlight via `useLocation()` (exact match, with `path/` prefix for nested routes)
+  - Role gating mirrors the backend: list/get endpoints use `all_users`, create/update/delete use `facility_manager_role`, hard deletes use `admin_role` (grep of `src/routes/*_routes.py` dependencies)
+- [x] Router module (6.4):
+  - `src/router/index.tsx` — `AppRouter` with `React.lazy` code-split pages wrapped in one `Suspense` (spinner fallback)
+  - Unauthenticated: `/login`, `/auth/callback` (named-export pages mapped to default via `.then((m) => ({ default: m.X }))`)
+  - Authenticated: pathless `RouteGuard` > `AppLayout` route hosting `/` Dashboard, `/frequencies`, `/facilities`, `/events`, `/venues`, `/schedules`, `/forms`, and `*` NotFound page (stays inside the layout so nav remains visible)
+  - `App.tsx` slimmed to `BrowserRouter` + `<AppRouter />`; `src/pages/` created: `DashboardPage.tsx` (minimal, enhanced in 6.5) + `PlaceholderPage.tsx` and stub pages (Frequencies/Facilities/Events/Venues/Schedules/Forms) to be replaced by real pages in Phases 7/8
+  - Build output confirms a separate lazy chunk per page (LoginPage, DashboardPage, each entity page, etc.)
+- [x] Dashboard page (6.5):
+  - `DashboardPage.tsx` replaces the minimal home: compound `Card.Root`/`Header`/`Title`/`Content` welcome card greeting the user by first name (`given_name` or first word of `name`)
+  - Role badge: `Tag` (`severity` + friendly label per role — WEB_ADMIN danger, FACILITY_MANAGER warn, COACH info, MEMBER secondary); role read from the JWT via `getRoleFromToken(useAuth().accessToken)` (the Google `user` profile has no role)
+  - Quick links: outlined `Button`s built from `NAV_ITEMS` filtered by `hasRole(item.requiredRole)` (excluding `/`), navigating via `useNavigate()`
+  - Layout styles (`.app-dashboard`, header row, quick-links grid) added to `index.css`; its own lazy chunk now bundles Card + Tag
+- [x] Committed (6.6): `feat: app layout, role-filtered nav, lazy router, and dashboard` — 15 files (+374/−38), all Phase 6 code plus tracked `frontend-todo.md`/`frontend-done.md`
+- [x] PR title + description provided (6.7) — waiting on merge into main before starting Phase 7
+
+## Verification
+
+- [x] `npm run lint` (oxlint) — clean
+- [x] `npm run build` (`tsc -b && vite build`) — passes (Sidebar adds ~192 modules)
+
+## Notes
+
+- PrimeReact 11 has no `Menubar`/`Sidebar`-overlay-old API; the `primereact/sidebar` compound (`Layout`/`Root`/`Aside`/`Panel`/`Header`/`Content`/`Footer`/`Group`/`Menu`/`MenuItem`/`MenuButton`/`Rail`/`Main`/`Trigger`) is the sidebar-nav layout. `MenuButton` takes `isActive`; `Sidebar.Trigger` toggles the `Sidebar.Root` it targets (defaults to the layout's sidebar).
+- Next: Phase 7 — CRUD pages for Frequencies, Facilities, Events, Venues, Schedules (start only after `feature/layout` merges into main).
+
 ## Phase 1 — Scaffolding (complete)
 
 - [x] Created `frontend/` via `npm create vite@latest frontend -- --template react-ts` (Vite 8, React 19, TS 6, oxlint)

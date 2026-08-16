@@ -112,22 +112,22 @@ Only continue if previous commit was merged into main branch.
 
 Only continue if previous commit was merged into main branch.
 
-- 6.0 [ ] Set Git Branch to `feature/layout`
+- 6.0 [x] Set Git Branch to `feature/layout`
 
-- 6.1 [ ] `src/layout/AppLayout.tsx`: `Sidebar`/`Menu` (or `Menubar`) + `Topbar` + `<Outlet/>`
-- 6.2 [ ] Topbar: logo/title, theme switcher, user chip (name/avatar), logout button (`pi-sign-out`)
-- 6.3 [ ] Menu items with PrimeIcons, filtered by role:
+- 6.1 [x] `src/layout/AppLayout.tsx`: `Sidebar`/`Menu` (or `Menubar`) + `Topbar` + `<Outlet/>` �?" v11 compound `Sidebar` (`Layout`/`Root`/`Spacer`/`Aside`/`Panel`/`Header`/`Content`/`Group`/`GroupLabel`/`GroupContent`/`Menu`/`MenuItem`/`MenuButton`/`Footer`/`Rail`/`Main`/`Trigger`); `collapsible="icon"`; placeholder Dashboard nav item + Profile footer item; topbar (app title + `Sidebar.Trigger` collapse + `ThemeSwitch`) + `<Outlet/>` inside `Sidebar.Main`; wired in `App.tsx` via a pathless `RouteGuard` layout route with a minimal home page (full router in 6.4)
+- 6.2 [x] Topbar: logo/title, theme switcher, user chip (name/avatar), logout button (`pi-sign-out`) �?" `AppLayout` topbar-right: user chip (`Avatar.Root`/`Image`/`Fallback` with Google `picture` + initials from name) + `pi-sign-out` logout `Button` (calls `useAuth().logout()`) + existing `ThemeSwitch`; logo/title already in topbar-left
+- 6.3 [x] Menu items with PrimeIcons, filtered by role:
   - Dashboard `pi-home`
   - Frequencies `pi-calendar`
   - Facilities `pi-building`
   - Events `pi-bolt`
   - Venues `pi-map-marker`
   - Schedules `pi-users`
-  - Signup Forms `pi-file-edit`
-- 6.4 [ ] Router (`src/router/index.tsx`): lazy-load routes, wrap authenticated routes in `RouteGuard`
-- 6.5 [ ] Dashboard page: welcome card, role badge (`Tag`), quick links
-- 6.6 [ ] git commit
-- 6.7 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+  - Signup Forms `pi-file-edit` �?" `src/layout/nav.ts` (`NAV_ITEMS`: label/icon/path/`requiredRole`); `AppLayout` filters with `useAuth().hasRole()` (hierarchical: MEMBER sees Dashboard + Signup Forms; FACILITY_MANAGER+ sees the CRUD pages), navigates via `useNavigate()`, active state via `useLocation()`; gating aligns with backend deps (writes = `facility_manager_role`, lists = `all_users`)
+- 6.4 [x] Router (`src/router/index.tsx`): lazy-load routes, wrap authenticated routes in `RouteGuard` �?" `AppRouter` component: `/login` + `/auth/callback` lazy; pathless `RouteGuard` > `AppLayout` route with lazy `/` Dashboard, `/frequencies`, `/facilities`, `/events`, `/venues`, `/schedules`, `/forms`, and `*` NotFound; single `Suspense` with spinner fallback; `App.tsx` slimmed to `BrowserRouter` + `AppRouter`; page targets under `src/pages/` (DashboardPage + placeholder stubs replaced in Phases 7/8); build emits a lazy chunk per page
+- 6.5 [x] Dashboard page: welcome card, role badge (`Tag`), quick links �?" `DashboardPage`: compound `Card.Root`/`Header`/`Title`/`Content` welcome card greeting by first name, `Tag` role badge (severity + label per role, read from JWT via `getRoleFromToken(accessToken)`), quick-link `Button`s built from `NAV_ITEMS` filtered by `hasRole` (excluding `/`); styles in `index.css`
+- 6.6 [x] git commit �?" `f9298cc` "feat: app layout, role-filtered nav, lazy router, and dashboard"
+- 6.7 [x] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
   - Summary
   - What's Included
   - Verification
