@@ -1,0 +1,283 @@
+import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
+import { Button } from 'primereact/button'
+import { Checkbox } from 'primereact/checkbox'
+import { Dialog } from 'primereact/dialog'
+import { InputNumber } from 'primereact/inputnumber'
+import { InputText } from 'primereact/inputtext'
+import { Select } from 'primereact/select'
+import type { CheckboxRootChangeEvent } from '@primereact/types/primitive/checkbox'
+import type { DialogRootChangeEvent } from '@primereact/types/primitive/dialog'
+import type { InputNumberRootValueChangeEvent } from '@primereact/types/primitive/inputnumber'
+import type { SelectValueChangeEvent } from '@primereact/types/primitive/select'
+
+export type EntityFormFieldType = 'text' | 'number' | 'checkbox' | 'select'
+
+export interface EntityFormFieldOption {
+  label: string
+  value: string | number
+}
+
+export interface EntityFormField<T> {
+  name: keyof T
+  label: string
+  type: EntityFormFieldType
+  required?: boolean
+  placeholder?: string
+  options?: EntityFormFieldOption[]
+  min?: number
+  max?: number
+  minLength?: number
+  validate?: (value: unknown, values: Record<string, unknown>) => string | undefined
+}
+
+export interface EntityFormDialogProps<T> {
+  visible: boolean
+  title: string
+  fields: EntityFormField<T>[]
+  initialValues?: Record<string, unknown>
+  onSubmit: (values: Record<string, unknown>) => Promise<void> | void
+  onHide: () => void
+  submitting?: boolean
+  saveLabel?: string
+  cancelLabel?: string
+}
+
+function validateField<T>(
+  field: EntityFormField<T>,
+  value: unknown,
+  values: Record<string, unknown>,
+): string | undefined {
+  const { label, type, required } = field
+
+  let empty = value === null || value === undefined
+  if (type === 'checkbox') {
+    empty = value !== true
+  } else if (typeof value === 'string') {
+    empty = value.trim() === ''
+  } else if (type === 'number') {
+    empty = Number.isNaN(Number(value))
+  }
+
+  if (required && empty) {
+    return `${label} is required.`
+  }
+
+  if (type === 'number' && typeof value === 'number') {
+    if (field.min !== undefined && value < field.min) {
+      return `${label} must be at least ${field.min}.`
+    }
+    if (field.max !== undefined && value > field.max) {
+      return `${label} must be at most ${field.max}.`
+    }
+  }
+
+  if (type === 'text' && typeof value === 'string') {
+    if (field.minLength !== undefined && value.trim().length < field.minLength) {
+      return `${label} must be at least ${field.minLength} characters.`
+    }
+  }
+
+  if (field.validate) {
+    return field.validate(value, values)
+  }
+
+  return undefined
+}
+
+export function EntityFormDialog<T>({
+  visible,
+  title,
+  fields,
+  initialValues,
+  onSubmit,
+  onHide,
+  submitting = false,
+  saveLabel = 'Save',
+  cancelLabel = 'Cancel',
+}: EntityFormDialogProps<T>) {
+  const [values, setValues] = useState<Record<string, unknown>>({})
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const fieldsRef = useRef(fields)
+  const initialValuesRef = useRef(initialValues)
+  const valuesRef = useRef(values)
+
+  useEffect(() => {
+    fieldsRef.current = fields
+    initialValuesRef.current = initialValues
+    valuesRef.current = values
+  })
+
+  useEffect(() => {
+    if (!visible) return
+
+    const next: Record<string, unknown> = {}
+    for (const field of fieldsRef.current) {
+      const name = String(field.name)
+      const existing = initialValuesRef.current?.[name]
+      next[name] = existing ?? (field.type === 'checkbox' ? false : field.type === 'number' ? null : '')
+    }
+
+    setValues(next)
+    setErrors({})
+  }, [visible])
+
+  const setFieldValue = (name: string, value: unknown) => {
+    setValues((previous) => ({ ...previous, [name]: value }))
+    setErrors((previous) => (previous[name] ? { ...previous, [name]: '' } : previous))
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const currentValues = valuesRef.current
+    const nextErrors: Record<string, string> = {}
+
+    for (const field of fieldsRef.current) {
+      const name = String(field.name)
+      const error = validateField(field, currentValues[name], currentValues)
+      if (error) {
+        nextErrors[name] = error
+      }
+    }
+
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) {
+      return
+    }
+
+    await onSubmit(currentValues)
+  }
+
+  const renderField = (field: EntityFormField<T>) => {
+    const name = String(field.name)
+    const value = values[name]
+    const invalid = Boolean(errors[name])
+    const fieldId = `entity-form-dialog-${name}`
+
+    if (field.type === 'text') {
+      return (
+        <InputText
+          id={fieldId}
+          value={String(value ?? '')}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => setFieldValue(name, event.target.value)}
+          placeholder={field.placeholder}
+          invalid={invalid}
+          className="w-full"
+        />
+      )
+    }
+
+    if (field.type === 'number') {
+      return (
+        <InputNumber.Root
+          value={typeof value === 'number' ? value : null}
+          onValueChange={(event: InputNumberRootValueChangeEvent) => setFieldValue(name, event.value)}
+          min={field.min}
+          max={field.max}
+          invalid={invalid}
+        >
+          <InputNumber.Input id={fieldId} className="w-full" />
+        </InputNumber.Root>
+      )
+    }
+
+    if (field.type === 'checkbox') {
+      return (
+        <Checkbox.Root
+          id={fieldId}
+          value={value === true}
+          onCheckedChange={(event: CheckboxRootChangeEvent) => setFieldValue(name, event.checked)}
+          invalid={invalid}
+          aria-label={field.label}
+        >
+          <Checkbox.Box>
+            <Checkbox.Indicator />
+          </Checkbox.Box>
+        </Checkbox.Root>
+      )
+    }
+
+    return (
+      <Select.Root
+        value={value ?? null}
+        onValueChange={(event: SelectValueChangeEvent) => setFieldValue(name, event.value)}
+        options={field.options ?? []}
+        optionLabel="label"
+        optionValue="value"
+        invalid={invalid}
+        className="w-full"
+      >
+        <Select.Trigger>
+          <Select.Value placeholder={field.placeholder ?? 'Select...'} />
+          <Select.Indicator>
+            <i className="pi pi-chevron-down" />
+          </Select.Indicator>
+        </Select.Trigger>
+        <Select.Portal>
+          <Select.Positioner>
+            <Select.Popup>
+              <Select.List />
+            </Select.Popup>
+          </Select.Positioner>
+        </Select.Portal>
+      </Select.Root>
+    )
+  }
+
+  return (
+    <Dialog.Root
+      visible={visible}
+      modal
+      dismissable
+      blockScroll
+      onOpenChange={(event: DialogRootChangeEvent) => {
+        if (!event.value) {
+          onHide()
+        }
+      }}
+    >
+      <Dialog.Portal>
+        <Dialog.Positioner>
+          <Dialog.Content className="entity-form-dialog-content">
+            <Dialog.Header>
+              <Dialog.Title>{title}</Dialog.Title>
+              <Dialog.HeaderActions>
+                <Dialog.Close aria-label="Close">
+                  <i className="pi pi-times" />
+                </Dialog.Close>
+              </Dialog.HeaderActions>
+            </Dialog.Header>
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="entity-form-dialog-fields">
+                {fields.map((field) => {
+                  const name = String(field.name)
+                  const invalid = Boolean(errors[name])
+                  return (
+                    <div key={name} className="entity-form-dialog-field">
+                      <label className="entity-form-dialog-label" htmlFor={`entity-form-dialog-${name}`}>
+                        {field.label}
+                        {field.required ? <span className="entity-form-dialog-required"> *</span> : null}
+                      </label>
+                      {renderField(field)}
+                      {invalid ? <small className="entity-form-dialog-error">{errors[name]}</small> : null}
+                    </div>
+                  )
+                })}
+              </div>
+              <Dialog.Footer>
+                <Button type="button" variant="text" disabled={submitting} onClick={onHide}>
+                  <span className="p-button-label">{cancelLabel}</span>
+                </Button>
+                <Button type="submit" disabled={submitting}>
+                  <span className="p-button-label">{saveLabel}</span>
+                </Button>
+              </Dialog.Footer>
+            </form>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}

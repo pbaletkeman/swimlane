@@ -93,16 +93,16 @@ Only continue if previous commit was merged into main branch.
 
 Only continue if previous commit was merged into main branch.
 
-- 5.0 [ ] Set Git Branch to `feature/crud-building-blocks`
+- 5.0 [x] Set Git Branch to `feature/crud-building-blocks`
 
-- 5.1 [ ] `src/components/EntityDataTable.tsx`: PrimeReact `DataTable` (pagination, global filter `pi-search`, sortable columns, row actions)
-- 5.2 [ ] `src/components/EntityFormDialog.tsx`: PrimeReact `Dialog` + `InputText`/`InputNumber`/`Checkbox`/`Dropdown` form with validation
-- 5.3 [ ] `src/components/ConfirmDelete.tsx`: `ConfirmDialog` (soft delete, `pi-trash`) + hard-delete path (`pi-times`, admin only) with typed reason
-- 5.4 [ ] `src/components/PageHeader.tsx`: title + subtitle + "New" button (`pi-plus`)
-- 5.5 [ ] `src/components/ToastProvider.tsx`: global `Toast` for success (`pi-check`) / error (`pi-times-circle`) feedback
-- 5.6 [ ] `src/components/EmptyState.tsx`: placeholder text when list is empty ("No facilities yet…")
-- 5.7 [ ] git commit
-- 5.8 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+- 5.1 [x] `src/components/EntityDataTable.tsx`: PrimeReact `DataTable` (pagination, global filter `pi-search`, sortable columns, row actions) �?" v11 compound API: `DataTable.Root`/`Header`/`Table`/`TableContainer`/`THead`/`THeadRow`/`THeadCell`/`Sort`/`SortIndicator`/`TBody`/`Row`/`Cell`/`EmptyTBody`/`Loading`/`Pagination`; global filter via `IconField.Root`+`IconField.Inset`; custom paginator (prev/next `Button`, rows-per-page `<select>`); `DataTablePaginationExposes` render-prop typing
+- 5.2 [x] `src/components/EntityFormDialog.tsx`: PrimeReact `Dialog` + `InputText`/`InputNumber`/`Checkbox`/`Dropdown` form with validation �?" v11 compound `Dialog` (`Root`/`Portal`/`Positioner`/`Content`/`Header`/`Title`/`HeaderActions`/`Close`/`Footer`), `InputNumber` (`Root`/`Input`), `Checkbox` (`Root`/`Box`/`Indicator`), `Select` (Dropdown�??s v11 name; `Root`/`Trigger`/`Value`/`Indicator`/`Portal`/`Positioner`/`Popup`/`List`); field schema `EntityFormField<T>` (text/number/checkbox/select) with required/min/max/minLength/custom validation; submit disabled while `submitting`
+- 5.3 [x] `src/components/ConfirmDelete.tsx`: `ConfirmDialog` (soft delete, `pi-trash`) + hard-delete path (`pi-times`, admin only) with typed reason �?" v11 has no `ConfirmDialog`; built on the compound `Dialog`. Renders trash (soft) + times (hard) icon buttons; hard button gated by `useAuth().hasRole(hardRole)` (default `WEB_ADMIN`); hard dialog requires a typed `reason` (`InputText`, required) passed to `onHardDelete(reason)`
+- 5.4 [x] `src/components/PageHeader.tsx`: title + subtitle + "New" button (`pi-plus`) �?" `PageHeaderProps` (`title`, `subtitle?`, `onNew?`, `newLabel?`); button rendered only when `onNew` is provided
+- 5.5 [x] `src/components/ToastProvider.tsx`: global `Toast` for success (`pi-check`) / error (`pi-times-circle`) feedback �?" v11 `Toaster.Root`/`Portal`/`Region` (Region render-prop iterates `toaster.toasts` -> `Toast.Root` with `Toast.Content`/`Icon`/`Message`/`Title`/`Description`/`Close`); helpers in `src/toast/toast-context.ts`: `showToast`/`showToastSuccess`/`showToastError` + `useToast()` wrapping the global `toast()` function (severity shortcuts `success`/`error`)
+- 5.6 [x] `src/components/EmptyState.tsx`: placeholder text when list is empty ("No facilities yet…") �?" `EmptyStateProps` (`message`, `hint?`, `icon?` default `pi-inbox`, `action?` ReactNode); centered icon + message + optional hint/action
+- 5.7 [x] git commit �?" `1025d18` "feat: shared CRUD building blocks (table, form dialog, confirm delete, header, toasts, empty state)"
+- 5.8 [x] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
   - Summary
   - What's Included
   - Verification
