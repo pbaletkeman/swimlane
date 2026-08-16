@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@primeuix/themes": "^3.0.0",
     "primeflex": "^4.0.0",
     "primeicons": "^8.0.0",
     "primereact": "^11.1.0",
