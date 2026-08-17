@@ -211,8 +211,10 @@ Only continue if previous commit was merged into main branch.
 - 10.4 [ ] Verify role-gated menu/actions (MEMBER vs FACILITY_MANAGER vs WEB_ADMIN)
 - 10.5 [ ] Write `frontend/README.md`: run instructions (`uv run python main.py` + `npm run dev`), `VITE_API_URL` config, theme behavior
 - 10.6 [ ] Update root `readme.md` with frontend setup and structure
-- 10.7 [ ] git commit
-- 10.8 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+- 10.7 [ ] Ensure that `AGENTS.md` has information on both the backend and the frontend aspect of this app and this it is up to date
+- 10.8 [ ] Remove/fix any non-printable characters e.g. � from all markdown files
+- 10.9 [ ] git commit
+- 10.10 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
   - Summary
   - What's Included
   - Verification
