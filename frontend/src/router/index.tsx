@@ -14,6 +14,8 @@ const EventsPage = lazy(() => import('../pages/EventsPage.tsx'))
 const VenuesPage = lazy(() => import('../pages/VenuesPage.tsx'))
 const SchedulesPage = lazy(() => import('../pages/SchedulesPage.tsx'))
 const FormsPage = lazy(() => import('../pages/FormsPage.tsx'))
+const FormViewPage = lazy(() => import('../pages/FormViewPage.tsx'))
+const FormBuilderPage = lazy(() => import('../pages/FormBuilderPage.tsx'))
 
 function LazyFallback() {
   return (
@@ -52,6 +54,8 @@ export function AppRouter() {
           <Route path="/venues" element={<VenuesPage />} />
           <Route path="/schedules" element={<SchedulesPage />} />
           <Route path="/forms" element={<FormsPage />} />
+          <Route path="/forms/facility/:facilityId" element={<FormViewPage />} />
+          <Route path="/forms/builder/:facilityId" element={<FormBuilderPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

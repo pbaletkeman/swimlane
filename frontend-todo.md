@@ -159,19 +159,19 @@ Each page: list + search, create/edit dialog, soft delete (confirm), hard delete
 
 Only continue if previous commit was merged into main branch.
 
-- 8.0 [ ] Set Git Branch to `feature/forms`
+- 8.0 [x] Set Git Branch to `feature/forms` �?" branched from `feature/crud-pages` (Phase 7 unmerged, so this branch carries Phase 7's shared components; will shrink to Phase 8-only after `feature/crud-pages` merges)
 
-- 8.1 [ ] **Member view** `/forms/facility/:facilityId`:
+- 8.1 [x] **Member view** `/forms/facility/:facilityId`:
   - Fetch `GET /forms/{facility_id}` → render questions (`InputText` for text, `Checkbox` for checkbox; mark required)
   - Render rules as an `Accordion`/list with `pi-exclamation-circle`
   - Signature consent `Checkbox` ("I agree…") before submit (`pi-pencil`)
-  - Submit via `POST /forms/{facility_id}/submit` → success toast, disable re-entry (upsert supported)
-- 8.2 [ ] **PDF export**: after submit, "Download PDF" button (`pi-file-pdf`) → `GET /forms/submissions/{submission_id}/pdf` fetched with Bearer token, save as blob, trigger download
-- 8.3 [ ] **Manager builder** `/forms/builder/:facilityId`:
+  - Submit via `POST /forms/{facility_id}/submit` → success toast, disable re-entry (upsert supported) �?" `FormViewPage`: loads facility + form in parallel; questions rendered per `question_type` (compound `Checkbox.Root` for checkbox, `InputText` for text) with `*` required markers + inline `small` errors (required checkbox must be checked); rules list with `pi-exclamation-circle`; consent `Checkbox` gates the `pi-pencil` submit; on success stores the returned `submission_id`, disables inputs, shows a submitted banner + "Download PDF" button; `GET /forms/facility/:id` returns only ACTIVE questions/rules
+- 8.2 [x] **PDF export**: after submit, "Download PDF" button (`pi-file-pdf`) → `GET /forms/submissions/{submission_id}/pdf` fetched with Bearer token, save as blob, trigger download �?" `forms.getSubmissionPdf(submissionId)` (blob responseType, Bearer via client); object URL + `<a download>` click + revoke
+- 8.3 [x] **Manager builder** `/forms/builder/:facilityId`:
   - Questions `DataTable`: `prompt`, `question_type` (`Dropdown`: Text/Checkbox), `is_required`, `sort_order`, `is_active`
   - Question create/edit dialog (same fields, placeholder prompt "e.g., Emergency contact phone number")
   - Rules `DataTable`: `title`, `content`, `sort_order`, `is_active`; rule dialog with `content` textarea
-  - Soft/hard delete per row + bulk via `/forms/questions/bulk` and `/forms/rules/bulk`
+  - Soft/hard delete per row + bulk via `/forms/questions/bulk` and `/forms/rules/bulk` �?" `FormBuilderPage`: two sections (Questions/Rules) each with `PageHeader`-style section header + New button, `EntityDataTable` (search/sort/`Tag`s, edit + `ConfirmDelete`, selectable + `BulkDeleteBar`); question dialog (`prompt` placeholder "e.g., Emergency contact phone number", `question_type` select Text/Checkbox, required/sort_order/is_active checkboxes+number, defaults `text`/required/sort 0); rule dialog (`title` text, `content` textarea, `sort_order`, `is_active`); bulk deletes send ids via `deleteQuestionsBulk`/`deleteRulesBulk`
 - 8.4 [ ] git commit
 - 8.5 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
   - Summary
