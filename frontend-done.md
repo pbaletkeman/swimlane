@@ -412,17 +412,29 @@ Polish pass over the frontend: skeleton loading placeholders on every list/table
 - Phases 9.1 (form validation) and 9.7 (aria-labels) were already satisfied by earlier phases and verified rather than re-implemented.
 - Branch `feature/validation` was created from `feature/forms`, so it currently includes the unmerged Phase 7 and Phase 8 commits; the diff will shrink once those branches merge to main.
 
-## Phase 10 — Build, verify, document (in progress: 10.0–10.2)
+## Phase 10 — Build, verify, document (in progress: 10.0–10.6)
 
 Branch: `feature/document`
 
 - [x] 10.0: branch created from `main` (after Phase 9 merged as `f4f7a5a` / PR #27; main tip then `de8d68f`)
 - [x] 10.1: `npm run build` (`tsc -b && vite build`) passes — 257 modules, per-page lazy chunks emitted, `dist/` generated with no type errors or unused-locals failures
 - [x] 10.2: `npm run lint` (oxlint) clean
-- [ ] 10.3–10.10 pending (manual smoke test, role-gating verification, frontend README, root readme, AGENTS.md, non-printable-character cleanup, commit, PR title/description)
+- [x] 10.3: manual smoke test against the running backend (full CRUD per entity, forms submit + PDF, auth, theme, logout):
+  - **Backend API smoke test** — minted dev-secret JWTs (lowercase role claims) for `smoke-member` / `smoke-manager` / `smoke-admin`, seeded users, then exercised every endpoint: `/me` (200 + 401 unauth), `/refresh` (new access token), `/logout` (307), `/devtools` (HTML); frequency CRUD + bulk create; facility CRUD; event CRUD; venue CRUD; schedule CRUD; soft delete; hard-delete gating (manager 403 / admin 200); form question + rule create, `GET /forms/{id}` (2 questions + 1 rule), member submit (`signed: true`), member PDF download (`%PDF`). **33/33 PASS.**
+  - **Bug found & fixed (backend)** — `POST /venues` returned 500 (`sqlite3.OperationalError: no such table: venue`); the app never called any entity `init()`, so `venue` (and any fresh-DB table) was never created. Fixed by adding `init_db()` in `main.py` that runs each SQLite class's `init()` (`CREATE TABLE IF NOT EXISTS`) at startup.
+  - **Frontend smoke test (headless Chrome)** — `/` renders the public HomePage; `/login` renders the Google sign-in card; `/auth/callback` captures tokens and lands on `/dashboard`; theme switch present with `<html data-theme="dark">` set (light/dark/system toggle via `ThemeSwitch`); all five entity pages (`/frequencies`, `/facilities`, `/events`, `/venues`, `/schedules`) and `/forms`, `/forms/builder/:id`, `/forms/facility/:id` render with zero console errors (seeded question text visible in both builder and member view).
+  - **Bug found & fixed (frontend)** — the role-gated nav was EMPTY for every role: the backend writes lowercase role claims (`member`, `facility_manager`) but `ROLE_RANK` keys are uppercase, so `getRoleFromToken` returned `null` and `hasRole` filtered everything out. Fixed in `src/auth/tokens.ts` by uppercasing the decoded role before the `ROLE_RANK` check.
+- [x] 10.4: role-gated menu/actions verified (headless Chrome, one profile per role, lowercase-role tokens):
+  - MEMBER — nav: Dashboard, Signup Forms; role badge `Member`; no CRUD links.
+  - FACILITY_MANAGER — nav adds Frequencies, Facilities, Events, Venues, Schedules; role badge `Facility Manager`.
+  - WEB_ADMIN — all nav items; role badge `Web Admin`.
+  - API-level action gating re-confirmed in 10.3: member create → 403; manager hard-delete → 403; admin hard-delete → 200.
+- [x] 10.5: `frontend/README.md` — run instructions (`uv run python main.py` from the repo root, then `npm run dev` in `frontend/`), `VITE_API_URL` config (unset → Vite dev proxy `/api` → `http://127.0.0.1:8000`; set → direct calls for production), theme behavior (light/dark/system, `localStorage["theme"]`, `data-theme` on `<html>`, PrimeReact 11 `ThemeProvider` + Aura). Reviewed against the actual config (`vite.config.ts`, `.env.example`, `ThemeContext.tsx`, `AuthContext.tsx`) — all accurate. Added a note that `/` is the public home and authenticated pages live at `/dashboard` + entity routes.
+- [x] 10.6: root `readme.md` already carried the frontend setup and structure — "Running the frontend" section (`npm install`/`npm run dev`, proxy note, `/` public home vs `/dashboard`), frontend checks (`npm run lint`/`npm run build`), `frontend/` in the Project Structure tree, and a `Frontend` link in Documentation. Verified accurate; no further changes needed.
 
 ## Verification
 
 - [x] `npm run build` (`tsc -b && vite build`) — passes
 - [x] `npm run lint` (oxlint) — clean
-- [ ] Manual smoke test against the running backend — pending (10.3)
+- [x] Manual smoke test against the running backend (10.3) — 33/33 API checks pass; all frontend pages render headless with zero console errors
+- [x] Role-gated menu/actions verified (10.4) — MEMBER vs FACILITY_MANAGER vs WEB_ADMIN nav + badges correct

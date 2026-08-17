@@ -66,6 +66,9 @@ export function decodeTokenPayload(token: string): JwtPayload | null {
 export function getRoleFromToken(token: string | null): UserRole | null {
   if (!token) return null
   const payload = decodeTokenPayload(token)
-  if (!payload?.role || !(payload.role in ROLE_RANK)) return null
-  return payload.role as UserRole
+  // The backend writes roles as the UserRole enum values (lowercase, e.g.
+  // "facility_manager"); ROLE_RANK keys are the uppercase member names.
+  const role = payload?.role?.toUpperCase()
+  if (!role || !(role in ROLE_RANK)) return null
+  return role as UserRole
 }

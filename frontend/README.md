@@ -32,6 +32,8 @@ npm run dev
 
 Vite serves the app on `http://localhost:5173` (it picks another port if 5173 is busy). Open that URL and sign in with Google.
 
+`/` is a **public** home page (placeholder content). Signing in lands on the authenticated dashboard at `/dashboard`; the entity CRUD pages and the signup form view/builder also sit behind the route guard.
+
 ## How login works (dev)
 
 The frontend calls `{apiBaseUrl}/login?frontend_url=<frontend origin>` (see `src/auth/AuthContext.tsx`). The backend validates the origin, then redirects back to `<origin>/auth/callback` with `access_token`, `refresh_token`, and the Google `user` profile appended after the Google round-trip. Because the frontend passes its own origin, login keeps working even if Vite serves on a non-default port.
