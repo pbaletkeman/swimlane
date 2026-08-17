@@ -272,3 +272,75 @@ Completes the five entity CRUD pages (Frequencies, Facilities, Events, Venues, S
 - Dev proxy requires the FastAPI backend on `127.0.0.1:8000`.
 - Code review follow-ups addressed: network failures now throw `ApiError` (status 0); `BASE_URL` trailing slashes are stripped; `.env` is gitignored (only `.env.example` tracked).
 - Known/deferred: the OAuth callback returns the browser to the backend origin in dev (`changeOrigin`), and tokens live in `localStorage` — both deliberate, tracked in `frontend-todo.md` (Phase 3 / prerequisites).
+## Phase 8 � Signup Forms (complete: 8.0�8.5)
+
+Branch: eature/forms
+
+- [x] 8.0: branch created from eature/crud-pages (Phase 7 not yet merged into main, so this branch carries Phase 7's shared components � EntityDataTable selection, BulkDeleteBar, EntityFormDialog textarea/datetime, ConfirmDelete, ToastProvider � and will reduce to a Phase 8-only diff once eature/crud-pages merges)
+- [x] src/pages/FormsPage.tsx (facility picker for /forms) � replaces the placeholder: lists facilities (EntityDataTable, search/sort, Tag is_active); per-row "View Signup Form" (pi-file-edit) -> /forms/facility/:id and, for FACILITY_MANAGER+, a "Manage" (pi-pencil) icon -> /forms/builder/:id
+- [x] src/pages/FormViewPage.tsx (8.1/8.2, member view /forms/facility/:facilityId):
+  - Loads facility (acilities.get) + form (orms.getFacilityForm) in parallel; facility name becomes the page title
+  - Questions rendered by question_type: InputText (text) / compound Checkbox.Root (checkbox); required marked with a red * + inline small errors; required text must be non-empty and required checkbox must be checked (checked on submit)
+  - Rules section: list items with pi-exclamation-circle (title bold + content)
+  - Signature-consent Checkbox ("I agree to the facility rules and consent to this signup.") gates the pi-pencil Submit button; consent hint shown when unchecked
+  - Submits POST /forms/{facility_id}/submit with { signed: true, responses }; on success keeps the returned submission_id, disables all inputs/submit (prevents re-entry), shows a success banner, and reveals the pi-file-pdf "Download PDF" button
+  - PDF export (8.2): orms.getSubmissionPdf(submissionId) -> blob -> object URL -> <a download="submission-<id>.pdf"> click -> revoke
+  - Handles: loading spinner, facility-not-found, and "no signup form yet" (with a Back-to-facilities button)
+- [x] src/pages/FormBuilderPage.tsx (8.3, manager builder /forms/builder/:facilityId):
+  - Two sections (Questions + Rules), each with its own header row (h2 + New button), EmptyState, BulkDeleteBar, and EntityDataTable (search/sort, Tag columns, edit pi-pencil + ConfirmDelete, selectable with bulk delete)
+  - Questions table columns: prompt (sortable), question_type (Tag Text info / Checkbox warn), is_required (Tag Required danger / Optional secondary), sort_order, is_active (Tag)
+  - Question dialog: prompt (required, placeholder "e.g., Emergency contact phone number"), question_type (Select Text/Checkbox, required), is_required checkbox, sort_order number, is_active checkbox; create defaults text/required/sort 0/active; edit pre-filled from the row
+  - Rules table columns: title (sortable), content, sort_order, is_active (Tag)
+  - Rule dialog: title (required), content (	extarea, required), sort_order number, is_active checkbox
+  - Per-row soft/hard delete via deleteQuestion/hardDeleteQuestion and deleteRule/hardDeleteRule; bulk soft delete via deleteQuestionsBulk(ids) / deleteRulesBulk(ids)
+  - Uses GET /forms/{facility_id} for its list, so it manages the facility's ACTIVE questions/rules (the only listing endpoint available)
+- [x] Router (src/router/index.tsx) � added /forms/facility/:facilityId (FormViewPage) and /forms/builder/:facilityId (FormBuilderPage) alongside /forms; each lazy page gets its own chunk
+- [x] index.css � form-view styles (.form-card, questions/labels/* marker/errors, .form-rules list, .form-consent, .form-actions, .form-submitted-banner, .form-consent-hint) and builder styles (.form-builder-* section headers/back button)
+
+## Verification
+
+- [x] 
+pm run lint (oxlint) � clean
+- [x] 
+pm run build (	sc -b && vite build) � passes; FormViewPage/FormBuilderPage emit their own lazy chunks
+- [ ] Manual browser smoke test of submit + PDF download (pending � Phase 10)
+
+## Notes
+
+- GET /forms/{facility_id} returns only ACTIVE questions + rules, so both the member view and the builder operate on active items; soft-deleted/inactive items are not listed (no all-questions-by-facility endpoint exists). Toggling is_active off hides an item from the view AND the builder.
+- The backend upserts a submission per (sub, facility) and returns the created/updated FormSubmission � the frontend keeps its submission_id in state for the PDF export; a reload loses it until the member resubmits (no "my submission" GET endpoint exists).
+- Signature consent + required-question validation happen client-side; the backend independently requires signed=true and enforces roles (member_role on submit/PDF, acility_manager_role on question/rule writes, dmin_role on hard deletes).
+- Remaining in Phase 8: commit (8.4) + PR title/description (8.5) below.
+- [x] 8.4 committed — `9597fdf` "feat: signup form member view, PDF export, and manager builder"
+- [x] 8.5 PR title + description provided (below)
+
+## PR Title (8.5)
+
+`feat: signup form member view, PDF export, and manager builder`
+
+## PR Description (8.5)
+
+### Summary
+
+Implements the Signup Forms feature: a facility picker at `/forms`, a member-facing form view at `/forms/facility/:facilityId` that renders questions + facility rules, gates submission on a signature consent, and exports a PDF of the completed submission; plus a facility-manager builder at `/forms/builder/:facilityId` for CRUD + bulk delete of form questions and facility rules.
+
+### What's Included
+
+- **Facility picker (`/forms`)** — replaces the placeholder `FormsPage` with a facility list; "View Signup Form" (`pi-file-edit`) for members and a "Manage" (`pi-pencil`) action for FACILITY_MANAGER+.
+- **Member view (`/forms/facility/:facilityId`)** — renders questions by type (`InputText` for text, `Checkbox` for checkbox) with required markers and inline validation, facility rules as a list with `pi-exclamation-circle`, and a signature-consent checkbox that gates the submit button. Submit posts `POST /forms/{facility_id}/submit` (upsert per `(sub, facility)`), disables re-entry, and toasts success.
+- **PDF export** — after submit, a `pi-file-pdf` "Download PDF" button fetches `GET /forms/submissions/{submission_id}/pdf` as a blob (Bearer token attached) and triggers a browser download.
+- **Manager builder (`/forms/builder/:facilityId`)** — Questions and Rules sections, each with search/sort tables (`Tag` columns), create/edit `EntityFormDialog`s (question prompt placeholder "e.g., Emergency contact phone number"; rule `content` textarea), per-row soft/hard delete via `ConfirmDelete`, and row-selection bulk delete via `/forms/questions/bulk` and `/forms/rules/bulk`.
+- **Routing/styles** — new lazy routes for the view and builder; form view + builder styles in `index.css`.
+
+### Verification
+
+- `npm run lint` (oxlint) — clean.
+- `npm run build` (`tsc -b && vite build`) — passes; `FormViewPage`/`FormBuilderPage` emit their own lazy chunks.
+- Manual browser smoke test (submit + PDF download) pending — Phase 10.
+
+### Notes
+
+- `GET /forms/{facility_id}` returns only ACTIVE questions/rules, so both the view and the builder manage active items; toggling `is_active` off hides an item from both.
+- The submission `submission_id` is kept in page state for the PDF export; it is lost on reload (no "my submission" GET endpoint exists) — a re-submit returns it again (upsert).
+- Client-side consent + required validation mirror the backend rules (`signed` must be true; `member_role` on submit/PDF, `facility_manager_role` on question/rule writes, `admin_role` on hard deletes).
+- Branch `feature/forms` was created from `feature/crud-pages` (Phase 7 unmerged), so it currently includes Phase 7 commits; the diff will shrink to Phase 8-only once `feature/crud-pages` merges to main.
