@@ -181,6 +181,74 @@ Branch: `feature/layout`
 - PrimeReact 11 has no `Menubar`/`Sidebar`-overlay-old API; the `primereact/sidebar` compound (`Layout`/`Root`/`Aside`/`Panel`/`Header`/`Content`/`Footer`/`Group`/`Menu`/`MenuItem`/`MenuButton`/`Rail`/`Main`/`Trigger`) is the sidebar-nav layout. `MenuButton` takes `isActive`; `Sidebar.Trigger` toggles the `Sidebar.Root` it targets (defaults to the layout's sidebar).
 - Next: Phase 7 — CRUD pages for Frequencies, Facilities, Events, Venues, Schedules (start only after `feature/layout` merges into main).
 
+## Phase 7 — Entity CRUD pages (complete: 7.0–7.9)
+
+Branch: `feature/crud-pages`
+
+- [x] 7.0: branch created from `main` (after Phase 6 merged as `f810b87` / PR #24)
+- [x] `src/pages/FrequenciesPage.tsx` (7.1) — full CRUD for `/frequencies`:
+  - `PageHeader` (title/subtitle, "New Frequency" `pi-plus` button); `EntityDataTable` with search (name/day_interval, `pi-search`), sortable `name` + `day_interval` columns, `is_active` as a `Tag` (success Active / secondary Inactive), row actions = edit `pi-pencil` button + `ConfirmDelete` (soft `pi-trash` + admin-only hard `pi-times`); `EmptyState` ("No frequencies yet.") with a create action replaces the table when the list is empty
+  - `EntityFormDialog` fields: name (required, placeholder "e.g., Weekly"), day_interval (required, placeholder "e.g., 7 days"), is_active checkbox (defaults to `true` on create via `initialValues`); submit calls `frequencies.create` / `frequencies.update`, reloads the list, and toasts success/error (`showToastSuccess`/`showToastError`); soft delete → `frequencies.delete`, hard delete → `frequencies.hardDelete`
+- [x] Mounted `ToastProvider` in `src/main.tsx` (rendered as a portalled sibling of `<App />` inside `AuthProvider` — it takes no children) so the global `toast()` used by pages has a `Toaster` to render into
+- [x] `EntityFormDialog` extended (7.2/7.3 enabler) — new field types:
+  - `textarea` → v11 `Textarea` (simple pass-through; optional `rows`, default 3)
+  - `datetime` → v11 compound `DatePicker` (the `Calendar` successor: `Root`/`Input`/`Trigger`/`Portal`/`Positioner`/`Popup`/`Calendar`/`Header`/`Table`/`TableHead`/`TableBody view="date"`/`Time` with `Picker type="hour"|"minute"` + `Increment`/`Decrement`/`Hour`/`Minute`/`Separator`/`Footer` with `Today`/`Clear`), `showTime` + `hourFormat="24"`; value stored as `Date | null` (ISO strings converted to `Date` for editing), required-empty check covers invalid `Date`s; number fields now pass `placeholder` to `InputNumber.Input`
+- [x] `src/pages/FacilitiesPage.tsx` (7.2) — full CRUD: columns name/description/max_capacity/min_capacity/is_active (`Tag`), form fields name (required), description (`textarea`), max_capacity + min_capacity (`InputNumber` with `placeholder="e.g., 50"` and min bounds), is_active checkbox; nullable capacity values preserved (`number | null`)
+- [x] `src/pages/EventsPage.tsx` (7.3) — full CRUD:
+  - Loads events + frequencies in parallel (`Promise.all`); frequency `Select` options and the frequency-name column map derive from the fetched frequencies
+  - Datetime columns formatted with `toLocaleString()`; start/end `datetime` fields required with cross-field validation (end must be after start); submitted as ISO-8601 strings
+- [x] `src/pages/VenuesPage.tsx` (7.4) — full CRUD: loads venues + facilities in parallel; columns street/city/state/postal_code/cost (`$` formatted)/facility name/is_active; form fields street/city/state/postal_code (required text), cost (`InputNumber`, placeholder "e.g., 200"), facility `Select` (required, options from `/facilities`), is_active checkbox; nullable cost preserved
+- [x] `src/pages/SchedulesPage.tsx` (7.5) — full CRUD: loads schedules + venues + events in parallel; columns venue (street, city) / member_id / event (formatted start datetime) / is_active; form fields venue `Select` (required), member_id free-text required (placeholder "Google sub ID" — no user-list endpoint exists), event `Select` (required), is_active
+- [x] Row selection + bulk delete (7.6) — added to ALL five CRUD pages:
+  - `EntityDataTable` gained `selectable`/`selectedKeys`/`onSelectionChange`: controlled v11 DataTable selection (`selectionMode="multiple"`, `selectionKeys`, `onSelectionChange`), a leading selection column with the `DataTable.Selection` render prop composing `Checkbox.Root` (header = select-all w/ `indeterminate` for some-selected; row = toggle), and the `__select` column excluded from global-search fields
+  - New `BulkDeleteBar` component: selection-count pill + danger "Delete" (`pi-trash`) `Button` opening a compound `Dialog` confirm ("Bulk delete?"); bulk delete via the `/bulk` endpoints — bodies are the selected rows (backend matches natural keys: frequency/facility by `name`, event by `start_date_time`+`end_date_time`, venue by `facility_id`+`street`, schedule by `venue_id`+`member_id`+`event_id`)
+  - Selection resets on list reload; `BulkDeleteBar` renders null when nothing is selected
+- [x] 7.7 — AGENTS.md checked: backend-focused, no stale frontend references; no change needed
+- [x] 7.8 committed — `aa6aa8b` "feat: entity CRUD pages with role-gated actions and bulk delete" (12 files, +1486/−27)
+- [x] 7.9 PR title + description provided (below)
+
+## Verification
+
+- [x] `npm run lint` (oxlint) — clean
+- [x] `npm run build` (`tsc -b && vite build`) — passes; per-page lazy chunks emitted for FrequenciesPage/FacilitiesPage/EventsPage/VenuesPage/SchedulesPage
+
+## Notes
+
+- `ToastProvider` takes no children (its `Toaster` uses a portal), so it is rendered as a sibling of `<App />`, not a wrapper.
+- v11 `DataTable.Selection` is a render prop with a typed `DataTableSelectionExposes` (`isHeader`, `isAllSelected`, `isSomeSelected`, `toggleAll` in header context; `isSelected`, `toggle` in row context) — the checkbox part's `onCheckedChange` passes `event.originalEvent` into `toggle`/`toggleAll`.
+- Remaining in Phase 7: none. Next: Phase 8 — Signup Forms (after `feature/crud-pages` merges into main).
+
+## PR Title (7.9)
+
+`feat: entity CRUD pages with role-gated actions and bulk delete`
+
+## PR Description (7.9)
+
+### Summary
+
+Completes the five entity CRUD pages (Frequencies, Facilities, Events, Venues, Schedules) for the Swimlane frontend, extending the shared building blocks from Phase 5 into full list/search/create/edit/soft-delete/hard-delete flows. Also adds row-selection-based bulk delete to every CRUD page via the backend `/bulk` endpoints.
+
+### What's Included
+
+- **CRUD pages** — `FrequenciesPage`, `FacilitiesPage`, `EventsPage`, `VenuesPage`, `SchedulesPage`, each with a searchable/sortable `EntityDataTable`, a schema-driven `EntityFormDialog` (create + edit), `ConfirmDelete` (soft delete + admin-only hard delete), and an `EmptyState` with a create action.
+- **Form dialog extension** — `EntityFormDialog` gained `textarea` and `datetime` field types (PrimeReact 11 `Textarea` and compound `DatePicker`), plus `placeholder` passthrough on `InputNumber`; datetime fields validate empty/invalid values and support cross-field validation (e.g. event end > start).
+- **Lookup-driven pages** — Facilities/Events/Venues/Schedules load their reference data (`/facilities`, `/frequencies`, `/venues`, `/events`) in parallel and render friendly names (facility name, frequency name, venue "street, city", event start datetime) in place of raw foreign keys.
+- **Row selection** — `EntityDataTable` supports checkbox row selection (select-all header with indeterminate state) driven by controlled v11 DataTable selection keys.
+- **Bulk delete** — new `BulkDeleteBar` (selection count + confirm dialog) wired into all five pages using the `/bulk` soft-delete endpoints; bulk bodies carry the selected rows, which the backend matches by natural keys.
+- **Docs** — `frontend-todo.md` Phase 7 items and `frontend-done.md` updated; AGENTS.md reviewed (no changes needed).
+
+### Verification
+
+- `npm run lint` (oxlint) — clean.
+- `npm run build` (`tsc -b && vite build`) — passes; each page emits its own lazy chunk.
+- Manual smoke test against the running backend still pending (Phase 10).
+
+### Notes
+
+- Hard deletes (single-row and any bulk hard-delete) remain gated to WEB_ADMIN; the hard-delete confirm requires a typed reason.
+- Bulk delete is soft delete only (matches the Phase 7 plan); selection clears automatically after each reload.
+- `member_id` on Schedules is a free-text Google `sub` (placeholder "Google sub ID") because no user-list endpoint exists.
+
 ## Phase 1 — Scaffolding (complete)
 
 - [x] Created `frontend/` via `npm create vite@latest frontend -- --template react-ts` (Vite 8, React 19, TS 6, oxlint)

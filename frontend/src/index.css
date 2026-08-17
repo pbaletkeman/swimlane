@@ -116,3 +116,36 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+.app-crud-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.app-crud-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.entity-datatable-select {
+  width: 3rem;
+}
+
+.bulk-delete-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--p-content-border-color);
+  border-radius: var(--p-content-border-radius);
+  background-color: var(--p-content-background);
+}
+
+.bulk-delete-count {
+  font-size: 0.875rem;
+  color: var(--p-text-muted-color);
+}

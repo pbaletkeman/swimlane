@@ -2,16 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Button } from 'primereact/button'
 import { Checkbox } from 'primereact/checkbox'
+import { DatePicker } from 'primereact/datepicker'
 import { Dialog } from 'primereact/dialog'
 import { InputNumber } from 'primereact/inputnumber'
 import { InputText } from 'primereact/inputtext'
 import { Select } from 'primereact/select'
+import { Textarea } from 'primereact/textarea'
 import type { CheckboxRootChangeEvent } from '@primereact/types/primitive/checkbox'
+import type { DatePickerRootValueChangeEvent } from '@primereact/types/primitive/datepicker'
 import type { DialogRootChangeEvent } from '@primereact/types/primitive/dialog'
 import type { InputNumberRootValueChangeEvent } from '@primereact/types/primitive/inputnumber'
 import type { SelectValueChangeEvent } from '@primereact/types/primitive/select'
 
-export type EntityFormFieldType = 'text' | 'number' | 'checkbox' | 'select'
+export type EntityFormFieldType = 'text' | 'textarea' | 'number' | 'checkbox' | 'select' | 'datetime'
 
 export interface EntityFormFieldOption {
   label: string
@@ -28,6 +31,7 @@ export interface EntityFormField<T> {
   min?: number
   max?: number
   minLength?: number
+  rows?: number
   validate?: (value: unknown, values: Record<string, unknown>) => string | undefined
 }
 
@@ -57,6 +61,8 @@ function validateField<T>(
     empty = value.trim() === ''
   } else if (type === 'number') {
     empty = Number.isNaN(Number(value))
+  } else if (type === 'datetime') {
+    empty = !(value instanceof Date && !Number.isNaN(value.getTime()))
   }
 
   if (required && empty) {
@@ -116,7 +122,7 @@ export function EntityFormDialog<T>({
     for (const field of fieldsRef.current) {
       const name = String(field.name)
       const existing = initialValuesRef.current?.[name]
-      next[name] = existing ?? (field.type === 'checkbox' ? false : field.type === 'number' ? null : '')
+      next[name] = existing ?? (field.type === 'checkbox' ? false : field.type === 'number' || field.type === 'datetime' ? null : '')
     }
 
     setValues(next)
@@ -178,8 +184,100 @@ export function EntityFormDialog<T>({
           max={field.max}
           invalid={invalid}
         >
-          <InputNumber.Input id={fieldId} className="w-full" />
+          <InputNumber.Input id={fieldId} className="w-full" placeholder={field.placeholder} />
         </InputNumber.Root>
+      )
+    }
+
+    if (field.type === 'textarea') {
+      return (
+        <Textarea
+          id={fieldId}
+          value={String(value ?? '')}
+          onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setFieldValue(name, event.target.value)}
+          placeholder={field.placeholder}
+          invalid={invalid}
+          rows={field.rows ?? 3}
+          className="w-full"
+        />
+      )
+    }
+
+    if (field.type === 'datetime') {
+      const dateValue =
+        value instanceof Date ? value : typeof value === 'string' && value ? new Date(value) : null
+      return (
+        <DatePicker.Root
+          value={dateValue}
+          onValueChange={(event: DatePickerRootValueChangeEvent) => {
+            const next =
+              event.value instanceof Date
+                ? event.value
+                : typeof event.value === 'string'
+                  ? new Date(event.value)
+                  : null
+            setFieldValue(name, next)
+          }}
+          showTime
+          hourFormat="24"
+          selectionMode="single"
+          invalid={invalid}
+        >
+          <DatePicker.Input id={fieldId} className="w-full" placeholder={field.placeholder} />
+          <DatePicker.Trigger>
+            <i className="pi pi-calendar" />
+          </DatePicker.Trigger>
+          <DatePicker.Portal>
+            <DatePicker.Positioner>
+              <DatePicker.Popup>
+                <DatePicker.Calendar>
+                  <DatePicker.Header>
+                    <DatePicker.Title />
+                    <DatePicker.SelectMonth />
+                    <DatePicker.SelectYear />
+                    <DatePicker.Prev>
+                      <i className="pi pi-chevron-left" />
+                    </DatePicker.Prev>
+                    <DatePicker.Next>
+                      <i className="pi pi-chevron-right" />
+                    </DatePicker.Next>
+                  </DatePicker.Header>
+                  <DatePicker.Table>
+                    <DatePicker.TableHead />
+                    <DatePicker.TableBody view="date" />
+                  </DatePicker.Table>
+                  <DatePicker.Time>
+                    <DatePicker.Picker type="hour">
+                      <DatePicker.Increment>
+                        <i className="pi pi-chevron-up" />
+                      </DatePicker.Increment>
+                      <DatePicker.Hour />
+                      <DatePicker.Decrement>
+                        <i className="pi pi-chevron-down" />
+                      </DatePicker.Decrement>
+                    </DatePicker.Picker>
+                    <DatePicker.Separator />
+                    <DatePicker.Picker type="minute">
+                      <DatePicker.Increment>
+                        <i className="pi pi-chevron-up" />
+                      </DatePicker.Increment>
+                      <DatePicker.Minute />
+                      <DatePicker.Decrement>
+                        <i className="pi pi-chevron-down" />
+                      </DatePicker.Decrement>
+                    </DatePicker.Picker>
+                  </DatePicker.Time>
+                  <DatePicker.Footer>
+                    <DatePicker.Buttonbar>
+                      <DatePicker.Today />
+                      <DatePicker.Clear />
+                    </DatePicker.Buttonbar>
+                  </DatePicker.Footer>
+                </DatePicker.Calendar>
+              </DatePicker.Popup>
+            </DatePicker.Positioner>
+          </DatePicker.Portal>
+        </DatePicker.Root>
       )
     }
 
