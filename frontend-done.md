@@ -344,3 +344,70 @@ Implements the Signup Forms feature: a facility picker at `/forms`, a member-fac
 - The submission `submission_id` is kept in page state for the PDF export; it is lost on reload (no "my submission" GET endpoint exists) — a re-submit returns it again (upsert).
 - Client-side consent + required validation mirror the backend rules (`signed` must be true; `member_role` on submit/PDF, `facility_manager_role` on question/rule writes, `admin_role` on hard deletes).
 - Branch `feature/forms` was created from `feature/crud-pages` (Phase 7 unmerged), so it currently includes Phase 7 commits; the diff will shrink to Phase 8-only once `feature/crud-pages` merges to main.
+
+## Phase 9 — Polish and validation (complete: 9.0–9.9)
+
+Branch: `feature/validation`
+
+- [x] 9.0: branch created from `feature/forms` (Phases 7/8 not yet merged into main, so this branch carries their commits too)
+- [x] `src/util/media-query.ts` (9.6) — `useMediaQuery(query)` hook built on `useSyncExternalStore` (`matchMedia` + `change` listener), returns a live boolean snapshot
+- [x] `src/layout/AppLayout.tsx` (9.6) — responsive sidebar:
+  - `Sidebar.Root` is now controlled (`open={sidebarOpen}` + `onOpenChange` via `UseSidebarOpenChangeEvent`) instead of `defaultOpen`
+  - Below 768px (`MOBILE_QUERY = '(max-width: 767px)'`) the sidebar auto-collapses to the icon rail and re-expands when the viewport grows (a `useEffect` syncs `sidebarOpen` to `!isNarrow`)
+  - Clicking a nav `MenuButton` on narrow screens closes the menu (dismisses the rail) after navigating
+- [x] `src/components/EntityDataTable.tsx` (9.2) — loading skeletons: the `DataTable.Loading` overlay now renders skeleton placeholder rows (`primereact/skeleton`, `animation="wave"`, per-column `Skeleton` bars) instead of the spinner; shared by every list/table page
+- [x] `src/components/ConfirmDelete.tsx` (9.3) — the confirm dialog body now leads with an icon chip: `pi-trash` for soft delete, `pi-exclamation-triangle` (danger-styled) for the "Permanently delete?" hard-delete path
+- [x] `src/pages/ErrorPage.tsx` (9.4) — new shared error page: `pi-exclamation-circle` icon chip, optional `code`, `title`, `message`, and optional primary `Button` action (`actionLabel`/`onAction`)
+- [x] `src/router/index.tsx` (9.4) — the `*` NotFound route now renders `<ErrorPage code={404} title="Page not found" ... />` (stays inside the layout)
+- [x] `src/pages/FormViewPage.tsx` (9.4) — the "Form not found" branch now renders `ErrorPage` (with a Back-to-facilities action)
+- [x] `src/components/EmptyState.tsx` (9.5) — added `actionLabel`/`onAction` props that render a primary `Button` (existing `action` ReactNode prop retained)
+- [x] `src/pages/FormsPage.tsx` (9.5) — empty state now offers a "Manage Facilities" primary action for FACILITY_MANAGER+ (navigates to `/facilities`); all other list pages already had primary actions
+- [x] 9.1 — shared form validation + inline `small` errors already shipped in `EntityFormDialog` (required, number `min`/`max`, `minLength`, custom `validate`); verified, no change needed
+- [x] 9.7 — accessible labels: audited every icon-only control (nav trigger, logout, theme switch, pagination prev/next, rows-per-page select, select-all/row checkboxes, edit/manage/delete buttons, dialog closes); all already carry `aria-label` (plus `title`), no changes needed
+- [x] `index.css` — styles added for skeleton loading rows (`.entity-datatable-loading-*`, grid columns adapt at ≥768px), the confirm-delete icon chip (`.confirm-delete-icon`, `.confirm-delete-icon-hard`), and the error page (`.app-error-*`)
+- [x] 9.8 committed
+- [x] 9.9 PR title + description provided (below)
+
+## Verification
+
+- [x] `npm run lint` (oxlint) — clean
+- [x] `npm run build` (`tsc -b && vite build`) — passes
+- [ ] Manual browser check of the responsive sidebar collapse + skeleton loading (pending — Phase 10)
+
+## Notes
+
+- Phase 9.1/9.7 were already satisfied by earlier phases; the work concentrated on skeletons (9.2), confirm-dialog icons (9.3), the shared error page (9.4), empty-state actions (9.5), and the responsive sidebar (9.6).
+- Responsive approach: v11 `Sidebar` has no built-in breakpoint behavior, so the sidebar auto-collapses to the icon rail below 768px via the controlled `open` state. This keeps the layout intact on phones/tablets while preserving the rail + topbar trigger to expand on demand.
+- Sidebar styles are injected at runtime by `@primeuix/themes`/`@primeuix/styled`, so the theme package ships no media queries — confirmed before implementing the JS-controlled collapse.
+
+## PR Title (9.9)
+
+`feat: loading skeletons, error page, accessible labels, responsive sidebar`
+
+## PR Description (9.9)
+
+### Summary
+
+Polish pass over the frontend: skeleton loading placeholders on every list/table page, a shared error/404 page, clearer soft-vs-hard delete confirmation, empty-state primary actions, accessible labels on all icon-only controls, and a responsive sidebar that auto-collapses to the icon rail on small screens.
+
+### What's Included
+
+- **Loading skeletons** — `EntityDataTable`'s loading overlay now renders per-column `Skeleton` bars (`animation="wave"`) instead of a spinner, giving every list/table page a stable, shimmer-style loading state.
+- **Shared error page** — new `ErrorPage` (`pi-exclamation-circle`, optional code/title/message/action) powers the router's `*` NotFound route (404) and FormViewPage's "Form not found" branch; API error toasts continue to flow from normalized `ApiError`s.
+- **Confirm-delete clarity** — the confirm dialog leads with an icon chip: `pi-trash` for soft delete, `pi-exclamation-triangle` (danger-styled) for "Permanently delete?" hard deletes.
+- **Empty-state actions** — `EmptyState` gained `actionLabel`/`onAction` (renders a primary button); the Forms page empty state now points managers to `/facilities`.
+- **Responsive sidebar** — `useMediaQuery` drives a controlled `Sidebar.Root`: auto-collapses to the icon rail below 768px, re-expands on larger viewports, and closes the menu after a nav click on narrow screens.
+- **Accessibility** — audited all icon-only buttons/controls (nav trigger, logout, theme switch, pagination, checkboxes, edit/manage/delete, dialog closes); all carry `aria-label` (with `title`).
+- **Validation** — shared required/number-range/min-length validation with inline `small` errors confirmed present in `EntityFormDialog` (no change needed).
+
+### Verification
+
+- `npm run lint` (oxlint) — clean.
+- `npm run build` (`tsc -b && vite build`) — passes.
+- Manual smoke test of the responsive collapse and skeleton loading pending — Phase 10.
+
+### Notes
+
+- v11 `Sidebar` ships no breakpoint behavior (styles are runtime-injected by `@primeuix/themes`/`@primeuix/styled` with no media queries), so the responsive collapse is implemented in JS by controlling the `open` state.
+- Phases 9.1 (form validation) and 9.7 (aria-labels) were already satisfied by earlier phases and verified rather than re-implemented.
+- Branch `feature/validation` was created from `feature/forms`, so it currently includes the unmerged Phase 7 and Phase 8 commits; the diff will shrink once those branches merge to main.

@@ -1,10 +1,15 @@
+import { useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Avatar } from 'primereact/avatar'
 import { Button } from 'primereact/button'
 import { Sidebar } from 'primereact/sidebar'
+import type { UseSidebarOpenChangeEvent } from '@primereact/types/headless/sidebar'
 import { ThemeSwitch } from '../components/ThemeSwitch.tsx'
 import { useAuth } from '../auth/auth-context.ts'
+import { useMediaQuery } from '../util/media-query.ts'
 import { NAV_ITEMS } from './nav.ts'
+
+const MOBILE_QUERY = '(max-width: 767px)'
 
 function getInitials(name?: string): string {
   if (!name) {
@@ -22,13 +27,23 @@ export function AppLayout() {
   const { user, logout, hasRole } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const isNarrow = useMediaQuery(MOBILE_QUERY)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  useEffect(() => {
+    setSidebarOpen(!isNarrow)
+  }, [isNarrow])
+
+  const handleSidebarOpenChange = (event: UseSidebarOpenChangeEvent): void => {
+    setSidebarOpen(event.value ?? true)
+  }
 
   const visibleItems = NAV_ITEMS.filter((item) => hasRole(item.requiredRole))
   const isActive = (path: string): boolean =>
     path === '/' ? location.pathname === '/' : location.pathname === path || location.pathname.startsWith(`${path}/`)
   return (
     <Sidebar.Layout>
-      <Sidebar.Root id="main" collapsible="icon" defaultOpen>
+      <Sidebar.Root id="main" collapsible="icon" open={sidebarOpen} onOpenChange={handleSidebarOpenChange}>
         <Sidebar.Spacer />
         <Sidebar.Aside>
           <Sidebar.Panel>
@@ -42,7 +57,15 @@ export function AppLayout() {
                   <Sidebar.Menu>
                     {visibleItems.map((item) => (
                       <Sidebar.MenuItem key={item.path}>
-                        <Sidebar.MenuButton isActive={isActive(item.path)} onClick={() => navigate(item.path)}>
+                        <Sidebar.MenuButton
+                          isActive={isActive(item.path)}
+                          onClick={() => {
+                            navigate(item.path)
+                            if (isNarrow) {
+                              setSidebarOpen(false)
+                            }
+                          }}
+                        >
                           <i className={item.icon} />
                           <span>{item.label}</span>
                         </Sidebar.MenuButton>

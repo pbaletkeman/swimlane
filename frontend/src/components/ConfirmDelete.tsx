@@ -104,6 +104,9 @@ export function ConfirmDelete({
                 </Dialog.HeaderActions>
               </Dialog.Header>
               <div className="confirm-delete-body">
+                <div className={`confirm-delete-icon ${mode === 'hard' ? 'confirm-delete-icon-hard' : ''}`}>
+                  <i className={mode === 'hard' ? 'pi pi-exclamation-triangle' : 'pi pi-trash'} />
+                </div>
                 <div className="confirm-delete-message">
                   {mode === 'hard' ? (
                     <>

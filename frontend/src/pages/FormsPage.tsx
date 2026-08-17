@@ -58,6 +58,8 @@ export default function FormsPage() {
           message="No facilities yet."
           hint="A facility must exist before a signup form can be viewed."
           icon="pi-file-edit"
+          actionLabel={canManage ? 'Manage Facilities' : undefined}
+          onAction={canManage ? () => navigate('/facilities') : undefined}
         />
       ) : (
         <EntityDataTable
