@@ -172,8 +172,8 @@ Only continue if previous commit was merged into main branch.
   - Question create/edit dialog (same fields, placeholder prompt "e.g., Emergency contact phone number")
   - Rules `DataTable`: `title`, `content`, `sort_order`, `is_active`; rule dialog with `content` textarea
   - Soft/hard delete per row + bulk via `/forms/questions/bulk` and `/forms/rules/bulk` �?" `FormBuilderPage`: two sections (Questions/Rules) each with `PageHeader`-style section header + New button, `EntityDataTable` (search/sort/`Tag`s, edit + `ConfirmDelete`, selectable + `BulkDeleteBar`); question dialog (`prompt` placeholder "e.g., Emergency contact phone number", `question_type` select Text/Checkbox, required/sort_order/is_active checkboxes+number, defaults `text`/required/sort 0); rule dialog (`title` text, `content` textarea, `sort_order`, `is_active`); bulk deletes send ids via `deleteQuestionsBulk`/`deleteRulesBulk`
-- 8.4 [ ] git commit
-- 8.5 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+- 8.4 [x] git commit �?" `9597fdf` "feat: signup form member view, PDF export, and manager builder" (7 files, +1019/−9)
+- 8.5 [x] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
   - Summary
   - What's Included
   - Verification
