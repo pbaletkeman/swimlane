@@ -181,7 +181,7 @@ Branch: `feature/layout`
 - PrimeReact 11 has no `Menubar`/`Sidebar`-overlay-old API; the `primereact/sidebar` compound (`Layout`/`Root`/`Aside`/`Panel`/`Header`/`Content`/`Footer`/`Group`/`Menu`/`MenuItem`/`MenuButton`/`Rail`/`Main`/`Trigger`) is the sidebar-nav layout. `MenuButton` takes `isActive`; `Sidebar.Trigger` toggles the `Sidebar.Root` it targets (defaults to the layout's sidebar).
 - Next: Phase 7 — CRUD pages for Frequencies, Facilities, Events, Venues, Schedules (start only after `feature/layout` merges into main).
 
-## Phase 7 — Entity CRUD pages (in progress: 7.0–7.3)
+## Phase 7 — Entity CRUD pages (complete: 7.0–7.9)
 
 Branch: `feature/crud-pages`
 
@@ -197,16 +197,57 @@ Branch: `feature/crud-pages`
 - [x] `src/pages/EventsPage.tsx` (7.3) — full CRUD:
   - Loads events + frequencies in parallel (`Promise.all`); frequency `Select` options and the frequency-name column map derive from the fetched frequencies
   - Datetime columns formatted with `toLocaleString()`; start/end `datetime` fields required with cross-field validation (end must be after start); submitted as ISO-8601 strings
+- [x] `src/pages/VenuesPage.tsx` (7.4) — full CRUD: loads venues + facilities in parallel; columns street/city/state/postal_code/cost (`$` formatted)/facility name/is_active; form fields street/city/state/postal_code (required text), cost (`InputNumber`, placeholder "e.g., 200"), facility `Select` (required, options from `/facilities`), is_active checkbox; nullable cost preserved
+- [x] `src/pages/SchedulesPage.tsx` (7.5) — full CRUD: loads schedules + venues + events in parallel; columns venue (street, city) / member_id / event (formatted start datetime) / is_active; form fields venue `Select` (required), member_id free-text required (placeholder "Google sub ID" — no user-list endpoint exists), event `Select` (required), is_active
+- [x] Row selection + bulk delete (7.6) — added to ALL five CRUD pages:
+  - `EntityDataTable` gained `selectable`/`selectedKeys`/`onSelectionChange`: controlled v11 DataTable selection (`selectionMode="multiple"`, `selectionKeys`, `onSelectionChange`), a leading selection column with the `DataTable.Selection` render prop composing `Checkbox.Root` (header = select-all w/ `indeterminate` for some-selected; row = toggle), and the `__select` column excluded from global-search fields
+  - New `BulkDeleteBar` component: selection-count pill + danger "Delete" (`pi-trash`) `Button` opening a compound `Dialog` confirm ("Bulk delete?"); bulk delete via the `/bulk` endpoints — bodies are the selected rows (backend matches natural keys: frequency/facility by `name`, event by `start_date_time`+`end_date_time`, venue by `facility_id`+`street`, schedule by `venue_id`+`member_id`+`event_id`)
+  - Selection resets on list reload; `BulkDeleteBar` renders null when nothing is selected
+- [x] 7.7 — AGENTS.md checked: backend-focused, no stale frontend references; no change needed
+- [x] 7.8 committed — `aa6aa8b` "feat: entity CRUD pages with role-gated actions and bulk delete" (12 files, +1486/−27)
+- [x] 7.9 PR title + description provided (below)
 
 ## Verification
 
 - [x] `npm run lint` (oxlint) — clean
-- [x] `npm run build` (`tsc -b && vite build`) — passes; `FrequenciesPage` gets its own lazy chunk (bundling DataTable/Dialog/InputNumber/etc.)
+- [x] `npm run build` (`tsc -b && vite build`) — passes; per-page lazy chunks emitted for FrequenciesPage/FacilitiesPage/EventsPage/VenuesPage/SchedulesPage
 
 ## Notes
 
 - `ToastProvider` takes no children (its `Toaster` uses a portal), so it is rendered as a sibling of `<App />`, not a wrapper.
-- Remaining in Phase 7: 7.4 Venues, 7.5 Schedules, 7.6 optional bulk ops, 7.7 commit, 7.8 PR description.
+- v11 `DataTable.Selection` is a render prop with a typed `DataTableSelectionExposes` (`isHeader`, `isAllSelected`, `isSomeSelected`, `toggleAll` in header context; `isSelected`, `toggle` in row context) — the checkbox part's `onCheckedChange` passes `event.originalEvent` into `toggle`/`toggleAll`.
+- Remaining in Phase 7: none. Next: Phase 8 — Signup Forms (after `feature/crud-pages` merges into main).
+
+## PR Title (7.9)
+
+`feat: entity CRUD pages with role-gated actions and bulk delete`
+
+## PR Description (7.9)
+
+### Summary
+
+Completes the five entity CRUD pages (Frequencies, Facilities, Events, Venues, Schedules) for the Swimlane frontend, extending the shared building blocks from Phase 5 into full list/search/create/edit/soft-delete/hard-delete flows. Also adds row-selection-based bulk delete to every CRUD page via the backend `/bulk` endpoints.
+
+### What's Included
+
+- **CRUD pages** — `FrequenciesPage`, `FacilitiesPage`, `EventsPage`, `VenuesPage`, `SchedulesPage`, each with a searchable/sortable `EntityDataTable`, a schema-driven `EntityFormDialog` (create + edit), `ConfirmDelete` (soft delete + admin-only hard delete), and an `EmptyState` with a create action.
+- **Form dialog extension** — `EntityFormDialog` gained `textarea` and `datetime` field types (PrimeReact 11 `Textarea` and compound `DatePicker`), plus `placeholder` passthrough on `InputNumber`; datetime fields validate empty/invalid values and support cross-field validation (e.g. event end > start).
+- **Lookup-driven pages** — Facilities/Events/Venues/Schedules load their reference data (`/facilities`, `/frequencies`, `/venues`, `/events`) in parallel and render friendly names (facility name, frequency name, venue "street, city", event start datetime) in place of raw foreign keys.
+- **Row selection** — `EntityDataTable` supports checkbox row selection (select-all header with indeterminate state) driven by controlled v11 DataTable selection keys.
+- **Bulk delete** — new `BulkDeleteBar` (selection count + confirm dialog) wired into all five pages using the `/bulk` soft-delete endpoints; bulk bodies carry the selected rows, which the backend matches by natural keys.
+- **Docs** — `frontend-todo.md` Phase 7 items and `frontend-done.md` updated; AGENTS.md reviewed (no changes needed).
+
+### Verification
+
+- `npm run lint` (oxlint) — clean.
+- `npm run build` (`tsc -b && vite build`) — passes; each page emits its own lazy chunk.
+- Manual smoke test against the running backend still pending (Phase 10).
+
+### Notes
+
+- Hard deletes (single-row and any bulk hard-delete) remain gated to WEB_ADMIN; the hard-delete confirm requires a typed reason.
+- Bulk delete is soft delete only (matches the Phase 7 plan); selection clears automatically after each reload.
+- `member_id` on Schedules is a free-text Google `sub` (placeholder "Google sub ID") because no user-list endpoint exists.
 
 ## Phase 1 — Scaffolding (complete)
 
