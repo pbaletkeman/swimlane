@@ -1,18 +1,35 @@
 import type { ReactNode } from 'react'
+import { Button } from 'primereact/button'
 
 export interface EmptyStateProps {
   message: string
   hint?: string
   icon?: string
+  actionLabel?: string
+  onAction?: () => void
   action?: ReactNode
 }
 
-export function EmptyState({ message, hint, icon = 'pi-inbox', action }: EmptyStateProps) {
+export function EmptyState({
+  message,
+  hint,
+  icon = 'pi-inbox',
+  actionLabel,
+  onAction,
+  action,
+}: EmptyStateProps) {
   return (
     <div className="empty-state">
       <i className={`empty-state-icon ${icon}`} />
       <p className="empty-state-message">{message}</p>
       {hint ? <p className="empty-state-hint">{hint}</p> : null}
+      {actionLabel && onAction ? (
+        <div className="empty-state-action">
+          <Button type="button" variant="outlined" onClick={onAction}>
+            <span className="p-button-label">{actionLabel}</span>
+          </Button>
+        </div>
+      ) : null}
       {action ? <div className="empty-state-action">{action}</div> : null}
     </div>
   )

@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { RouteGuard } from '../auth/RouteGuard.tsx'
 import { AppLayout } from '../layout/AppLayout.tsx'
+import { ErrorPage } from '../pages/ErrorPage.tsx'
 
 const LoginPage = lazy(() => import('../auth/LoginPage.tsx').then((m) => ({ default: m.LoginPage })))
 const AuthCallbackPage = lazy(() =>
@@ -26,12 +27,7 @@ function LazyFallback() {
 }
 
 function NotFoundPage() {
-  return (
-    <div className="app-page-not-found">
-      <h1>Page not found</h1>
-      <p>The page you requested does not exist.</p>
-    </div>
-  )
+  return <ErrorPage code={404} title="Page not found" message="The page you requested does not exist." />
 }
 
 export function AppRouter() {

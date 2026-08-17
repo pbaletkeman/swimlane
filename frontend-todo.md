@@ -183,17 +183,17 @@ Only continue if previous commit was merged into main branch.
 
 Only continue if previous commit was merged into main branch.
 
-- 9.0 [ ] Set Git Branch to `feature/validation`
+- 9.0 [x] Set Git Branch to `feature/validation` — branched from `feature/forms` (Phases 7/8 unmerged, so this branch carries their commits too)
 
-- 9.1 [ ] Shared form validation (required fields, number ranges); inline `small` error text via PrimeReact `FloatLabel`/validation state
-- 9.2 [ ] Loading skeletons (`Skeleton`) on all list/table pages while fetching
-- 9.3 [ ] Confirm dialog copy distinguishes soft vs hard delete ("Permanently delete?" warning icon `pi-exclamation-triangle`)
-- 9.4 [ ] 404 / error page (`pi-exclamation-circle`) and error toasts from normalized API errors
-- 9.5 [ ] Empty states with placeholder copy and primary action button on every list page
-- 9.6 [ ] Responsive: collapse menu to `Siderbar`/drawer on small screens
-- 9.7 [ ] Accessible labels (`aria-label`) on icon-only buttons
-- 9.8 [ ] git commit
-- 9.9 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+- 9.1 [x] Shared form validation (required fields, number ranges); inline `small` error text via PrimeReact `FloatLabel`/validation state — already implemented in `EntityFormDialog` (required + `min`/`max` for numbers + `minLength` + custom `validate`, each with inline `small` error under the field); verified, no change needed
+- 9.2 [x] Loading skeletons (`Skeleton`) on all list/table pages while fetching — `EntityDataTable` `DataTable.Loading` now renders skeleton row placeholders (`primereact/skeleton`, `animation="wave"`, per-column bars) instead of the spinner; applies to every list/table page via the shared component
+- 9.3 [x] Confirm dialog copy distinguishes soft vs hard delete ("Permanently delete?" warning icon `pi-exclamation-triangle`) — `ConfirmDelete` body now leads with an icon chip: `pi-trash` for soft, `pi-exclamation-triangle` (danger-styled) for hard
+- 9.4 [x] 404 / error page (`pi-exclamation-circle`) and error toasts from normalized API errors — new shared `ErrorPage` component (`src/pages/ErrorPage.tsx`, `pi-exclamation-circle` icon + optional code/title/message/action) used by the router `*` NotFound route (404) and FormViewPage's "Form not found" branch; error toasts already flow from normalized `ApiError` everywhere
+- 9.5 [x] Empty states with placeholder copy and primary action button on every list page — `EmptyState` gained `actionLabel`/`onAction` (renders a `Button`); FormsPage empty state now offers a "Manage Facilities" primary action for FACILITY_MANAGER+; all other list pages already had primary actions
+- 9.6 [x] Responsive: collapse menu to `Siderbar`/drawer on small screens — new `useMediaQuery` hook (`src/util/media-query.ts`, `useSyncExternalStore`); `AppLayout` auto-collapses the sidebar to the icon rail below 768px (`Sidebar.Root` is now controlled via `open`/`onOpenChange`, `UseSidebarOpenChangeEvent`) and re-expands above it; clicking a nav item on narrow screens closes the menu
+- 9.7 [x] Accessible labels (`aria-label`) on icon-only buttons — audited all icon-only controls (nav trigger, logout, theme switch, pagination, select-all/row checkboxes, edit/manage/delete buttons, dialog closes); all already have `aria-label` (+ `title`), no changes needed
+- 9.8 [x] git commit
+- 9.9 [x] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
   - Summary
   - What's Included
   - Verification

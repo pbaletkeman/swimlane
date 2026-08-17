@@ -5,6 +5,7 @@ import { Checkbox } from 'primereact/checkbox'
 import { DataTable } from 'primereact/datatable'
 import { IconField } from 'primereact/iconfield'
 import { InputText } from 'primereact/inputtext'
+import { Skeleton } from 'primereact/skeleton'
 import type { CheckboxRootChangeEvent } from '@primereact/types/primitive/checkbox'
 import type {
   DataTablePaginationExposes,
@@ -186,9 +187,23 @@ export function EntityDataTable<T>({
         </DataTable.Table>
       </DataTable.TableContainer>
       <DataTable.Loading>
-        <span className="entity-datatable-loading">
-          <i className="pi pi-spin pi-spinner" />
-        </span>
+        <div className="entity-datatable-loading">
+          <div className="entity-datatable-loading-rows">
+            {Array.from({ length: 5 }).map((_, rowIndex) => (
+              <div className="entity-datatable-loading-row" key={rowIndex}>
+                {resolvedColumns.map((column) => (
+                  <Skeleton
+                    key={column.field}
+                    width="70%"
+                    height="1rem"
+                    borderRadius="0.375rem"
+                    animation="wave"
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
       </DataTable.Loading>
       <DataTable.Pagination>
         {({

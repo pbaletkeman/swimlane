@@ -11,6 +11,7 @@ import type { CheckboxRootChangeEvent } from '@primereact/types/primitive/checkb
 import type { Facility, FacilityForm, FormQuestion, FormResponseInput } from '../api/types.ts'
 import { PageHeader } from '../components/PageHeader.tsx'
 import { showToastError, showToastSuccess } from '../toast/toast-context.ts'
+import { ErrorPage } from './ErrorPage.tsx'
 
 type Answers = Record<number, { answer_text?: string; answer_bool?: boolean }>
 
@@ -195,10 +196,12 @@ export default function FormViewPage() {
           <i className="pi pi-spin pi-spinner" />
         </div>
       ) : form === null ? (
-        <div className="app-page-not-found">
-          <h1>Form not found</h1>
-          <p>The requested facility signup form could not be loaded.</p>
-        </div>
+        <ErrorPage
+          title="Form not found"
+          message="The requested facility signup form could not be loaded."
+          actionLabel="Back to facilities"
+          onAction={() => navigate('/forms')}
+        />
       ) : form.questions.length === 0 && form.rules.length === 0 ? (
         <div className="app-page-not-found">
           <h1>No signup form yet</h1>
