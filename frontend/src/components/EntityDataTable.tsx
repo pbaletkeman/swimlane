@@ -1,10 +1,16 @@
 import { useMemo, useState } from 'react'
 import type { ChangeEvent, MouseEvent, ReactNode } from 'react'
 import { Button } from 'primereact/button'
+import { Checkbox } from 'primereact/checkbox'
 import { DataTable } from 'primereact/datatable'
 import { IconField } from 'primereact/iconfield'
 import { InputText } from 'primereact/inputtext'
-import type { DataTablePaginationExposes } from '@primereact/types/primitive/datatable'
+import type { CheckboxRootChangeEvent } from '@primereact/types/primitive/checkbox'
+import type {
+  DataTablePaginationExposes,
+  DataTableSelectionEvent,
+  DataTableSelectionExposes,
+} from '@primereact/types/primitive/datatable'
 
 export interface EntityDataTableColumn<T> {
   field: string
@@ -28,6 +34,9 @@ export interface EntityDataTableProps<T> {
   defaultSortOrder?: 1 | -1 | 0
   actions?: (row: T) => ReactNode
   actionsHeader?: string
+  selectable?: boolean
+  selectedKeys?: Record<string, boolean>
+  onSelectionChange?: (keys: Record<string, boolean>) => void
 }
 
 export function EntityDataTable<T>({
@@ -44,18 +53,28 @@ export function EntityDataTable<T>({
   defaultSortOrder,
   actions,
   actionsHeader = '',
+  selectable = false,
+  selectedKeys,
+  onSelectionChange,
 }: EntityDataTableProps<T>) {
   const [globalFilter, setGlobalFilter] = useState('')
 
   const resolvedColumns = useMemo(() => {
-    if (!actions) {
-      return columns
+    let resolved = columns
+    if (selectable) {
+      resolved = [
+        { field: '__select', header: '', className: 'entity-datatable-select', body: () => null },
+        ...resolved,
+      ]
     }
-    return [...columns, { field: '__actions', header: actionsHeader, body: (row: T) => actions(row) }]
-  }, [columns, actions, actionsHeader])
+    if (actions) {
+      resolved = [...resolved, { field: '__actions', header: actionsHeader, body: (row: T) => actions(row) }]
+    }
+    return resolved
+  }, [columns, actions, actionsHeader, selectable])
 
   const filterFields = useMemo(
-    () => searchableFields ?? resolvedColumns.map((column) => column.field),
+    () => searchableFields ?? resolvedColumns.map((column) => column.field).filter((field) => field !== '__select'),
     [searchableFields, resolvedColumns],
   )
 
@@ -74,6 +93,13 @@ export function EntityDataTable<T>({
       removableSort
       stripedRows
       size="small"
+      selectionMode={selectable ? 'multiple' : undefined}
+      selectionKeys={selectable ? selectedKeys : undefined}
+      onSelectionChange={
+        selectable
+          ? (event: DataTableSelectionEvent) => onSelectionChange?.(event.value)
+          : undefined
+      }
     >
       <DataTable.Header>
         <IconField.Root>
@@ -94,7 +120,18 @@ export function EntityDataTable<T>({
             <DataTable.THeadRow>
               {resolvedColumns.map((column) => (
                 <DataTable.THeadCell key={column.field} className={column.className}>
-                  {column.sortable ? (
+                  {column.field === '__select' ? (
+                    <DataTable.Selection>
+                      {({ isAllSelected, isSomeSelected, toggleAll }: DataTableSelectionExposes) => (
+                        <Checkbox.Root
+                          checked={isAllSelected}
+                          indeterminate={isSomeSelected}
+                          aria-label="Select all rows"
+                          onCheckedChange={(event: CheckboxRootChangeEvent) => toggleAll(event.originalEvent)}
+                        />
+                      )}
+                    </DataTable.Selection>
+                  ) : column.sortable ? (
                     <DataTable.Sort field={column.field}>
                       <span className="entity-datatable-sort-label">{column.header}</span>
                       <DataTable.SortIndicator match="asc">
@@ -119,7 +156,21 @@ export function EntityDataTable<T>({
               <DataTable.Row>
                 {resolvedColumns.map((column) => (
                   <DataTable.Cell key={column.field} className={column.className}>
-                    {column.body ? column.body(item as T) : String(item[column.field] ?? '')}
+                    {column.field === '__select' ? (
+                      <DataTable.Selection>
+                        {({ isSelected, toggle }: DataTableSelectionExposes) => (
+                          <Checkbox.Root
+                            checked={isSelected}
+                            aria-label="Select row"
+                            onCheckedChange={(event: CheckboxRootChangeEvent) => toggle(event.originalEvent)}
+                          />
+                        )}
+                      </DataTable.Selection>
+                    ) : column.body ? (
+                      column.body(item as T)
+                    ) : (
+                      String(item[column.field] ?? '')
+                    )}
                   </DataTable.Cell>
                 ))}
               </DataTable.Row>

@@ -181,6 +181,33 @@ Branch: `feature/layout`
 - PrimeReact 11 has no `Menubar`/`Sidebar`-overlay-old API; the `primereact/sidebar` compound (`Layout`/`Root`/`Aside`/`Panel`/`Header`/`Content`/`Footer`/`Group`/`Menu`/`MenuItem`/`MenuButton`/`Rail`/`Main`/`Trigger`) is the sidebar-nav layout. `MenuButton` takes `isActive`; `Sidebar.Trigger` toggles the `Sidebar.Root` it targets (defaults to the layout's sidebar).
 - Next: Phase 7 — CRUD pages for Frequencies, Facilities, Events, Venues, Schedules (start only after `feature/layout` merges into main).
 
+## Phase 7 — Entity CRUD pages (in progress: 7.0–7.3)
+
+Branch: `feature/crud-pages`
+
+- [x] 7.0: branch created from `main` (after Phase 6 merged as `f810b87` / PR #24)
+- [x] `src/pages/FrequenciesPage.tsx` (7.1) — full CRUD for `/frequencies`:
+  - `PageHeader` (title/subtitle, "New Frequency" `pi-plus` button); `EntityDataTable` with search (name/day_interval, `pi-search`), sortable `name` + `day_interval` columns, `is_active` as a `Tag` (success Active / secondary Inactive), row actions = edit `pi-pencil` button + `ConfirmDelete` (soft `pi-trash` + admin-only hard `pi-times`); `EmptyState` ("No frequencies yet.") with a create action replaces the table when the list is empty
+  - `EntityFormDialog` fields: name (required, placeholder "e.g., Weekly"), day_interval (required, placeholder "e.g., 7 days"), is_active checkbox (defaults to `true` on create via `initialValues`); submit calls `frequencies.create` / `frequencies.update`, reloads the list, and toasts success/error (`showToastSuccess`/`showToastError`); soft delete → `frequencies.delete`, hard delete → `frequencies.hardDelete`
+- [x] Mounted `ToastProvider` in `src/main.tsx` (rendered as a portalled sibling of `<App />` inside `AuthProvider` — it takes no children) so the global `toast()` used by pages has a `Toaster` to render into
+- [x] `EntityFormDialog` extended (7.2/7.3 enabler) — new field types:
+  - `textarea` → v11 `Textarea` (simple pass-through; optional `rows`, default 3)
+  - `datetime` → v11 compound `DatePicker` (the `Calendar` successor: `Root`/`Input`/`Trigger`/`Portal`/`Positioner`/`Popup`/`Calendar`/`Header`/`Table`/`TableHead`/`TableBody view="date"`/`Time` with `Picker type="hour"|"minute"` + `Increment`/`Decrement`/`Hour`/`Minute`/`Separator`/`Footer` with `Today`/`Clear`), `showTime` + `hourFormat="24"`; value stored as `Date | null` (ISO strings converted to `Date` for editing), required-empty check covers invalid `Date`s; number fields now pass `placeholder` to `InputNumber.Input`
+- [x] `src/pages/FacilitiesPage.tsx` (7.2) — full CRUD: columns name/description/max_capacity/min_capacity/is_active (`Tag`), form fields name (required), description (`textarea`), max_capacity + min_capacity (`InputNumber` with `placeholder="e.g., 50"` and min bounds), is_active checkbox; nullable capacity values preserved (`number | null`)
+- [x] `src/pages/EventsPage.tsx` (7.3) — full CRUD:
+  - Loads events + frequencies in parallel (`Promise.all`); frequency `Select` options and the frequency-name column map derive from the fetched frequencies
+  - Datetime columns formatted with `toLocaleString()`; start/end `datetime` fields required with cross-field validation (end must be after start); submitted as ISO-8601 strings
+
+## Verification
+
+- [x] `npm run lint` (oxlint) — clean
+- [x] `npm run build` (`tsc -b && vite build`) — passes; `FrequenciesPage` gets its own lazy chunk (bundling DataTable/Dialog/InputNumber/etc.)
+
+## Notes
+
+- `ToastProvider` takes no children (its `Toaster` uses a portal), so it is rendered as a sibling of `<App />`, not a wrapper.
+- Remaining in Phase 7: 7.4 Venues, 7.5 Schedules, 7.6 optional bulk ops, 7.7 commit, 7.8 PR description.
+
 ## Phase 1 — Scaffolding (complete)
 
 - [x] Created `frontend/` via `npm create vite@latest frontend -- --template react-ts` (Vite 8, React 19, TS 6, oxlint)

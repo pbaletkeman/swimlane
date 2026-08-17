@@ -6,11 +6,13 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
 import { ThemeProvider } from './theme/ThemeContext.tsx'
+import { ToastProvider } from './components/ToastProvider.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
       <AuthProvider>
+        <ToastProvider />
         <App />
       </AuthProvider>
     </ThemeProvider>

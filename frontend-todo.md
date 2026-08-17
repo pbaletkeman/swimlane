@@ -137,18 +137,19 @@ Only continue if previous commit was merged into main branch.
 
 Only continue if previous commit was merged into main branch.
 
-- 7.0 [ ] Set Git Branch to `feature/crud-pages`
+- 7.0 [x] Set Git Branch to `feature/crud-pages`
 
 Each page: list + search, create/edit dialog, soft delete (confirm), hard delete (admin, confirm), form validation, placeholders on empty lists.
 
-- 7.1 [ ] **Frequencies** `/frequencies`: columns `name`, `day_interval`, `is_active`; form fields name (placeholder "e.g., Weekly"), day_interval (placeholder "e.g., 7 days")
-- 7.2 [ ] **Facilities** `/facilities`: columns `name`, `description`, `max_capacity`, `min_capacity`, `is_active`; fields with number inputs (placeholder "e.g., 50") and description textarea
-- 7.3 [ ] **Events** `/events`: columns `start_date_time`, `end_date_time`, `frequency_id`, `is_active`; use `Calendar` datetime picker; frequency chosen via `Dropdown` (optional)
+- 7.1 [x] **Frequencies** `/frequencies`: columns `name`, `day_interval`, `is_active`; form fields name (placeholder "e.g., Weekly"), day_interval (placeholder "e.g., 7 days") �?" full CRUD wired to `frequencies` API: `PageHeader` (New), `EntityDataTable` (search name/day_interval, sortable, `Tag` for is_active, edit `pi-pencil` + `ConfirmDelete` actions), `EntityFormDialog` (required validation, placeholders, is_active checkbox defaults true on create), `EmptyState` with create action, toast success/error via `showToastSuccess`/`showToastError`; also mounted `ToastProvider` in `main.tsx` (portalled `Toaster` as sibling of `App`)
+- 7.2 [x] **Facilities** `/facilities`: columns `name`, `description`, `max_capacity`, `min_capacity`, `is_active`; fields with number inputs (placeholder "e.g., 50") and description textarea �?" `EntityFormDialog` gained `textarea` + `datetime` field types (v11 `Textarea`, compound `DatePicker`); FacilitiesPage: description textarea, capacity `InputNumber`s (placeholder `e.g., 50`, min bounds), nullable capacity handling, `Tag` for is_active, edit + `ConfirmDelete`, `EmptyState` with create action
+- 7.3 [x] **Events** `/events`: columns `start_date_time`, `end_date_time`, `frequency_id`, `is_active`; use `Calendar` datetime picker; frequency chosen via `Dropdown` (optional) �?" v11 `Calendar` = compound `DatePicker` (`Root`/`Input`/`Trigger`/`Portal`/`Positioner`/`Popup`/`Calendar`/`Header`/`Table`/`TableHead`/`TableBody`/`Time`/`Picker`/`Footer`); EventsPage loads events + frequencies in parallel (`Promise.all`), datetime fields required + cross-field validation (end > start), frequency `Select` options from `/frequencies`, frequency name column via map; formatted datetimes via `toLocaleString()`
 - 7.4 [ ] **Venues** `/venues`: columns `street`, `city`, `state`, `postal_code`, `cost`, `facility_id`; facility `Dropdown` (required, from `/facilities`), cost `InputNumber`
 - 7.5 [ ] **Schedules** `/schedules`: columns `venue_id`, `member_id`, `event_id`, `is_active`; venue + event `Dropdown`s; `member_id` = user `sub` (free-text, placeholder "Google sub ID") — note: no user-list endpoint exists
 - 7.6 [ ] **Bulk ops** (optional per page): "Bulk delete" toolbar with selected rows (`pi-trash`), using the `/bulk` endpoints
-- 7.7 [ ] git commit
-- 7.8 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
+- 7.7 [ ] update AGENTS.md if out of date
+- 7.8 [ ] git commit
+- 7.9 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:
   - Summary
   - What's Included
   - Verification
