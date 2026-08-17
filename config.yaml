@@ -9,10 +9,13 @@ security:
     15
   refresh_token_expire_days:
     7
-  # SPA origin: the OAuth callback redirects here with the local JWTs appended.
-  # Override with the FRONTEND_URL env var.
+  # Where the OAuth callback redirects the browser with the local JWTs appended
+  # (`{frontend_url}/auth/callback?access_token=...`). In production this is the
+  # SPA origin (override with the FRONTEND_URL env var). For backend-only
+  # development it can point at the backend itself, where /auth/callback serves
+  # the API devtools page that captures the tokens.
   frontend_url:
-    http://localhost:5173
+    http://localhost:8000
   web_admins:
     # pete@letkeman.ca = 111122296393493391055
     - 111122296393493391055

@@ -34,8 +34,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (): void => {
     // Google OAuth consent screen; the backend redirects back to
-    // /auth/callback with the local JWTs appended.
-    window.location.href = `${apiBaseUrl}/login`
+    // /auth/callback with the local JWTs appended. Pass our own origin so the
+    // callback always returns to whatever port this SPA is served on (dev
+    // servers move ports; the backend can't infer it reliably).
+    const frontendOrigin = window.location.origin
+    window.location.href = `${apiBaseUrl}/login?frontend_url=${encodeURIComponent(frontendOrigin)}`
   }
 
   const logout = (): void => {

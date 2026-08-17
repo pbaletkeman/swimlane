@@ -45,11 +45,11 @@ import logging
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import HTTPBearer
 from jose import JWTError, exceptions, jwt
 from starlette import status
@@ -60,6 +60,7 @@ from src.env import TOKEN_SECRET_KEY
 from src.misc_models import TokenData
 from src.roles.roles import member_role
 from src.roles.user_role import UserRole
+from src.routes.devtools import DEVTOOLS_HTML
 from src.util.configs import Config
 
 logger = logging.getLogger(__name__)
@@ -68,12 +69,37 @@ config: dict = Config.yaml_config()  # type: ignore
 Config.google_config()
 
 # Origin of the browser SPA. The OAuth callback redirects the browser here with
-# the local JWTs appended as query params so the SPA can store them.
+# the local JWTs appended as query params so the SPA can store them. The exact
+# origin the user came from (captured at /login) is preferred so the callback
+# still works when Vite serves the SPA on a port other than this one.
 frontend_url: str = os.getenv("FRONTEND_URL", config["security"].get("frontend_url", "http://localhost:5173"))
 
 db_connect = Config().db
 
 algorithm: str = config["security"]["algorithm"]  # type: ignore
+
+
+def _local_frontend_origin(candidate: str | None) -> str | None:
+    """Validate and normalize a localhost frontend origin.
+
+    In development Vite serves the SPA on 5173 by default but picks another
+    port when 5173 is busy, so the OAuth callback should redirect back to the
+    origin the user actually came from. Only localhost hosts are accepted to
+    avoid open redirects.
+    """
+    if not candidate:
+        return None
+    try:
+        parts = urlsplit(candidate)
+    except ValueError:
+        return None
+    if parts.scheme not in ("http", "https") or not parts.netloc:
+        return None
+    host = parts.hostname or ""
+    if host not in ("localhost", "127.0.0.1", "::1"):
+        return None
+    netloc = f"{host}:{parts.port}" if parts.port else host
+    return f"{parts.scheme}://{netloc}"
 
 
 def create_local_access_token(data: dict[Any, Any], expires_delta: Optional[timedelta] = None) -> str:
@@ -225,6 +251,12 @@ class AuthRoutes:
         self.router.add_api_route("/me", self.me, methods=["GET"])  # type: ignore
         self.router.add_api_route("/profile", self.me, methods=["GET"])  # type: ignore
         self.router.add_api_route("/logout", self.logout, methods=["GET"])
+        self.router.add_api_route("/devtools", self.devtools, methods=["GET"])
+
+    # ------------------------------------------------------------------
+    def devtools(self) -> HTMLResponse:
+        """Serve the API dev/test page (also rendered by /auth/callback without a code)."""
+        return HTMLResponse(DEVTOOLS_HTML)
 
     # ------------------------------------------------------------------
     def oauth2user(self, userinfo: dict[str, Any]) -> User:
@@ -257,6 +289,15 @@ class AuthRoutes:
             A redirect response sending the user to Google's OAuth consent screen.
         """
         logger.info("Login initiated")
+        # Remember which SPA origin started the login so the callback can
+        # redirect back there even if the frontend is not on the default port.
+        # The frontend passes its origin explicitly; fall back to the request
+        # headers for direct navigation to /login.
+        login_origin = _local_frontend_origin(request.query_params.get("frontend_url")) or _local_frontend_origin(
+            request.headers.get("origin") or request.headers.get("referer")
+        )
+        if login_origin:
+            request.session["frontend_url"] = login_origin
         redirect_uri = request.url_for("auth_callback")
         return await self.oauth.google.authorize_redirect(request, redirect_uri)  # type: ignore
 
@@ -264,6 +305,9 @@ class AuthRoutes:
     async def auth_callback(self, request: Request) -> Any:
         """
         Handle Google's OAuth callback, extract user info, and issue a local JWT.
+
+        When called without a `code` query param (e.g. the post-login redirect
+        landing here, or a direct visit), serve the devtools test page instead.
 
         Defaults all users to a "user" role, looks up their permissions in the local database,
         and bakes those permissions into the JWT token issued by the app after Google OAuth completes.
@@ -286,6 +330,8 @@ class AuthRoutes:
         Raises:
             HTTPException: If OAuth fails or user info is missing.
         """
+        if "code" not in request.query_params:
+            return HTMLResponse(DEVTOOLS_HTML)
         try:
             token: Any = await self.oauth.google.authorize_access_token(request)  # type: ignore
         except Exception as exc:
@@ -336,7 +382,8 @@ class AuthRoutes:
             }
         )
         logger.info("Login successful, redirecting to frontend for sub=%s", sub)
-        return RedirectResponse(url=f"{frontend_url}/auth/callback?{params}")
+        redirect_base: str = request.session.get("frontend_url") or frontend_url
+        return RedirectResponse(url=f"{redirect_base}/auth/callback?{params}")
 
     # ------------------------------------------------------------------
     async def me(self, current_user: User = Depends(member_role)) -> dict:

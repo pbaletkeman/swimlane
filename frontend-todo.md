@@ -203,10 +203,10 @@ Only continue if previous commit was merged into main branch.
 
 Only continue if previous commit was merged into main branch.
 
-- 10.0 [ ] Set Git Branch to `feature/document`
+- 10.0 [x] Set Git Branch to `feature/document`
 
-- 10.1 [ ] `npm run build` passes with `tsc -b` (typecheck, no unused locals)
-- 10.2 [ ] `npm run lint` clean
+- 10.1 [x] `npm run build` passes with `tsc -b` (typecheck, no unused locals)
+- 10.2 [x] `npm run lint` clean
 - 10.3 [ ] Manual smoke test against running backend: login, theme toggle, full CRUD on each entity, form submit + PDF, logout
 - 10.4 [ ] Verify role-gated menu/actions (MEMBER vs FACILITY_MANAGER vs WEB_ADMIN)
 - 10.5 [ ] Write `frontend/README.md`: run instructions (`uv run python main.py` + `npm run dev`), `VITE_API_URL` config, theme behavior

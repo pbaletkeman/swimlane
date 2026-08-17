@@ -411,3 +411,18 @@ Polish pass over the frontend: skeleton loading placeholders on every list/table
 - v11 `Sidebar` ships no breakpoint behavior (styles are runtime-injected by `@primeuix/themes`/`@primeuix/styled` with no media queries), so the responsive collapse is implemented in JS by controlling the `open` state.
 - Phases 9.1 (form validation) and 9.7 (aria-labels) were already satisfied by earlier phases and verified rather than re-implemented.
 - Branch `feature/validation` was created from `feature/forms`, so it currently includes the unmerged Phase 7 and Phase 8 commits; the diff will shrink once those branches merge to main.
+
+## Phase 10 — Build, verify, document (in progress: 10.0–10.2)
+
+Branch: `feature/document`
+
+- [x] 10.0: branch created from `main` (after Phase 9 merged as `f4f7a5a` / PR #27; main tip then `de8d68f`)
+- [x] 10.1: `npm run build` (`tsc -b && vite build`) passes — 257 modules, per-page lazy chunks emitted, `dist/` generated with no type errors or unused-locals failures
+- [x] 10.2: `npm run lint` (oxlint) clean
+- [ ] 10.3–10.10 pending (manual smoke test, role-gating verification, frontend README, root readme, AGENTS.md, non-printable-character cleanup, commit, PR title/description)
+
+## Verification
+
+- [x] `npm run build` (`tsc -b && vite build`) — passes
+- [x] `npm run lint` (oxlint) — clean
+- [ ] Manual smoke test against the running backend — pending (10.3)

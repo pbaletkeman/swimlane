@@ -5,7 +5,7 @@ import type { User } from './types.ts'
 /**
  * Landing page for the OAuth hand-off. The backend redirects the browser here
  * with `access_token`, `refresh_token`, and a JSON-encoded `user` in the query
- * string. Stores them, then sends the user to the app root.
+ * string. Stores them, then sends the user to the dashboard.
  */
 export function AuthCallbackPage() {
   const handled = useRef(false)
@@ -36,7 +36,7 @@ export function AuthCallbackPage() {
     }
 
     // Full navigation reloads the app so AuthProvider rehydrates from storage.
-    window.location.replace('/')
+    window.location.replace('/dashboard')
   }, [])
 
   return (

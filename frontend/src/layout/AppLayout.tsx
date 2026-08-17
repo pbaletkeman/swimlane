@@ -40,7 +40,7 @@ export function AppLayout() {
 
   const visibleItems = NAV_ITEMS.filter((item) => hasRole(item.requiredRole))
   const isActive = (path: string): boolean =>
-    path === '/' ? location.pathname === '/' : location.pathname === path || location.pathname.startsWith(`${path}/`)
+    location.pathname === path || location.pathname.startsWith(`${path}/`)
   return (
     <Sidebar.Layout>
       <Sidebar.Root id="main" collapsible="icon" open={sidebarOpen} onOpenChange={handleSidebarOpenChange}>
