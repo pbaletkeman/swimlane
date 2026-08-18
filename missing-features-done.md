@@ -50,3 +50,48 @@ Branch: `feature/public-read-access`
   - `GET /public/events` → 200 (future active events only); `?from_dt=2026-09-01` → 200 `[]`
   - `GET /venues`, `/events`, `/schedules`, `/facilities` without a token → all 401
 - Seed rows added for testing were removed afterward (DB counts back to original).
+
+## Phase B — Public venue schedule views (week / month / event list) (B.1–B.4 done; B.5–B.10 pending) 🔨
+
+Branch: `feature/public-venue-schedules`
+
+`layout.txt:7-10` — venue → schedule, default current week, monthly + event-list options.
+Backend half complete; the frontend sub-tasks (B.5–B.10) are still open in
+`missing-features-todo.md`.
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| B.1 | `GET /public/venues/{venue_id}/schedules` gains `view=week\|month\|list` + `date=YYYY-MM-DD` (default `week` anchored on the date or today); invalid `view` → 422 | `9c4a2b3` |
+| B.2 | `GET /public/events` gains `venue_id` filter (upcoming active events at a venue) | `9c4a2b3` |
+| B.3 | `src/util/dates.py` — `parse_date`, `start_of_week`, `week_range`, `month_range` (ISO week, Monday-start), `day_start_iso`, `day_end_iso` | `0675ab6` |
+| B.4 | `EventSQLite.list_events_in_range(start_iso, end_iso, venue_id=None)` — interval overlap on `start_date_time`/`end_date_time`, optional venue scope via `schedule` join (distinct events) | `a44436b` |
+
+### Details
+
+- **Response shape changed from Phase A**: the venue schedules endpoint now
+  returns distinct `PublicEvent` rows (not per-booking schedule rows) so a venue's
+  week/month/list view shows each event once. Nothing consumes the old
+  `PublicVenueSchedule` shape yet (frontend Phase B.5+ not built), so the change is
+  safe on this branch. The A.5 helper `list_schedules_by_venue_id_with_events`
+  remains in the data layer but is no longer used by the public routes.
+- `view=list` returns upcoming active events at the venue
+  (`list_public_events(venue_id=…)`); `week`/`month` return events overlapping the
+  ISO-week / calendar-month range via `list_events_in_range`.
+- `venue_id` scoping joins `event` → `schedule` (events have no `venue_id` column
+  until Phase C) and filters to active schedules, deduping with `DISTINCT`.
+
+### Verification
+
+- `uv run ruff check .` — clean; `uv run ruff format --check` on all changed files — clean.
+- `uv run pyright` — 0 errors.
+- `src/util/dates.py` unit-check: 2026-08-18 (Tue) → week Mon 08-17 → Sun 08-23;
+  month 08-01 → 08-31; day-start/end ISO strings correct.
+- Backend smoke test (dev server, seeded active events in current week / later that
+  month / previous month at venue 1, no auth):
+  - `/public/venues/1/schedules` (default week) → only the current-week event
+  - `?view=month` → both August events; `?view=list` → both upcoming August events
+  - `?view=week&date=2026-07-13` and `?view=month&date=2026-07-01` → the July event
+  - `?view=invalid` → 422
+  - `/public/events?venue_id=1` → upcoming events at venue 1
+  - `/public/venues/9999/schedules` → 404
+- Seed rows added for testing were removed afterward (DB counts back to original).

@@ -56,10 +56,10 @@ Branch: `feature/public-venue-schedules`
 
 `layout.txt:7-10` — venue → schedule, default current week, monthly + event-list options.
 
-- [ ] **B.1** — `GET /public/venues/{venue_id}/schedules` gains query params: `view=week|month|list`, `date=YYYY-MM-DD`. Default `week` anchored on the given date (or today). Commit.
-- [ ] **B.2** — `GET /public/events` gains `venue_id` filter so "event listing" for a venue is supported. Commit.
-- [ ] **B.3** — Add event-date helpers (shared util in `src/util/dates.py`): `start_of_week`, `week_range`, `month_range` (ISO week, Monday-start) used by the schedule queries. Commit.
-- [ ] **B.4** — `EventSQLite.list_events_in_range(start_iso, end_iso, venue_id=None)` — filters by `start_date_time` overlap; used by week/month views. Commit.
+- [x] **B.1** — `GET /public/venues/{venue_id}/schedules` gains query params: `view=week|month|list`, `date=YYYY-MM-DD`. Default `week` anchored on the given date (or today). Commit.
+- [x] **B.2** — `GET /public/events` gains `venue_id` filter so "event listing" for a venue is supported. Commit.
+- [x] **B.3** — Add event-date helpers (shared util in `src/util/dates.py`): `start_of_week`, `week_range`, `month_range` (ISO week, Monday-start) used by the schedule queries. Commit.
+- [x] **B.4** — `EventSQLite.list_events_in_range(start_iso, end_iso, venue_id=None)` — filters by `start_date_time` overlap; used by week/month views. Commit.
 - [ ] **B.5** — `frontend/src/api/public.ts` — `searchVenues(q)`, `listVenues()`, `getVenue(id)`, `getVenueSchedules(id, {view, date})`, `searchEvents({venueId, from, to})` calling `/api/public/...`. Commit.
 - [ ] **B.6** — `frontend/src/api/types.ts` — add `PublicVenue` (Venue + facility_name), `VenueScheduleRow` (schedule + event times), `PublicEvent`. Commit.
 - [ ] **B.7** — New public pages under `/explore` (do **not** collide with auth-gated `/venues`, `/events`):
