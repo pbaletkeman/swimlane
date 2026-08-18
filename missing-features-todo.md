@@ -86,7 +86,7 @@ Branch: `feature/event-registration`
 - [x] **C.8** — Add `ScheduleSQLite.get_schedule_for_member(event_id, member_id)` and `count_active_for_event(event_id)` helpers. Commit.
 - [x] **C.9** — Wire `/events/{event_id}/capacity` + register + reschedule into `EventRoutes`/`ScheduleRoutes` (register/reschedule auth = `member_role`). Commit.
 - [x] **C.10** — `frontend/src/api/types.ts` — `Event` gains `description`/`coach_id`/`venue_id`; add `EventCapacity`, `RegisterResponse`, `RescheduleInput`. Commit.
-- [ ] **C.11** — `frontend/src/api/events.ts` — `getCapacity(id)`, `register(id)`; `frontend/src/api/schedules.ts` — `reschedule(id, input)`. Commit.
+- [x] **C.11** — `frontend/src/api/events.ts` — `getCapacity(id)`, `register(id)`; `frontend/src/api/schedules.ts` — `reschedule(id, input)`. Commit.
 - [ ] **C.12** — New public `frontend/src/pages/explore/EventDetailPage.tsx` at `/explore/events/:eventId`:
   - [ ] **C.12.1** — Render description + times + venue + capacity ("12 / 20 registered" with progress indicator). Commit.
   - [ ] **C.12.2** — If logged-in member: "Register" button → `register()` → toast + refresh capacity; disable when at capacity or already registered. Commit.
