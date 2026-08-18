@@ -182,11 +182,27 @@ class SQLite(EventInterfaceBase):
         return events if len(events) > 0 else None
 
     # ------------------------------------------------------------------
-    def list_public_events(self, start_from: str | None = None, start_to: str | None = None) -> Optional[list[Event]]:
-        """List active events within a start_date_time range (defaults to upcoming events)."""
+    def list_public_events(
+        self,
+        start_from: str | None = None,
+        start_to: str | None = None,
+        venue_id: int | None = None,
+    ) -> Optional[list[Event]]:
+        """List active events within a start_date_time range (defaults to upcoming events).
+
+        Pass ``venue_id`` to scope to events with an active schedule at that venue.
+        """
         now = datetime.now().isoformat(timespec="seconds")
-        conditions = ["is_active = 1"]
-        params: list[Any] = []
+        if venue_id is not None:
+            conditions = ["e.is_active = 1", "s.is_active = 1", "s.venue_id = ?"]
+            params: list[Any] = [venue_id]
+            select = "SELECT DISTINCT e.event_id, e.start_date_time, e.end_date_time, e.frequency_id, e.is_active"
+            from_clause = " FROM event e JOIN schedule s ON s.event_id = e.event_id"
+        else:
+            conditions = ["is_active = 1"]
+            params = []
+            select = "SELECT event_id, start_date_time, end_date_time, frequency_id, is_active"
+            from_clause = " FROM event"
         conditions.append("start_date_time >= ?")
         params.append(start_from if start_from else now)
         if start_to:
@@ -196,7 +212,44 @@ class SQLite(EventInterfaceBase):
 
         with self._connect() as conn:
             cursor = conn.cursor()
-            sql: str = self.get_record_select(where)
+            sql = f"{select}{from_clause} {where} ORDER BY start_date_time ASC"
+            cursor.execute(sql, params)
+            events: list[Event] = []
+            for rs in cursor:
+                e = self.create_event_helper(rs)
+                if e is not None:
+                    events.append(e)
+
+        return events if len(events) > 0 else None
+
+    # ------------------------------------------------------------------
+    def list_events_in_range(
+        self,
+        start_iso: str,
+        end_iso: str,
+        venue_id: int | None = None,
+    ) -> Optional[list[Event]]:
+        """List active events overlapping ``[start_iso, end_iso]``.
+
+        Pass ``venue_id`` to scope to events with an active schedule at that venue.
+        """
+        if venue_id is not None:
+            sql = """SELECT DISTINCT e.event_id, e.start_date_time, e.end_date_time, e.frequency_id, e.is_active
+                FROM event e
+                JOIN schedule s ON s.event_id = e.event_id
+                WHERE e.is_active = 1 AND s.is_active = 1 AND s.venue_id = ?
+                  AND e.start_date_time <= ? AND e.end_date_time >= ?
+                ORDER BY e.start_date_time ASC"""
+            params: tuple[Any, ...] = (venue_id, end_iso, start_iso)
+        else:
+            sql = """SELECT event_id, start_date_time, end_date_time, frequency_id, is_active
+                FROM event
+                WHERE is_active = 1 AND start_date_time <= ? AND end_date_time >= ?
+                ORDER BY start_date_time ASC"""
+            params = (end_iso, start_iso)
+
+        with self._connect() as conn:
+            cursor = conn.cursor()
             cursor.execute(sql, params)
             events: list[Event] = []
             for rs in cursor:

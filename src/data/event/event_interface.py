@@ -45,8 +45,28 @@ class EventInterface(abc.ABC):
         """List all events in the data store."""
 
     @abc.abstractmethod
-    def list_public_events(self, start_from: str | None = None, start_to: str | None = None) -> Optional[list[Event]]:
-        """List active events within a start_date_time range (defaults to upcoming events)."""
+    def list_public_events(
+        self,
+        start_from: str | None = None,
+        start_to: str | None = None,
+        venue_id: int | None = None,
+    ) -> Optional[list[Event]]:
+        """List active events within a start_date_time range (defaults to upcoming events).
+
+        Pass ``venue_id`` to scope to events with an active schedule at that venue.
+        """
+
+    @abc.abstractmethod
+    def list_events_in_range(
+        self,
+        start_iso: str,
+        end_iso: str,
+        venue_id: int | None = None,
+    ) -> Optional[list[Event]]:
+        """List active events overlapping ``[start_iso, end_iso]``.
+
+        Pass ``venue_id`` to scope to events with an active schedule at that venue.
+        """
 
     @abc.abstractmethod
     def list_events_by_frequency_id(self, frequency_id: int) -> Optional[list[Event]]:
