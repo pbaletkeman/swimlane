@@ -50,6 +50,46 @@ export interface Schedule {
   is_active: boolean
 }
 
+/**
+ * Public venue representation from the unauthenticated `/public/venues`
+ * endpoints: venue fields plus its facility name.
+ */
+export interface PublicVenue {
+  venue_id: number
+  facility_id: number
+  facility_name: string
+  street: string
+  city: string
+  state: string
+  postal_code: string
+  cost: number
+  is_active: boolean
+}
+
+/** Public event representation from the unauthenticated `/public` endpoints. */
+export interface PublicEvent {
+  event_id: number
+  start_date_time: string
+  end_date_time: string
+  frequency_id: number | null
+  is_active: boolean
+}
+
+/**
+ * Legacy per-booking row (schedule joined with its event times) returned by the
+ * Phase A `/public/venues/{id}/schedules` endpoint. Superseded by `PublicEvent`
+ * after B.1–B.4 switched that endpoint to distinct events; retained for Phase C
+ * per-booking data (register/reschedule, member's own schedules).
+ */
+export interface VenueScheduleRow {
+  schedule_id: number
+  venue_id: number
+  event_id: number
+  is_active: boolean
+  event_start_date_time: string
+  event_end_date_time: string
+}
+
 export type QuestionType = 'text' | 'checkbox'
 
 export interface FormQuestion {
