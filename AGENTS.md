@@ -30,6 +30,7 @@ No test files exist yet. `pytest` config is in `pyproject.toml` (`tests/` dir).
 **Routers** (registered in `main.py`):
 
 - `src/routes/auth_routes.py` — Google OAuth login/callback, JWT issuance, `/me`, `/profile`, `/logout`
+- `src/routes/public_routes.py` — **unauthenticated** read-only browsing (`/public/venues`, `/public/venues/{id}`, `/public/venues/{id}/schedules`, `/public/events`) — no `Depends(...)` on these routes
 - `src/routes/frequency_routes.py` — Frequency CRUD (`/frequencies`)
 - `src/routes/facility_routes.py` — Facility CRUD (`/facilities`)
 - `src/routes/event_routes.py` — Event CRUD (`/events`)
