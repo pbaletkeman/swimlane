@@ -46,6 +46,14 @@ class VenueInterface(abc.ABC):
         """List all venues in the data store."""
 
     @abc.abstractmethod
+    def list_active_venues(self) -> Optional[list[Venue]]:
+        """List all active venues in the data store."""
+
+    @abc.abstractmethod
+    def search_venues(self, query: str) -> Optional[list[Venue]]:
+        """Search active venues by address fields (street/city/state/postal_code substring)."""
+
+    @abc.abstractmethod
     def list_venues_by_facility_id(self, facility_id: int) -> Optional[list[Venue]]:
         """List all venues for a given facility ID."""
 
