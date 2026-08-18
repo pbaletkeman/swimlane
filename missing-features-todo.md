@@ -76,9 +76,9 @@ Branch: `feature/event-registration`
 
 `layout.txt:11-16` — event cap/max capacity, description, member register + reschedule.
 
-- [ ] **C.1** — Extend `Event` model (`src/data/event/event.py`) with `description: str | None = None`, `coach_id: str | None = None`, `venue_id: int | None = None`. Commit.
-- [ ] **C.2** — Update `Event` DDL in `src/data/event/sqlite.py` (`get_create_table`) with the new columns + `FOREIGN KEY (coach_id) REFERENCES users(sub)` and `FOREIGN KEY (venue_id) REFERENCES venue(venue_id)`. Commit.
-- [ ] **C.3** — Update `EventSQLite` select/RETURNING/INSERT/UPDATE statements + `create_event_helper` for the new fields (mirror existing column lists). Commit.
+- [x] **C.1** — Extend `Event` model (`src/data/event/event.py`) with `description: str | None = None`, `coach_id: str | None = None`, `venue_id: int | None = None`. Commit.
+- [x] **C.2** — Update `Event` DDL in `src/data/event/sqlite.py` (`get_create_table`) with the new columns + `FOREIGN KEY (coach_id) REFERENCES users(sub)` and `FOREIGN KEY (venue_id) REFERENCES venue(venue_id)`. Commit.
+- [x] **C.3** — Update `EventSQLite` select/RETURNING/INSERT/UPDATE statements + `create_event_helper` for the new fields (mirror existing column lists). Commit.
 - [ ] **C.4** — **Migration**: `CREATE TABLE IF NOT EXISTS` will not add columns to an existing `swimlane.db` — add guarded migrations in `EventSQLite.init()`: sqlite → check `PRAGMA table_info(event)` then `ALTER TABLE event ADD COLUMN coach_id TEXT NULL REFERENCES users(sub)` / `ADD COLUMN venue_id INTEGER NULL REFERENCES venue(venue_id)`; postgresql → `ADD COLUMN IF NOT EXISTS`. No dev DB reset (see Key decisions #2). Commit.
 - [ ] **C.5** — `GET /events/{event_id}/capacity` — public: returns `{event_id, registered_count, max_capacity}`. Registered count = count of active `schedule` rows for the event; `max_capacity` from the event's `venue→facility.max_capacity`; **`max_capacity: null` = unlimited** (no 409). Add helper `EventSQLite`/`ScheduleSQLite` for the count + a facility-capacity join (or a small query in the route). Commit.
 - [ ] **C.6** — `POST /events/{event_id}/register` — `member_role`; creates a `Schedule` for `current_user.sub` at the event's venue; 409 if already registered; 409 if `registered_count >= max_capacity`; 404 if event/venue inactive. Commit.

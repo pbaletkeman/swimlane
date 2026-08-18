@@ -51,6 +51,42 @@ Branch: `feature/public-read-access`
   - `GET /venues`, `/events`, `/schedules`, `/facilities` without a token → all 401
 - Seed rows added for testing were removed afterward (DB counts back to original).
 
+## Phase C — Event detail, capacity, register, reschedule (C.1–C.3 done; C.4+ pending) 🔨
+
+Branch: `feature/event-registration`
+
+`layout.txt:11-16` — event cap/max capacity, description, member register + reschedule.
+Data-layer groundwork (C.1–C.3) is complete; migration, endpoints, and frontend
+(C.4–C.14) are still open in `missing-features-todo.md`.
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| C.1 | `Event` model gains `description: str \| None = None`, `coach_id: str \| None = None`, `venue_id: int \| None = None` | `821bbaa` |
+| C.2 | `event` DDL gains `description TEXT`, `coach_id TEXT`, `venue_id INTEGER` columns + `FOREIGN KEY (coach_id) REFERENCES users(sub)` / `FOREIGN KEY (venue_id) REFERENCES venue(venue_id)` (cascade, matching the existing `frequency_id` FK convention) + `idx_event_coach_id` / `idx_event_venue_id` indexes | `06b077e` |
+| C.3 | `EventSQLite` updated for the new fields: `get_record_select`, `create_event_helper`, `create_event_returning`, `update_event`, `create_events_bulk` INSERT, `list_public_events` + `list_events_in_range` (both plain and venue-scoped select lists), `hard_delete_events_bulk` RETURNING | `06b077e` |
+
+### Details
+
+- Column order throughout is `event_id, start_date_time, end_date_time, frequency_id, description, coach_id, venue_id, is_active`; all selects/returns mirror it so `create_event_helper` maps correctly.
+- New-field values default to `NULL`/`None` — fully backward compatible for existing callers that don't set them.
+- The `EventRequest` route body does **not** yet carry the new fields (that lands with C.9 when the routes are wired).
+- Branched from `main` (Phase B merged as `488e168` / PR #30).
+
+### Verification
+
+- `uv run ruff check .` — clean; `uv run ruff format --check` on changed files — clean; `uv run pyright` — 0 errors.
+- Smoke test against a **throwaway DB** (fresh DDL + parent tables `facility`/`frequency`/`users`/`venue`/`schedule`), not the dev DB:
+  - `create_event` with `description`/`coach_id`/`venue_id` populated → round-trips all three
+  - `create_event` with the new fields unset → `None` (backward compatible)
+  - `get_event_by_id` / `update_event` (changing description + end time) → correct
+  - `create_events_bulk`, `list_events`, `list_public_events` (plain + `venue_id`), `list_events_in_range`, `hard_delete_events_bulk` → all map the new columns without error
+- Dev DB `swimlane.db` is **unchanged** (no migration ran); it will keep working until C.4 adds the guarded `ALTER TABLE` — **the server should not be run against the existing dev DB in the interim** because `get_record_select` now selects the new columns.
+
+### Notes
+
+- **Pre-existing quirk (out of scope):** `create_events_bulk` re-selects only `last_insert_rowid()`, so a multi-row bulk returns just the last inserted row. Flagged for a future fix.
+- **Deferred:** C.4 migration (required before the app works again on an existing DB), C.5–C.9 endpoints, C.10–C.14 frontend.
+
 ### Public routes, HomePage link, and styles (B.8–B.10)
 
 | Sub-task | Deliverable | Commit |
