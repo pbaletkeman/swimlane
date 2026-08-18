@@ -193,6 +193,41 @@ class SQLite(VenueInterfaceBase):
         return venues if len(venues) > 0 else None
 
     # ------------------------------------------------------------------
+    def list_active_venues(self) -> Optional[list[Venue]]:
+        """List all active venues in the data store."""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+
+            sql: str = self.get_record_select("WHERE is_active = 1")
+            cursor.execute(sql)
+            venues: list[Venue] = []
+            for rs in cursor:
+                v = self.create_venue_helper(rs)
+                if v is not None:
+                    venues.append(v)
+
+        return venues if len(venues) > 0 else None
+
+    # ------------------------------------------------------------------
+    def search_venues(self, query: str) -> Optional[list[Venue]]:
+        """Search active venues by address fields (street/city/state/postal_code substring)."""
+        like = f"%{query}%"
+        sql: str = """SELECT venue_id, facility_id, street, city, state, postal_code, cost, is_active
+            FROM venue
+            WHERE is_active = 1 AND (street LIKE ? OR city LIKE ? OR state LIKE ? OR postal_code LIKE ?)
+            ORDER BY city ASC"""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (like, like, like, like))
+            venues: list[Venue] = []
+            for rs in cursor:
+                v = self.create_venue_helper(rs)
+                if v is not None:
+                    venues.append(v)
+
+        return venues if len(venues) > 0 else None
+
+    # ------------------------------------------------------------------
     def list_venues_by_facility_id(self, facility_id: int) -> Optional[list[Venue]]:
         """List all venues for a given facility ID."""
         with self._connect() as conn:

@@ -28,6 +28,7 @@ from src.routes.event_routes import EventRoutes
 from src.routes.facility_routes import FacilityRoutes
 from src.routes.form_routes import FormRoutes
 from src.routes.frequency_routes import FrequencyRoutes
+from src.routes.public_routes import PublicRoutes
 from src.routes.schedule_routes import ScheduleRoutes
 from src.routes.venue_routes import VenueRoutes
 from src.util.configs import Config
@@ -93,6 +94,9 @@ app.include_router(facility_routes.router)
 
 form_routes = FormRoutes()
 app.include_router(form_routes.router)
+
+public_routes = PublicRoutes()
+app.include_router(public_routes.router)
 
 event_routes = EventRoutes()
 app.include_router(event_routes.router)

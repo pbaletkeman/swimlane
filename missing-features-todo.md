@@ -41,14 +41,14 @@ Branch: `feature/public-read-access`
 
 `layout.txt:1,3,5` — find-by-address, find-by-event, venues browsing must not require login.
 
-- [ ] **A.1** — Add a new `src/routes/public_routes.py` `PublicRoutes` router (prefix `/public`, tags `["public"]`) — dedicated module so admin CRUD stays auth-gated (see Key decisions #1); public endpoints stay read-only and return 404 for inactive venues/events. Commit.
-- [ ] **A.2** — `GET /public/venues?q=<address>` — public venue search by `street`/`city`/`state`/`postal_code` substring match; returns `Venue` + facility name. Requires a new `VenueSQLite.search_venues(q)` method (LIKE on address columns, `is_active=1`). Commit.
-- [ ] **A.3** — `GET /public/events?q=<term>` — public event listing; `EventSQLite` needs a search (start/end range and/or free-text once `description` exists in Phase C). Initially: `list_events()` filtered to future `is_active` events, optional `from`/`to` query params. Commit.
-- [ ] **A.4** — `GET /public/venues` — public list of active venues (all address fields), no auth. Commit.
-- [ ] **A.5** — `GET /public/venues/{venue_id}/schedules` — public schedule listing for one venue: active `Schedule` rows joined to `Event` (start/end times), using existing `ScheduleSQLite.list_schedules_by_venue_id` plus an event-detail join helper. Commit.
-- [ ] **A.6** — `GET /public/venues/{venue_id}` — public venue detail. Commit.
-- [ ] **A.7** — Register `PublicRoutes` in `main.py`. Commit.
-- [ ] **A.8** — Verify: public endpoints 200 with no `Authorization` header; admin CRUD still 401/403 unauthenticated. Commit.
+- [x] **A.1** — Add a new `src/routes/public_routes.py` `PublicRoutes` router (prefix `/public`, tags `["public"]`) — dedicated module so admin CRUD stays auth-gated (see Key decisions #1); public endpoints stay read-only and return 404 for inactive venues/events. Commit.
+- [x] **A.2** — `GET /public/venues?q=<address>` — public venue search by `street`/`city`/`state`/`postal_code` substring match; returns `Venue` + facility name. Requires a new `VenueSQLite.search_venues(q)` method (LIKE on address columns, `is_active=1`). Commit.
+- [x] **A.3** — `GET /public/events?q=<term>` — public event listing; `EventSQLite` needs a search (start/end range and/or free-text once `description` exists in Phase C). Initially: `list_events()` filtered to future `is_active` events, optional `from`/`to` query params. Commit.
+- [x] **A.4** — `GET /public/venues` — public list of active venues (all address fields), no auth. Commit.
+- [x] **A.5** — `GET /public/venues/{venue_id}/schedules` — public schedule listing for one venue: active `Schedule` rows joined to `Event` (start/end times), using existing `ScheduleSQLite.list_schedules_by_venue_id` plus an event-detail join helper. Commit.
+- [x] **A.6** — `GET /public/venues/{venue_id}` — public venue detail. Commit.
+- [x] **A.7** — Register `PublicRoutes` in `main.py`. Commit.
+- [x] **A.8** — Verify: public endpoints 200 with no `Authorization` header; admin CRUD still 401/403 unauthenticated. Commit.
 
 ## Phase B — Public venue schedule views (week / month / event list)
 

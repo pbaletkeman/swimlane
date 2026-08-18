@@ -4,7 +4,7 @@ It provides an abstract base class with methods for creating, retrieving, updati
 """
 
 import abc
-from typing import Optional
+from typing import Any, Optional
 
 from src.data.schedule.schedule import Schedule
 
@@ -55,6 +55,10 @@ class ScheduleInterface(abc.ABC):
     @abc.abstractmethod
     def list_schedules_by_venue_id(self, venue_id: int) -> Optional[list[Schedule]]:
         """List all schedules for a given venue ID."""
+
+    @abc.abstractmethod
+    def list_schedules_by_venue_id_with_events(self, venue_id: int) -> Optional[list[dict[str, Any]]]:
+        """List active schedules for a venue joined with their event start/end times."""
 
     @abc.abstractmethod
     def create_schedules_bulk(self, schedules: list[Schedule]) -> Optional[list[Schedule]]:

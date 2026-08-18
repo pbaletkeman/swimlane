@@ -233,6 +233,22 @@ class SQLite(ScheduleInterfaceBase):
         return schedules if len(schedules) > 0 else None
 
     # ------------------------------------------------------------------
+    def list_schedules_by_venue_id_with_events(self, venue_id: int) -> Optional[list[dict[str, Any]]]:
+        """List active schedules for a venue joined with their event start/end times."""
+        sql = """SELECT s.schedule_id, s.venue_id, s.event_id, s.is_active AS is_active,
+                       e.start_date_time AS event_start_date_time, e.end_date_time AS event_end_date_time
+            FROM schedule s
+            JOIN event e ON e.event_id = s.event_id
+            WHERE s.venue_id = ? AND s.is_active = 1 AND e.is_active = 1
+            ORDER BY e.start_date_time ASC"""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (venue_id,))
+            rows = [dict(rs) for rs in cursor.fetchall()]
+
+        return rows if len(rows) > 0 else None
+
+    # ------------------------------------------------------------------
     def create_schedules_bulk(self, schedules: list[Schedule]) -> Optional[list[Schedule]]:
         """Create multiple schedules in bulk. Returns the created schedules with assigned IDs."""
         if not schedules:
