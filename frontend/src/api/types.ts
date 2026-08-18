@@ -28,7 +28,35 @@ export interface Event {
   start_date_time: string
   end_date_time: string
   frequency_id?: number | null
+  description?: string | null
+  coach_id?: string | null
+  venue_id?: number | null
   is_active: boolean
+}
+
+/** Capacity summary for an event from `GET /events/{id}/capacity`. */
+export interface EventCapacity {
+  event_id: number
+  registered_count: number
+  /** `null` = unlimited (no capacity limit). */
+  max_capacity: number | null
+}
+
+/**
+ * Response body for `POST /events/{id}/register`: the created `Schedule` row
+ * (backend returns a full schedule object).
+ */
+export interface RegisterResponse {
+  schedule_id: number
+  venue_id: number
+  member_id: string
+  event_id: number
+  is_active: boolean
+}
+
+/** Request body for `POST /schedules/{id}/reschedule`. */
+export interface RescheduleInput {
+  event_id: number
 }
 
 export interface Venue {
@@ -72,6 +100,9 @@ export interface PublicEvent {
   start_date_time: string
   end_date_time: string
   frequency_id: number | null
+  description: string | null
+  coach_id: string | null
+  venue_id: number | null
   is_active: boolean
 }
 
