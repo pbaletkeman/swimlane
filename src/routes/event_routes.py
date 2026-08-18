@@ -39,6 +39,24 @@ class EventCapacity(BaseModel):
     max_capacity: int | None = None
 
 
+def resolve_max_capacity(event: Event) -> int | None:
+    """Resolve an event's max capacity from its venue's facility.
+
+    ``None`` means unlimited. A missing/inactive venue or facility yields
+    ``None`` rather than an error so existing events without a venue still
+    report capacity.
+    """
+    if event.venue_id is None:
+        return None
+    venue = VenueSQLite().get_venue_by_id(event.venue_id)
+    if not venue or not venue.is_active:
+        return None
+    facility = FacilitySQLite().get_facility_by_id(venue.facility_id)
+    if not facility:
+        return None
+    return facility.max_capacity
+
+
 class EventRoutes:
     """Defines all event-related routes."""
 
@@ -257,30 +275,6 @@ class EventRoutes:
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
-    def _resolve_max_capacity(self, event: Event) -> int | None:
-        """Resolve an event's max capacity from its venue's facility.
-
-        ``None`` means unlimited. A missing/inactive venue or facility yields
-        ``None`` rather than an error so existing events without a venue still
-        report capacity.
-        """
-        if event.venue_id is None:
-            return None
-        venue = VenueSQLite().get_venue_by_id(event.venue_id)
-        if not venue or not venue.is_active:
-            return None
-        facility = FacilitySQLite().get_facility_by_id(venue.facility_id)
-        if not facility:
-            return None
-        return facility.max_capacity
-
-    # ------------------------------------------------------------------
-    def _active_registrations(self, event_id: int) -> list[Schedule]:
-        """Return the active schedule rows registered for an event."""
-        schedules = ScheduleSQLite().list_schedules_by_event_id(event_id)
-        return [s for s in (schedules or []) if s.is_active]
-
-    # ------------------------------------------------------------------
     async def get_event_capacity(self, event_id: int) -> EventCapacity:
         """Return how many members are registered and the event's max capacity."""
         try:
@@ -290,8 +284,8 @@ class EventRoutes:
                 raise HTTPException(status_code=404, detail="Event not found")
             return EventCapacity(
                 event_id=event_id,
-                registered_count=len(self._active_registrations(event_id)),
-                max_capacity=self._resolve_max_capacity(event),
+                registered_count=ScheduleSQLite().count_active_for_event(event_id),
+                max_capacity=resolve_max_capacity(event),
             )
         except HTTPException:
             raise
@@ -315,15 +309,15 @@ class EventRoutes:
             if not venue or not venue.is_active:
                 raise HTTPException(status_code=404, detail="Venue not found")
 
-            active = self._active_registrations(event_id)
-            if any(s.member_id == user.sub for s in active):
+            schedule_db = ScheduleSQLite()
+            if schedule_db.get_schedule_for_member(event_id, user.sub) is not None:
                 raise HTTPException(status_code=409, detail="Already registered for this event")
 
-            max_capacity = self._resolve_max_capacity(event)
-            if max_capacity is not None and len(active) >= max_capacity:
+            max_capacity = resolve_max_capacity(event)
+            if max_capacity is not None and schedule_db.count_active_for_event(event_id) >= max_capacity:
                 raise HTTPException(status_code=409, detail="Event is at capacity")
 
-            schedule = ScheduleSQLite().create_schedule(
+            schedule = schedule_db.create_schedule(
                 Schedule(venue_id=event.venue_id, member_id=user.sub, event_id=event_id, is_active=True)
             )
             if not schedule:

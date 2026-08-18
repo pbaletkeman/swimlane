@@ -217,6 +217,33 @@ class SQLite(ScheduleInterfaceBase):
         return schedules if len(schedules) > 0 else None
 
     # ------------------------------------------------------------------
+    def get_schedule_for_member(self, event_id: int, member_id: str) -> Optional[Schedule]:
+        """Return the active schedule for a member on a specific event, if any."""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+
+            sql: str = self.get_record_select("WHERE event_id = ? AND member_id = ? AND is_active = 1")
+            cursor.execute(sql, (event_id, member_id))
+            rs = cursor.fetchone()
+            if rs:
+                return self.create_schedule_helper(rs)
+
+        return None
+
+    # ------------------------------------------------------------------
+    def count_active_for_event(self, event_id: int) -> int:
+        """Count the number of active schedules registered for an event."""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                "SELECT COUNT(*) AS cnt FROM schedule WHERE event_id = ? AND is_active = 1",
+                (event_id,),
+            )
+            row = cursor.fetchone()
+            return int(row["cnt"]) if row else 0
+
+    # ------------------------------------------------------------------
     def list_schedules_by_venue_id(self, venue_id: int) -> Optional[list[Schedule]]:
         """List all schedules for a given venue ID."""
         with self._connect() as conn:
