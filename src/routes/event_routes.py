@@ -12,7 +12,12 @@ from pydantic import BaseModel
 
 from src.data.event.event import Event
 from src.data.event.sqlite import SQLite as EventSQLite
-from src.roles.roles import admin_role, all_users, facility_manager_role
+from src.data.facility.sqlite import SQLite as FacilitySQLite
+from src.data.schedule.schedule import Schedule
+from src.data.schedule.sqlite import SQLite as ScheduleSQLite
+from src.data.users.user import User
+from src.data.venue.sqlite import SQLite as VenueSQLite
+from src.roles.roles import admin_role, all_users, facility_manager_role, member_role
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +29,14 @@ class EventRequest(BaseModel):
     end_date_time: str
     frequency_id: int | None = None
     is_active: bool = True
+
+
+class EventCapacity(BaseModel):
+    """Capacity summary for a single event."""
+
+    event_id: int
+    registered_count: int
+    max_capacity: int | None = None
 
 
 class EventRoutes:
@@ -241,4 +254,83 @@ class EventRoutes:
             raise
         except Exception as exc:
             logger.exception("Failed to hard delete events in bulk")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    def _resolve_max_capacity(self, event: Event) -> int | None:
+        """Resolve an event's max capacity from its venue's facility.
+
+        ``None`` means unlimited. A missing/inactive venue or facility yields
+        ``None`` rather than an error so existing events without a venue still
+        report capacity.
+        """
+        if event.venue_id is None:
+            return None
+        venue = VenueSQLite().get_venue_by_id(event.venue_id)
+        if not venue or not venue.is_active:
+            return None
+        facility = FacilitySQLite().get_facility_by_id(venue.facility_id)
+        if not facility:
+            return None
+        return facility.max_capacity
+
+    # ------------------------------------------------------------------
+    def _active_registrations(self, event_id: int) -> list[Schedule]:
+        """Return the active schedule rows registered for an event."""
+        schedules = ScheduleSQLite().list_schedules_by_event_id(event_id)
+        return [s for s in (schedules or []) if s.is_active]
+
+    # ------------------------------------------------------------------
+    async def get_event_capacity(self, event_id: int) -> EventCapacity:
+        """Return how many members are registered and the event's max capacity."""
+        try:
+            db = self._get_db()
+            event = db.get_event_by_id(event_id)
+            if not event or not event.is_active:
+                raise HTTPException(status_code=404, detail="Event not found")
+            return EventCapacity(
+                event_id=event_id,
+                registered_count=len(self._active_registrations(event_id)),
+                max_capacity=self._resolve_max_capacity(event),
+            )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to get event capacity")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def register_for_event(self, event_id: int, user: User = Depends(member_role)) -> Schedule:
+        """Register the current member for an event (creates a Schedule row)."""
+        try:
+            db = self._get_db()
+            event = db.get_event_by_id(event_id)
+            if not event or not event.is_active:
+                raise HTTPException(status_code=404, detail="Event not found")
+
+            if event.venue_id is None:
+                raise HTTPException(status_code=400, detail="Event has no venue assigned")
+
+            venue = VenueSQLite().get_venue_by_id(event.venue_id)
+            if not venue or not venue.is_active:
+                raise HTTPException(status_code=404, detail="Venue not found")
+
+            active = self._active_registrations(event_id)
+            if any(s.member_id == user.sub for s in active):
+                raise HTTPException(status_code=409, detail="Already registered for this event")
+
+            max_capacity = self._resolve_max_capacity(event)
+            if max_capacity is not None and len(active) >= max_capacity:
+                raise HTTPException(status_code=409, detail="Event is at capacity")
+
+            schedule = ScheduleSQLite().create_schedule(
+                Schedule(venue_id=event.venue_id, member_id=user.sub, event_id=event_id, is_active=True)
+            )
+            if not schedule:
+                raise HTTPException(status_code=500, detail="Failed to register for event")
+            return schedule
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to register for event")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
