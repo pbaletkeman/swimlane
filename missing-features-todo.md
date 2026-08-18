@@ -66,9 +66,9 @@ Branch: `feature/public-venue-schedules`
   - [x] **B.7.1** — `frontend/src/pages/explore/ExploreHomePage.tsx` at `/explore` — "Find by address" search box + "Find by event" search box; links into results. Commit.
   - [x] **B.7.2** — `frontend/src/pages/explore/ExploreVenuesPage.tsx` at `/explore/venues` — searchable venue grid (address + facility name). Commit.
   - [x] **B.7.3** — `frontend/src/pages/explore/VenueSchedulePage.tsx` at `/explore/venues/:venueId` — schedule with Week / Month / Event-list view switcher (`Select` + `DatePicker`); default current week; each event row links to event detail (Phase C). Commit.
-- [ ] **B.8** — Add the three routes to `frontend/src/router/index.tsx` as **public** (outside `RouteGuard`). Commit.
-- [ ] **B.9** — Update `HomePage.tsx` to link to `/explore` (replace "content coming soon"). Commit.
-- [ ] **B.10** — Styles for explore pages in `index.css`. Commit.
+- [x] **B.8** — Add the three routes to `frontend/src/router/index.tsx` as **public** (outside `RouteGuard`). Commit.
+- [x] **B.9** — Update `HomePage.tsx` to link to `/explore` (replace "content coming soon"). Commit.
+- [x] **B.10** — Styles for explore pages in `index.css`. Commit.
 
 ## Phase C — Event detail, capacity, register, reschedule
 

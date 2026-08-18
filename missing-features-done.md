@@ -51,6 +51,31 @@ Branch: `feature/public-read-access`
   - `GET /venues`, `/events`, `/schedules`, `/facilities` without a token → all 401
 - Seed rows added for testing were removed afterward (DB counts back to original).
 
+### Public routes, HomePage link, and styles (B.8–B.10)
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| B.8 | `router/index.tsx` — `/explore`, `/explore/venues`, `/explore/venues/:venueId` added as public routes (outside `RouteGuard`, alongside `/`, `/login`, `/auth/callback`) | `16357f4` |
+| B.9 | `HomePage.tsx` — replaced "content coming soon" tagline; added "Explore venues" button (always shown) alongside the dashboard/login button | `857dbfa` |
+| B.10 | `index.css` — `explore-*` page/header/nav/search/venue-grid/schedule/event styles; pages refactored from primeflex utilities onto those classes | `cdc19ba` |
+
+### Details
+
+- The explore pages render outside `AppLayout`, so B.10 styles provide their own
+  header/nav chrome (`explore-header`, `explore-brand`, `explore-nav`,
+  `explore-back-link`) and content layout (`explore-container`, `explore-page`).
+- PrimeReact 11 compound components (`Select.Root`, `DatePicker.Root`) keep their
+  headless-layout classes; only outer layout moved to the `explore-*` classes.
+- `HomePage` now links to `/explore` for anonymous visitors; the Google sign-in
+  and dashboard buttons remain.
+
+### Verification
+
+- `npm run lint` (oxlint) — clean.
+- `npm run build` (`tsc -b` + Vite) — clean; `ExploreHomePage`,
+  `ExploreVenuesPage`, `VenueSchedulePage` chunks now appear in the bundle,
+  confirming the routes resolve the lazy imports.
+
 ### Frontend half (B.5–B.7)
 
 | Sub-task | Deliverable | Commit |
@@ -63,10 +88,9 @@ Branch: `feature/public-read-access`
 
 ### Details
 
-- The three pages live under `frontend/src/pages/explore/` and are **not routed yet**
-  — B.8 (public routes in the router) is the next sub-task. They compile and
-  typecheck as part of `tsc -b`; the venue grid and schedule page are reached by
-  URL once B.8 lands.
+- The three pages live under `frontend/src/pages/explore/` and were wired into
+  the router as public routes in B.8 (`/explore`, `/explore/venues`,
+  `/explore/venues/:venueId`), outside `RouteGuard`.
 - `getVenueSchedules` consumes the B.1–B.4 response shape (`PublicEvent[]`,
   distinct events). `VenueScheduleRow` is retained per the plan as the legacy
   Phase A per-booking shape, documented for Phase C use.
@@ -75,8 +99,8 @@ Branch: `feature/public-read-access`
 - Event rows link to `/explore/events/:eventId` per B.7.3; the route itself is
   Phase C (C.12/C.14).
 - Layout uses PrimeReact 11 compound components (`Select.Root`, `DatePicker.Root`
-  following `EntityFormDialog.tsx`) and primeflex utilities; no `index.css`
-  additions — explore styles are B.10.
+  following `EntityFormDialog.tsx`); page structure now uses the semantic explore
+  classes added in B.10.
 
 ### Verification
 
@@ -85,14 +109,13 @@ Branch: `feature/public-read-access`
 - Backend smoke tests for the consumed endpoints were run in the B.1–B.4
   verification above.
 
-## Phase B — Public venue schedule views (week / month / event list) (B.1–B.7 done; B.8–B.10 pending) 🔨
+## Phase B — Public venue schedule views (week / month / event list) (B.1–B.10 done) ✅
 
 Branch: `feature/public-venue-schedules`
 
 `layout.txt:7-10` — venue → schedule, default current week, monthly + event-list options.
-Backend (B.1–B.4) and frontend API/types + explore pages (B.5–B.7) are complete;
-router wiring, HomePage link, and explore styles (B.8–B.10) are still open in
-`missing-features-todo.md`.
+Backend (B.1–B.4), frontend API/types + explore pages (B.5–B.7), and the public
+routes, HomePage link, and explore styles (B.8–B.10) are all complete.
 
 | Sub-task | Deliverable | Commit |
 |----------|-------------|--------|
