@@ -51,14 +51,14 @@ Branch: `feature/public-read-access`
   - `GET /venues`, `/events`, `/schedules`, `/facilities` without a token → all 401
 - Seed rows added for testing were removed afterward (DB counts back to original).
 
-## Phase C — Event detail, capacity, register, reschedule (C.1–C.6 done; C.7+ pending) 🔨
+## Phase C — Event detail, capacity, register, reschedule (C.1–C.9 done; C.10+ pending) 🔨
 
 Branch: `feature/event-registration`
 
 `layout.txt:11-16` — event cap/max capacity, description, member register + reschedule.
-Data layer (C.1–C.4) and the capacity/register handlers (C.5–C.6) are complete;
-reschedule, route wiring, and frontend (C.7–C.14) are still open in
-`missing-features-todo.md`.
+Backend is complete: data layer (C.1–C.4), capacity/register/reschedule handlers
+(C.5–C.7), `ScheduleSQLite` helpers (C.8), and route wiring (C.9). Frontend
+(C.10–C.14) is still open in `missing-features-todo.md`.
 
 | Sub-task | Deliverable | Commit |
 |----------|-------------|--------|
@@ -68,30 +68,33 @@ reschedule, route wiring, and frontend (C.7–C.14) are still open in
 | C.4 | Guarded migration in `EventSQLite.init()`: `PRAGMA table_info(event)` then `ALTER TABLE event ADD COLUMN description/coach_id/venue_id ...` (only when missing, NULL defaults). `get_create_table()` now returns just the `CREATE TABLE` and a new `get_create_indexes()` runs after migration, so pre-C.3 tables get the `idx_event_*` indexes too. Idempotent. | `eb27df5` |
 | C.5 | `EventRoutes.get_event_capacity` handler — `{event_id, registered_count, max_capacity}`; count = active `schedule` rows; `max_capacity` resolved from event's `venue→facility.max_capacity` (`None` = unlimited); 404 if event missing/inactive | `6191ca0` |
 | C.6 | `EventRoutes.register_for_event` handler — `Depends(member_role)`, creates a `Schedule` at the event's venue for `current_user.sub`; 409 already-registered; 409 at capacity; 400 no venue; 404 inactive event/venue | `6191ca0` |
+| C.7 | `ScheduleRoutes.reschedule` handler — `Depends(member_role)`, body `{event_id}`; 403 unless the schedule belongs to `current_user.sub`; target event must be active (404) with a venue (400, venue active 404); 409 same event, 409 already registered on target, 409 target at capacity; updates `schedule.event_id` and moves `schedule.venue_id` to the target event's venue | `0459028` |
+| C.8 | `ScheduleSQLite.get_schedule_for_member(event_id, member_id)` (active row) + `count_active_for_event(event_id)`; added to `ScheduleInterface`; `get_event_capacity`/`register_for_event` refactored to use them; capacity resolution hoisted to module-level `resolve_max_capacity(event)` in `event_routes.py` for reuse | `35ebe19` |
+| C.9 | Routes wired: `GET /events/{event_id}/capacity` (public, no auth), `POST /events/{event_id}/register` and `POST /schedules/{schedule_id}/reschedule` (auth via `Depends(member_role)` in the handler signatures) | `1a8e164` |
 
 ### Details
 
 - Column order throughout is `event_id, start_date_time, end_date_time, frequency_id, description, coach_id, venue_id, is_active`; all selects/returns mirror it so `create_event_helper` maps correctly.
 - New-field values default to `NULL`/`None` — fully backward compatible for existing callers that don't set them.
 - C.4 splits `get_create_table()` into table DDL + `get_create_indexes()` so `init()` runs **CREATE TABLE → migrate → indexes**; without the split, `CREATE INDEX ... ON event (coach_id)` fails on pre-C.3 tables before the `ALTER` runs.
-- C.5/C.6 share `_resolve_max_capacity` and `_active_registrations` helpers on `EventRoutes`. Per the plan, the handlers are implemented but **not yet registered** as routes — that's C.9.
-- The `EventRequest` route body does **not** yet carry the new fields (C.9).
+- C.8 hoisted the venue→facility capacity lookup from `EventRoutes._resolve_max_capacity` to module-level `resolve_max_capacity(event)` (in `event_routes.py`) so `ScheduleRoutes.reschedule` shares it — no duplication between routers.
+- The `EventRequest` route body does **not** yet carry the new fields (event creation/update of `description`/`coach_id`/`venue_id` still goes through the model defaults; extending the body is out of the C-scope listed in the todo, which targets capacity/register/reschedule).
 - Branched from `main` (Phase B merged as `488e168` / PR #30).
 
 ### Verification
 
 - `uv run ruff check .` — clean; `uv run ruff format --check` on changed files — clean; `uv run pyright` — 0 errors.
-- Smoke test (throwaway DBs):
-  - **C.4** — a hand-built *old* `event` table (no new columns) → `init()` adds all three columns, preserves an existing row as `NULL`s, and a second `init()` is a no-op (idempotent); `get_event_by_id` works on the migrated row.
-  - **C.5** — capacity on a fresh event → `{registered_count: 0, max_capacity: 2}`; missing event → 404.
-  - **C.6** — register m1 → schedule created, capacity → 1; duplicate m1 → 409; m2 → capacity 2; m3 → 409 at capacity with **no partial schedule row**; missing/inactive event → 404; event without venue → 400; inactive venue → 404.
-- **Dev DB migrated in place** (`swimlane.db`): `before` columns lacked the new fields → after `EventSQLite().init()`, `PRAGMA table_info(event)` shows `description`/`coach_id`/`venue_id` and `list_events()` works again (existing rows keep `NULL`s). The interim breakage from C.1–C.3 is resolved — no DB reset.
+- Smoke tests:
+  - **C.4** (throwaway DB) — *old* `event` table (no new columns) → `init()` adds all three columns, preserves an existing row as `NULL`s, second `init()` is a no-op; `get_event_by_id` works on the migrated row.
+  - **C.5/C.6** (throwaway DB) — capacity fresh → `{0, 2}`; register m1 → count 1; duplicate → 409; m2 → count 2; m3 → 409 at capacity with **no partial schedule row**; missing/inactive event → 404; no-venue → 400; inactive venue → 404.
+  - **C.7/C.8/C.9** (throwaway DB + FastAPI `TestClient` with real HS256 JWTs, routes wired) — capacity is public (no auth) `{0, 2}`; register/reschedule without a token → 401; register m1+m2 → evA full, duplicate → 409, m3 → 409; reschedule moves `event_id` + `venue_id` (evB→evC put the schedule on venue 2, evB dropped to 0); same-event → 409; already-registered target → 409; full target → 409; inactive target → 404; venue-less target → 400; someone else's schedule → 403; missing schedule → 404; final public capacities consistent.
+- **Dev DB migrated in place** (`swimlane.db`): after `EventSQLite().init()`, `PRAGMA table_info(event)` shows `description`/`coach_id`/`venue_id` and `list_events()` works again (existing rows keep `NULL`s). No DB reset.
 
 ### Notes
 
 - **Pre-existing quirk (out of scope):** `create_events_bulk` re-selects only `last_insert_rowid()`, so a multi-row bulk returns just the last inserted row. Flagged for a future fix.
-- **Postgres**: no `Event` postgres implementation exists yet, so the postgresql branch of the C.4 migration is N/A until one is added.
-- **Deferred:** C.7 reschedule, C.8 `ScheduleSQLite` helpers, C.9 route wiring, C.10–C.14 frontend.
+- **Postgres**: no `Event`/`Schedule` postgres implementation exists yet, so the postgresql branch of the C.4 migration is N/A until one is added.
+- **Deferred:** C.10–C.14 frontend (types, API clients, `EventDetailPage` with capacity/register/reschedule UI, links, route).
 
 ### Public routes, HomePage link, and styles (B.8–B.10)
 
