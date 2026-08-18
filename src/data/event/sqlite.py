@@ -8,6 +8,7 @@ CRUD operations on the 'event' table.
 
 import logging
 import sqlite3
+from datetime import datetime
 from typing import Any, LiteralString, Optional
 
 from src.data.event.event import Event
@@ -172,6 +173,31 @@ class SQLite(EventInterfaceBase):
 
             sql: str = self.get_record_select()
             cursor.execute(sql)
+            events: list[Event] = []
+            for rs in cursor:
+                e = self.create_event_helper(rs)
+                if e is not None:
+                    events.append(e)
+
+        return events if len(events) > 0 else None
+
+    # ------------------------------------------------------------------
+    def list_public_events(self, start_from: str | None = None, start_to: str | None = None) -> Optional[list[Event]]:
+        """List active events within a start_date_time range (defaults to upcoming events)."""
+        now = datetime.now().isoformat(timespec="seconds")
+        conditions = ["is_active = 1"]
+        params: list[Any] = []
+        conditions.append("start_date_time >= ?")
+        params.append(start_from if start_from else now)
+        if start_to:
+            conditions.append("start_date_time <= ?")
+            params.append(start_to)
+        where = "WHERE " + " AND ".join(conditions)
+
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            sql: str = self.get_record_select(where)
+            cursor.execute(sql, params)
             events: list[Event] = []
             for rs in cursor:
                 e = self.create_event_helper(rs)
