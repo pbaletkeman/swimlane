@@ -7,7 +7,7 @@ design — all write/admin CRUD stays on the auth-gated routers.
 """
 
 import logging
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -15,9 +15,9 @@ from pydantic import BaseModel
 from src.data.event.event import Event
 from src.data.event.sqlite import SQLite as EventSQLite
 from src.data.facility.sqlite import SQLite as FacilitySQLite
-from src.data.schedule.sqlite import SQLite as ScheduleSQLite
 from src.data.venue.sqlite import SQLite as VenueSQLite
 from src.data.venue.venue import Venue
+from src.util.dates import day_end_iso, day_start_iso, month_range, parse_date, week_range
 
 logger = logging.getLogger(__name__)
 
@@ -34,17 +34,6 @@ class PublicVenue(BaseModel):
     postal_code: str
     cost: float
     is_active: bool
-
-
-class PublicVenueSchedule(BaseModel):
-    """A schedule row for a venue joined with its event times."""
-
-    schedule_id: int
-    venue_id: int
-    event_id: int
-    is_active: bool
-    event_start_date_time: str
-    event_end_date_time: str
 
 
 class PublicEvent(BaseModel):
@@ -121,17 +110,50 @@ class PublicRoutes:
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
-    async def get_venue_schedules(self, venue_id: int) -> list[PublicVenueSchedule]:
-        """Public schedule listing for one venue (active schedules joined to their events)."""
+    def _to_public_events(self, events: list[Event]) -> list[PublicEvent]:
+        """Transform ``Event`` rows into ``PublicEvent`` responses."""
+        return [
+            PublicEvent(
+                event_id=e.event_id or 0,
+                start_date_time=e.start_date_time,
+                end_date_time=e.end_date_time,
+                frequency_id=e.frequency_id,
+                is_active=e.is_active,
+            )
+            for e in events
+        ]
+
+    # ------------------------------------------------------------------
+    async def get_venue_schedules(
+        self,
+        venue_id: int,
+        view: Literal["week", "month", "list"] = "week",
+        date: Optional[str] = None,
+    ) -> list[PublicEvent]:
+        """Public schedule for one venue: ``week`` (default) / ``month`` / ``list`` views.
+
+        ``date`` anchors the view (ISO ``YYYY-MM-DD``); defaults to today. ``week``
+        and ``month`` return distinct active events at the venue overlapping the
+        range; ``list`` returns upcoming active events at the venue.
+        """
         try:
             venue_db = VenueSQLite()
             venue = venue_db.get_venue_by_id(venue_id)
             if not venue or not venue.is_active:
                 raise HTTPException(status_code=404, detail="Venue not found")
 
-            schedule_db = ScheduleSQLite()
-            rows = schedule_db.list_schedules_by_venue_id_with_events(venue_id) or []
-            return [PublicVenueSchedule(**row) for row in rows]
+            anchor = parse_date(date)
+            db = EventSQLite()
+            if view == "month":
+                first, last = month_range(anchor)
+                events = db.list_events_in_range(day_start_iso(first), day_end_iso(last), venue_id=venue_id)
+            elif view == "list":
+                events = db.list_public_events(venue_id=venue_id)
+            else:  # week (default)
+                monday, sunday = week_range(anchor)
+                events = db.list_events_in_range(day_start_iso(monday), day_end_iso(sunday), venue_id=venue_id)
+
+            return self._to_public_events(events or [])
         except HTTPException:
             raise
         except Exception as exc:
@@ -139,27 +161,26 @@ class PublicRoutes:
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
-    async def list_events(self, from_dt: Optional[str] = None, to_dt: Optional[str] = None) -> list[PublicEvent]:
+    async def list_events(
+        self,
+        from_dt: Optional[str] = None,
+        to_dt: Optional[str] = None,
+        venue_id: Optional[int] = None,
+    ) -> list[PublicEvent]:
         """Public event listing, defaulting to upcoming active events.
 
         Free-text search (``?q=``) is deferred until ``event.description`` exists
-        (Phase C); date filtering is available now via ``from_dt``/``to_dt``.
+        (Phase C); date filtering is available via ``from_dt``/``to_dt`` and the
+        listing can be scoped to one venue via ``venue_id``.
         """
         try:
             db = EventSQLite()
-            events: Optional[list[Event]] = db.list_public_events(start_from=from_dt, start_to=to_dt)
-            if not events:
-                return []
-            return [
-                PublicEvent(
-                    event_id=e.event_id or 0,
-                    start_date_time=e.start_date_time,
-                    end_date_time=e.end_date_time,
-                    frequency_id=e.frequency_id,
-                    is_active=e.is_active,
-                )
-                for e in events
-            ]
+            events: Optional[list[Event]] = db.list_public_events(
+                start_from=from_dt,
+                start_to=to_dt,
+                venue_id=venue_id,
+            )
+            return self._to_public_events(events or [])
         except HTTPException:
             raise
         except Exception as exc:

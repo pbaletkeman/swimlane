@@ -56,19 +56,19 @@ Branch: `feature/public-venue-schedules`
 
 `layout.txt:7-10` — venue → schedule, default current week, monthly + event-list options.
 
-- [ ] **B.1** — `GET /public/venues/{venue_id}/schedules` gains query params: `view=week|month|list`, `date=YYYY-MM-DD`. Default `week` anchored on the given date (or today). Commit.
-- [ ] **B.2** — `GET /public/events` gains `venue_id` filter so "event listing" for a venue is supported. Commit.
-- [ ] **B.3** — Add event-date helpers (shared util in `src/util/dates.py`): `start_of_week`, `week_range`, `month_range` (ISO week, Monday-start) used by the schedule queries. Commit.
-- [ ] **B.4** — `EventSQLite.list_events_in_range(start_iso, end_iso, venue_id=None)` — filters by `start_date_time` overlap; used by week/month views. Commit.
-- [ ] **B.5** — `frontend/src/api/public.ts` — `searchVenues(q)`, `listVenues()`, `getVenue(id)`, `getVenueSchedules(id, {view, date})`, `searchEvents({venueId, from, to})` calling `/api/public/...`. Commit.
-- [ ] **B.6** — `frontend/src/api/types.ts` — add `PublicVenue` (Venue + facility_name), `VenueScheduleRow` (schedule + event times), `PublicEvent`. Commit.
-- [ ] **B.7** — New public pages under `/explore` (do **not** collide with auth-gated `/venues`, `/events`):
-  - [ ] **B.7.1** — `frontend/src/pages/explore/ExploreHomePage.tsx` at `/explore` — "Find by address" search box + "Find by event" search box; links into results. Commit.
-  - [ ] **B.7.2** — `frontend/src/pages/explore/ExploreVenuesPage.tsx` at `/explore/venues` — searchable venue grid (address + facility name). Commit.
-  - [ ] **B.7.3** — `frontend/src/pages/explore/VenueSchedulePage.tsx` at `/explore/venues/:venueId` — schedule with Week / Month / Event-list view switcher (`Select` + `DatePicker`); default current week; each event row links to event detail (Phase C). Commit.
-- [ ] **B.8** — Add the three routes to `frontend/src/router/index.tsx` as **public** (outside `RouteGuard`). Commit.
-- [ ] **B.9** — Update `HomePage.tsx` to link to `/explore` (replace "content coming soon"). Commit.
-- [ ] **B.10** — Styles for explore pages in `index.css`. Commit.
+- [x] **B.1** — `GET /public/venues/{venue_id}/schedules` gains query params: `view=week|month|list`, `date=YYYY-MM-DD`. Default `week` anchored on the given date (or today). Commit.
+- [x] **B.2** — `GET /public/events` gains `venue_id` filter so "event listing" for a venue is supported. Commit.
+- [x] **B.3** — Add event-date helpers (shared util in `src/util/dates.py`): `start_of_week`, `week_range`, `month_range` (ISO week, Monday-start) used by the schedule queries. Commit.
+- [x] **B.4** — `EventSQLite.list_events_in_range(start_iso, end_iso, venue_id=None)` — filters by `start_date_time` overlap; used by week/month views. Commit.
+- [x] **B.5** — `frontend/src/api/public.ts` — `searchVenues(q)`, `listVenues()`, `getVenue(id)`, `getVenueSchedules(id, {view, date})`, `searchEvents({venueId, from, to})` calling `/api/public/...`. Commit.
+- [x] **B.6** — `frontend/src/api/types.ts` — add `PublicVenue` (Venue + facility_name), `VenueScheduleRow` (schedule + event times), `PublicEvent`. Commit.
+- [x] **B.7** — New public pages under `/explore` (do **not** collide with auth-gated `/venues`, `/events`):
+  - [x] **B.7.1** — `frontend/src/pages/explore/ExploreHomePage.tsx` at `/explore` — "Find by address" search box + "Find by event" search box; links into results. Commit.
+  - [x] **B.7.2** — `frontend/src/pages/explore/ExploreVenuesPage.tsx` at `/explore/venues` — searchable venue grid (address + facility name). Commit.
+  - [x] **B.7.3** — `frontend/src/pages/explore/VenueSchedulePage.tsx` at `/explore/venues/:venueId` — schedule with Week / Month / Event-list view switcher (`Select` + `DatePicker`); default current week; each event row links to event detail (Phase C). Commit.
+- [x] **B.8** — Add the three routes to `frontend/src/router/index.tsx` as **public** (outside `RouteGuard`). Commit.
+- [x] **B.9** — Update `HomePage.tsx` to link to `/explore` (replace "content coming soon"). Commit.
+- [x] **B.10** — Styles for explore pages in `index.css`. Commit.
 
 ## Phase C — Event detail, capacity, register, reschedule
 

@@ -50,3 +50,106 @@ Branch: `feature/public-read-access`
   - `GET /public/events` → 200 (future active events only); `?from_dt=2026-09-01` → 200 `[]`
   - `GET /venues`, `/events`, `/schedules`, `/facilities` without a token → all 401
 - Seed rows added for testing were removed afterward (DB counts back to original).
+
+### Public routes, HomePage link, and styles (B.8–B.10)
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| B.8 | `router/index.tsx` — `/explore`, `/explore/venues`, `/explore/venues/:venueId` added as public routes (outside `RouteGuard`, alongside `/`, `/login`, `/auth/callback`) | `16357f4` |
+| B.9 | `HomePage.tsx` — replaced "content coming soon" tagline; added "Explore venues" button (always shown) alongside the dashboard/login button | `857dbfa` |
+| B.10 | `index.css` — `explore-*` page/header/nav/search/venue-grid/schedule/event styles; pages refactored from primeflex utilities onto those classes | `cdc19ba` |
+
+### Details
+
+- The explore pages render outside `AppLayout`, so B.10 styles provide their own
+  header/nav chrome (`explore-header`, `explore-brand`, `explore-nav`,
+  `explore-back-link`) and content layout (`explore-container`, `explore-page`).
+- PrimeReact 11 compound components (`Select.Root`, `DatePicker.Root`) keep their
+  headless-layout classes; only outer layout moved to the `explore-*` classes.
+- `HomePage` now links to `/explore` for anonymous visitors; the Google sign-in
+  and dashboard buttons remain.
+
+### Verification
+
+- `npm run lint` (oxlint) — clean.
+- `npm run build` (`tsc -b` + Vite) — clean; `ExploreHomePage`,
+  `ExploreVenuesPage`, `VenueSchedulePage` chunks now appear in the bundle,
+  confirming the routes resolve the lazy imports.
+
+### Frontend half (B.5–B.7)
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| B.5 | `frontend/src/api/public.ts` — `searchVenues(q)`, `listVenues()`, `getVenue(id)`, `getVenueSchedules(id, {view, date})`, `searchEvents({venueId, from, to})` | `b05254e` |
+| B.6 | `frontend/src/api/types.ts` — `PublicVenue`, `PublicEvent`, `VenueScheduleRow` | `50b49bd` |
+| B.7.1 | `ExploreHomePage.tsx` — "Find by address" + "Find by event" search boxes → `/explore/venues?q=` | `be8a81f` |
+| B.7.2 | `ExploreVenuesPage.tsx` — searchable venue grid (address + facility name), reads `?q=` from the URL | `be8a81f` |
+| B.7.3 | `VenueSchedulePage.tsx` — Week / Month / Event-list view switcher (`Select` + `DatePicker`), default current week, rows link to event detail | `be8a81f` |
+
+### Details
+
+- The three pages live under `frontend/src/pages/explore/` and were wired into
+  the router as public routes in B.8 (`/explore`, `/explore/venues`,
+  `/explore/venues/:venueId`), outside `RouteGuard`.
+- `getVenueSchedules` consumes the B.1–B.4 response shape (`PublicEvent[]`,
+  distinct events). `VenueScheduleRow` is retained per the plan as the legacy
+  Phase A per-booking shape, documented for Phase C use.
+- "Find by event" currently routes to the venue grid (`?q=…` matches facility
+  name); real event text search + event-detail destination arrive with Phase C.
+- Event rows link to `/explore/events/:eventId` per B.7.3; the route itself is
+  Phase C (C.12/C.14).
+- Layout uses PrimeReact 11 compound components (`Select.Root`, `DatePicker.Root`
+  following `EntityFormDialog.tsx`); page structure now uses the semantic explore
+  classes added in B.10.
+
+### Verification
+
+- `npm run lint` (oxlint) — clean.
+- `npm run build` (`tsc -b` + Vite) — clean; all explore files typecheck.
+- Backend smoke tests for the consumed endpoints were run in the B.1–B.4
+  verification above.
+
+## Phase B — Public venue schedule views (week / month / event list) (B.1–B.10 done) ✅
+
+Branch: `feature/public-venue-schedules`
+
+`layout.txt:7-10` — venue → schedule, default current week, monthly + event-list options.
+Backend (B.1–B.4), frontend API/types + explore pages (B.5–B.7), and the public
+routes, HomePage link, and explore styles (B.8–B.10) are all complete.
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| B.1 | `GET /public/venues/{venue_id}/schedules` gains `view=week\|month\|list` + `date=YYYY-MM-DD` (default `week` anchored on the date or today); invalid `view` → 422 | `9c4a2b3` |
+| B.2 | `GET /public/events` gains `venue_id` filter (upcoming active events at a venue) | `9c4a2b3` |
+| B.3 | `src/util/dates.py` — `parse_date`, `start_of_week`, `week_range`, `month_range` (ISO week, Monday-start), `day_start_iso`, `day_end_iso` | `0675ab6` |
+| B.4 | `EventSQLite.list_events_in_range(start_iso, end_iso, venue_id=None)` — interval overlap on `start_date_time`/`end_date_time`, optional venue scope via `schedule` join (distinct events) | `a44436b` |
+
+### Details
+
+- **Response shape changed from Phase A**: the venue schedules endpoint now
+  returns distinct `PublicEvent` rows (not per-booking schedule rows) so a venue's
+  week/month/list view shows each event once. Nothing consumes the old
+  `PublicVenueSchedule` shape yet (frontend Phase B.5+ not built), so the change is
+  safe on this branch. The A.5 helper `list_schedules_by_venue_id_with_events`
+  remains in the data layer but is no longer used by the public routes.
+- `view=list` returns upcoming active events at the venue
+  (`list_public_events(venue_id=…)`); `week`/`month` return events overlapping the
+  ISO-week / calendar-month range via `list_events_in_range`.
+- `venue_id` scoping joins `event` → `schedule` (events have no `venue_id` column
+  until Phase C) and filters to active schedules, deduping with `DISTINCT`.
+
+### Verification
+
+- `uv run ruff check .` — clean; `uv run ruff format --check` on all changed files — clean.
+- `uv run pyright` — 0 errors.
+- `src/util/dates.py` unit-check: 2026-08-18 (Tue) → week Mon 08-17 → Sun 08-23;
+  month 08-01 → 08-31; day-start/end ISO strings correct.
+- Backend smoke test (dev server, seeded active events in current week / later that
+  month / previous month at venue 1, no auth):
+  - `/public/venues/1/schedules` (default week) → only the current-week event
+  - `?view=month` → both August events; `?view=list` → both upcoming August events
+  - `?view=week&date=2026-07-13` and `?view=month&date=2026-07-01` → the July event
+  - `?view=invalid` → 422
+  - `/public/events?venue_id=1` → upcoming events at venue 1
+  - `/public/venues/9999/schedules` → 404
+- Seed rows added for testing were removed afterward (DB counts back to original).
