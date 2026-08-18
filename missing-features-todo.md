@@ -41,7 +41,7 @@ Branch: `feature/public-read-access`
 
 `layout.txt:1,3,5` — find-by-address, find-by-event, venues browsing must not require login.
 
-- [ ] **A.1** — Add a new `src/routes/public_routes.py` `PublicRoutes` router (prefix `/public`, tags `["public"]`) OR add public endpoints to existing routers with **no** `Depends(all_users)` — decide one and be consistent (recommend a dedicated `PublicRoutes` module so admin CRUD stays auth-gated). Commit.
+- [ ] **A.1** — Add a new `src/routes/public_routes.py` `PublicRoutes` router (prefix `/public`, tags `["public"]`) — dedicated module so admin CRUD stays auth-gated (see Key decisions #1); public endpoints stay read-only and return 404 for inactive venues/events. Commit.
 - [ ] **A.2** — `GET /public/venues?q=<address>` — public venue search by `street`/`city`/`state`/`postal_code` substring match; returns `Venue` + facility name. Requires a new `VenueSQLite.search_venues(q)` method (LIKE on address columns, `is_active=1`). Commit.
 - [ ] **A.3** — `GET /public/events?q=<term>` — public event listing; `EventSQLite` needs a search (start/end range and/or free-text once `description` exists in Phase C). Initially: `list_events()` filtered to future `is_active` events, optional `from`/`to` query params. Commit.
 - [ ] **A.4** — `GET /public/venues` — public list of active venues (all address fields), no auth. Commit.
@@ -79,10 +79,10 @@ Branch: `feature/event-registration`
 - [ ] **C.1** — Extend `Event` model (`src/data/event/event.py`) with `description: str | None = None`, `coach_id: str | None = None`, `venue_id: int | None = None`. Commit.
 - [ ] **C.2** — Update `Event` DDL in `src/data/event/sqlite.py` (`get_create_table`) with the new columns + `FOREIGN KEY (coach_id) REFERENCES users(sub)` and `FOREIGN KEY (venue_id) REFERENCES venue(venue_id)`. Commit.
 - [ ] **C.3** — Update `EventSQLite` select/RETURNING/INSERT/UPDATE statements + `create_event_helper` for the new fields (mirror existing column lists). Commit.
-- [ ] **C.4** — **Migration note**: `CREATE TABLE IF NOT EXISTS` will not add columns to an existing `swimlane.db` — add `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`-style guarded migrations in `EventSQLite.init()` (check `PRAGMA table_info(event)`) or document a dev DB reset. Commit.
-- [ ] **C.5** — `GET /events/{event_id}/capacity` — public: returns `{event_id, registered_count, max_capacity}`. Registered count = count of active `schedule` rows for the event; `max_capacity` from the event's `venue→facility.max_capacity`. Add helper `EventSQLite`/`ScheduleSQLite` for the count + a facility-capacity join (or a small query in the route). Commit.
+- [ ] **C.4** — **Migration**: `CREATE TABLE IF NOT EXISTS` will not add columns to an existing `swimlane.db` — add guarded migrations in `EventSQLite.init()`: sqlite → check `PRAGMA table_info(event)` then `ALTER TABLE event ADD COLUMN coach_id TEXT NULL REFERENCES users(sub)` / `ADD COLUMN venue_id INTEGER NULL REFERENCES venue(venue_id)`; postgresql → `ADD COLUMN IF NOT EXISTS`. No dev DB reset (see Key decisions #2). Commit.
+- [ ] **C.5** — `GET /events/{event_id}/capacity` — public: returns `{event_id, registered_count, max_capacity}`. Registered count = count of active `schedule` rows for the event; `max_capacity` from the event's `venue→facility.max_capacity`; **`max_capacity: null` = unlimited** (no 409). Add helper `EventSQLite`/`ScheduleSQLite` for the count + a facility-capacity join (or a small query in the route). Commit.
 - [ ] **C.6** — `POST /events/{event_id}/register` — `member_role`; creates a `Schedule` for `current_user.sub` at the event's venue; 409 if already registered; 409 if `registered_count >= max_capacity`; 404 if event/venue inactive. Commit.
-- [ ] **C.7** — `POST /schedules/{schedule_id}/reschedule` — `member_role`; body `{event_id}`; validates the target event (active, not full, not the same); updates the caller's own schedule (must match `current_user.sub`). Commit.
+- [ ] **C.7** — `POST /schedules/{schedule_id}/reschedule` — `member_role`; body `{event_id}`; validates the target event (active, not full, not the same); updates the caller's own schedule (must match `current_user.sub`) and moves `schedule.venue_id` to the target event's venue. Commit.
 - [ ] **C.8** — Add `ScheduleSQLite.get_schedule_for_member(event_id, member_id)` and `count_active_for_event(event_id)` helpers. Commit.
 - [ ] **C.9** — Wire `/events/{event_id}/capacity` + register + reschedule into `EventRoutes`/`ScheduleRoutes` (register/reschedule auth = `member_role`). Commit.
 - [ ] **C.10** — `frontend/src/api/types.ts` — `Event` gains `description`/`coach_id`/`venue_id`; add `EventCapacity`, `RegisterResponse`, `RescheduleInput`. Commit.
@@ -122,11 +122,11 @@ Branch: `feature/profile-correspondence`
 - [ ] **E.2** — `GET /forms/submissions/{id}` — `member_role` (own only) / manager+ (any): return a submission with its responses (needed so "my forms" can show answers). Add `FormSubmissionSQLite.get_by_id_with_responses(submission_id)`. Commit.
 - [ ] **E.3** — `GET /schedules/me/events` — alias/aggregate for "my events" (reuse Phase D `GET /schedules/me`; may be the same endpoint — decide and document). Commit.
 - [ ] **E.4** — **New `message` entity** (3-file pattern):
-  - [ ] **E.4.1** — `src/data/message/message.py` — `Message(message_id, member_id FK→users.sub, subject, body, is_read, sent_at, is_active)`. Commit.
-  - [ ] **E.4.2** — `src/data/message/message_interface.py` — CRUD + `list_by_member(member_id)`, `mark_read(message_id)`. Commit.
-  - [ ] **E.4.3** — `src/data/message/sqlite.py` — DDL (`is_read` default 0, FK to users with cascade), CRUD impl. Commit.
-  - [ ] **E.4.4** — Register `MessageSQLite` in `main.py` `init_db()`. Commit.
-  - [ ] **E.4.5** — `src/routes/message_routes.py` `MessageRoutes` (`/messages`): `GET /messages/me` (`member_role`), `PUT /messages/{id}/read` (`member_role`, own only), `POST /messages` (`facility_manager_role` send to a member), soft/hard delete (`all_users` own / admin). Register in `main.py`. Commit.
+  - [ ] **E.4.1** — `src/data/message/message.py` — `Message(message_id, member_id FK→users.sub, sender_id FK→users.sub, subject, body, is_read, sent_at, is_active)` — `sender_id` records who sent it (staff → member inbox; see Key decisions #5). Commit.
+- [ ] **E.4.2** — `src/data/message/message_interface.py` — CRUD + `list_by_member(member_id)`, `mark_read(message_id)`. Commit.
+- [ ] **E.4.3** — `src/data/message/sqlite.py` — DDL (`is_read` default 0, FKs to users with cascade), CRUD impl. Commit.
+- [ ] **E.4.4** — Register `MessageSQLite` in `main.py` `init_db()`. Commit.
+- [ ] **E.4.5** — `src/routes/message_routes.py` `MessageRoutes` (`/messages`): `GET /messages/me` (`member_role`), `PUT /messages/{id}/read` (`member_role`, own only), `POST /messages` (`coach_role`+ send to a member), soft/hard delete (`all_users` own / admin). Register in `main.py`. Commit.
 - [ ] **E.5** — `src/routes/README.md` update for new endpoints. Commit.
 - [ ] **E.6** — `frontend/src/api/forms.ts` — `listMySubmissions()`, `getSubmission(id)`; `frontend/src/api/messages.ts` — `listMine()`, `markRead(id)`, `send(input)`. Commit.
 - [ ] **E.7** — `frontend/src/api/types.ts` — `Message`, `MessageInput`, `MySubmission` types. Commit.
@@ -167,7 +167,7 @@ Branch: `feature/manage-coach-accounts`
 - [ ] **G.1** — New `src/routes/user_routes.py` `UserRoutes` (`/users`, `facility_manager_role` for coach management):
   - [ ] **G.1.1** — `GET /users?role=coach` — list users filtered by role (uses existing `UserSQLite.list_users_by_role`). Expose role choices `member|coach|facility_manager|web_admin`. Commit.
   - [ ] **G.1.2** — `GET /users/{sub}` — detail. Commit.
-  - [ ] **G.1.3** — `POST /users` — create user record (`facility_manager_role`; role `coach` or lower). Note: Google-OAuth users auto-register on first login; creation here supports pre-seeding a `sub` + role (no password — auth stays Google). Commit.
+  - [ ] **G.1.3** — `POST /users` — email-keyed invite (`facility_manager_role`; role `coach` or lower; body `{email, role}` → `email_hash`). No raw `sub` pre-seed — a manager can't know a Google `sub` and the `users` PII columns are NOT NULL. Record the intended role keyed by `email_hash`; `auth_callback` resolves it before auto-registering so first Google login applies the invited role (see Key decisions #3). If a lean Phase G is preferred, defer this sub-task — list/role-change/delete suffice. Commit.
   - [ ] **G.1.4** — `PUT /users/{sub}` — change role (coach/member for facility managers). Commit.
   - [ ] **G.1.5** — `DELETE /users/{sub}` / `DELETE /users/{sub}/hard` — soft/hard delete (`facility_manager_role` soft, `admin_role` hard). Commit.
   - [ ] **G.1.6** — Enforce privilege bounds: a facility manager may only assign `coach`/`member`, never `facility_manager`/`web_admin`. Commit.
@@ -274,10 +274,12 @@ line-items covered).
 
 ---
 
-## Key decisions to confirm before starting
+## Key decisions (resolved — recommended approach)
 
-1. **Public route placement** — new `/public` router (recommended) vs loosening existing routers.
-2. **Coach scoping** — adding `coach_id` to `event` requires the `ALTER TABLE` migration path (see Phase C migration note).
-3. **User creation without Google OAuth** — decide whether `POST /users` pre-seeds a real `sub` (user must still log in via Google once) or is deferred until Google-login-only account provisioning.
-4. **Event ↔ venue association** — `venue_id` added to `event`; capacity derives from `venue→facility.max_capacity`. Confirm that matches domain intent (vs capacity directly on event).
-5. **Messages** — new entity; sender scope is facility-manager/coach → member. Confirm no free-form member→staff messaging needed.
+Confirmed before starting; deviating from these requires updating this section.
+
+1. **Public route placement** — **RESOLVED: dedicated `/public` router** (`src/routes/public_routes.py`, `PublicRoutes`, prefix `/public`, tags `["public"]`). Keeps all admin CRUD behind existing role deps; `/public` is the single auditable unauthenticated surface. Read-only: reuse `Config().db()` + new search helpers, return 404 for inactive venues/events (don't leak soft-deleted rows). See A.1.
+2. **Coach scoping** — **RESOLVED: add `coach_id` to `event`** (FK → `users(sub)`) with **guarded `ALTER TABLE ADD COLUMN` migrations** in `EventSQLite.init()` — sqlite: `PRAGMA table_info(event)` then `ADD COLUMN ... REFERENCES ...` (allowed when default is NULL); postgresql: `ADD COLUMN IF NOT EXISTS`. No dev DB reset; no alternative carrier for "which coach owns this event". See C.2/C.4.
+3. **User creation without Google OAuth** — **RESOLVED: email-keyed invite, NOT raw `sub` pre-seed.** A facility manager knows an email, never a Google `sub`, and the `users` PII columns are `NOT NULL` (no placeholder row pre-login). `POST /users` takes `{email, role}`, records the intended role keyed by `email_hash`; `auth_callback` checks `email_hash` **before** auto-registering and applies the invited role on first Google login. If a lean Phase G is preferred, defer `POST /users` (list/role-change/delete suffice). See G.1.3.
+4. **Event ↔ venue association** — **RESOLVED: `venue_id` on `event`; capacity derives from `venue→facility.max_capacity`** (matches `relationships.md`: `venueid` is an event attribute, capacity is a facility property). No capacity column on event. **Nullable `max_capacity` = unlimited** (no 409). Registration/reschedule write the event's venue onto the created/updated `schedule` row. See C.5/C.6/C.7.
+5. **Messages** — **RESOLVED: one-way staff → member only** (facility-manager/coach → member); no member→staff messaging or threads in v1. **Add `sender_id` (FK `users.sub`)** to `Message` so the inbox shows who sent it. `POST /messages` sender guard = `coach_role`+. See E.4.
