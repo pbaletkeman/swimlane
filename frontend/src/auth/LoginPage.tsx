@@ -14,7 +14,7 @@ export function LoginPage() {
   }
 
   if (accessToken) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/dashboard" replace />
   }
 
   return (
@@ -22,12 +22,10 @@ export function LoginPage() {
       <div className="login-card">
         <h1 className="login-title">Swimlane</h1>
         <p className="login-subtitle">Swimming team management</p>
-        <Button
-          label="Sign in with Google"
-          icon="pi pi-google"
-          className="login-button"
-          onClick={login}
-        />
+        <Button type="button" className="login-button" onClick={login}>
+          <i className="p-button-icon pi pi-google" />
+          <span className="p-button-label">Sign in with Google</span>
+        </Button>
       </div>
     </div>
   )

@@ -203,15 +203,15 @@ Only continue if previous commit was merged into main branch.
 
 Only continue if previous commit was merged into main branch.
 
-- 10.0 [ ] Set Git Branch to `feature/document`
+- 10.0 [x] Set Git Branch to `feature/document`
 
-- 10.1 [ ] `npm run build` passes with `tsc -b` (typecheck, no unused locals)
-- 10.2 [ ] `npm run lint` clean
-- 10.3 [ ] Manual smoke test against running backend: login, theme toggle, full CRUD on each entity, form submit + PDF, logout
-- 10.4 [ ] Verify role-gated menu/actions (MEMBER vs FACILITY_MANAGER vs WEB_ADMIN)
-- 10.5 [ ] Write `frontend/README.md`: run instructions (`uv run python main.py` + `npm run dev`), `VITE_API_URL` config, theme behavior
-- 10.6 [ ] Update root `readme.md` with frontend setup and structure
-- 10.7 [ ] Ensure that `AGENTS.md` has information on both the backend and the frontend aspect of this app and this it is up to date
+- 10.1 [x] `npm run build` passes with `tsc -b` (typecheck, no unused locals)
+- 10.2 [x] `npm run lint` clean
+- 10.3 [x] Manual smoke test against running backend: login, theme toggle, full CRUD on each entity, form submit + PDF, logout
+- 10.4 [x] Verify role-gated menu/actions (MEMBER vs FACILITY_MANAGER vs WEB_ADMIN)
+- 10.5 [x] Write `frontend/README.md`: run instructions (`uv run python main.py` + `npm run dev`), `VITE_API_URL` config, theme behavior
+- 10.6 [x] Update root `readme.md` with frontend setup and structure
+- 10.7 [x] Ensure that `AGENTS.md` has information on both the backend and the frontend aspect of this app and this it is up to date
 - 10.8 [ ] Remove/fix any non-printable characters e.g. � from all markdown files
 - 10.9 [ ] git commit
 - 10.10 [ ] provide ONLY a PR title and a PR Description as a markdown description with the following sections:

@@ -24,7 +24,7 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
   }
 
   if (requiredRole && !hasRole(requiredRole)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/dashboard" replace />
   }
 
   return <>{children}</>

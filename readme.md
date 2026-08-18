@@ -35,6 +35,7 @@ security:
   algorithm: HS256
   access_token_expire_minutes: 15
   refresh_token_expire_days: 7
+  frontend_url: http://localhost:8000  # SPA origin the OAuth callback redirects to (env: FRONTEND_URL)
   web_admins:
     - your-google-sub-id  # Add admin Google subject IDs here
 
@@ -65,7 +66,39 @@ The app will be available at `http://127.0.0.1:8000`.
 uv run python init_env.py
 ```
 
+### Backend-only API testing (no frontend)
+
+With `security.frontend_url` (or `FRONTEND_URL`) pointing at the backend origin (the default), the post-login redirect lands on a self-contained API test page:
+
+1. Open `http://localhost:8000/login`, pick a Google account.
+2. The browser lands on `http://localhost:8000/auth/callback?...` which renders the **API Devtools** page (`GET /devtools` also serves it) and auto-captures the JWTs from the URL.
+3. Use the quick-endpoint buttons (`/me`, `/frequencies`, `/facilities`, `/events`, `/venues`, `/schedules`, `/forms`), `POST /refresh`, `GET /logout`, or the custom method/path/body form to call the API from the browser (same origin — no CORS, no curl).
+
 ## Development
+
+### Running the frontend
+
+The UI is a React + TypeScript + Vite SPA in [`frontend/`](frontend/). With the backend running, start it with:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Vite serves the app on `http://localhost:5173` (it picks another port if 5173 is busy). In dev, API calls are proxied to the backend (`/api` → `http://127.0.0.1:8000`), and the login flow returns to whichever port the frontend is actually served on.
+
+`/` is a **public** home page (placeholder content — TBD); signing in lands on the authenticated dashboard at `/dashboard`. All entity pages, signup forms, and the dashboard sit behind the route guard.
+
+Frontend checks:
+
+```bash
+cd frontend
+npm run lint   # oxlint
+npm run build  # tsc -b + vite build
+```
+
+See [`frontend/README.md`](frontend/README.md) for full setup, `VITE_API_URL` configuration, and theme behavior.
 
 ### Running tests
 
@@ -94,7 +127,8 @@ uv run pyright
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
 | GET | `/login` | Redirect to Google OAuth | No |
-| GET | `/auth/callback` | OAuth callback handler | No |
+| GET | `/auth/callback` | OAuth callback handler (serves the API Devtools page when no `code` is present) | No |
+| GET | `/devtools` | Self-contained API test page (same origin as the API) | No |
 | POST | `/refresh` | Refresh access token | No |
 | GET | `/me` | Get current user profile | Yes |
 | GET | `/profile` | Get current user profile | Yes |
@@ -134,8 +168,9 @@ swimlane/
 │   │   ├── facility_rule/   # Facility signup-form rules
 │   │   └── form_submission/ # Member signup submissions + responses
 │   ├── roles/               # RBAC (UserRole, RoleChecker)
-│   ├── routes/              # API routers (auth, entity CRUD)
+│   ├── routes/              # API routers (auth, entity CRUD, devtools)
 │   └── util/                # Config management (YAML, DB provider)
+├── frontend/                # React + TypeScript + Vite SPA (see frontend/README.md)
 ├── docs/                    # Documentation
 │   ├── erd.mmd              # Entity-Relationship diagram
 │   ├── flow/                # Workflow flowcharts
@@ -157,6 +192,7 @@ See [`src/data/`](src/data/README.md) for details.
 ## Documentation
 
 - [Architecture](AGENTS.md) — Commands, patterns, conventions, gotchas
+- [Frontend](frontend/README.md) — Run instructions, config, structure
 - [Development Plan](docs/plan.md)
 - [Entity Relationships](docs/relationships.md)
 - [ERD](docs/erd.mmd)

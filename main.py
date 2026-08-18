@@ -46,11 +46,40 @@ sql_driver = config.get("sql", {}).get("active", "unknown")
 logger.info("SQL driver selected: %s", sql_driver)
 logger.info("Google OAuth configured: %s", Config._google_configured)
 
+
+def init_db() -> None:
+    """Create all entity tables (idempotent `CREATE TABLE IF NOT EXISTS`)."""
+    from src.data.event.sqlite import SQLite as EventSQLite
+    from src.data.facility.sqlite import SQLite as FacilitySQLite
+    from src.data.facility_rule.sqlite import SQLite as FacilityRuleSQLite
+    from src.data.form_question.sqlite import SQLite as FormQuestionSQLite
+    from src.data.form_submission.sqlite import SQLite as FormSubmissionSQLite
+    from src.data.frequency.sqlite import SQLite as FrequencySQLite
+    from src.data.schedule.sqlite import SQLite as ScheduleSQLite
+    from src.data.venue.sqlite import SQLite as VenueSQLite
+
+    for cls in (
+        FrequencySQLite,
+        FacilitySQLite,
+        EventSQLite,
+        VenueSQLite,
+        ScheduleSQLite,
+        FormQuestionSQLite,
+        FacilityRuleSQLite,
+        FormSubmissionSQLite,
+    ):
+        cls().init()
+    logger.info("Database tables ensured")
+
+
 app = FastAPI()
 
 # --- SESSION MIDDLEWARE ---
 app.add_middleware(SessionMiddleware, secret_key=os.urandom(24).hex())
 app.add_middleware(RequestLoggingMiddleware)
+
+# Ensure every entity table exists before the first request is served.
+init_db()
 
 # Include the router in the app
 auth_routes = AuthRoutes()

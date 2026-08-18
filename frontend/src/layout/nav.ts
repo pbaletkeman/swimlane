@@ -8,7 +8,7 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', icon: 'pi pi-home', path: '/', requiredRole: 'MEMBER' },
+  { label: 'Dashboard', icon: 'pi pi-home', path: '/dashboard', requiredRole: 'MEMBER' },
   { label: 'Frequencies', icon: 'pi pi-calendar', path: '/frequencies', requiredRole: 'FACILITY_MANAGER' },
   { label: 'Facilities', icon: 'pi pi-building', path: '/facilities', requiredRole: 'FACILITY_MANAGER' },
   { label: 'Events', icon: 'pi pi-bolt', path: '/events', requiredRole: 'FACILITY_MANAGER' },

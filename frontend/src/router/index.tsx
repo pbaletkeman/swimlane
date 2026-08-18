@@ -5,6 +5,7 @@ import { AppLayout } from '../layout/AppLayout.tsx'
 import { ErrorPage } from '../pages/ErrorPage.tsx'
 
 const LoginPage = lazy(() => import('../auth/LoginPage.tsx').then((m) => ({ default: m.LoginPage })))
+const HomePage = lazy(() => import('../pages/HomePage.tsx').then((m) => ({ default: m.HomePage })))
 const AuthCallbackPage = lazy(() =>
   import('../auth/AuthCallbackPage.tsx').then((m) => ({ default: m.AuthCallbackPage })),
 )
@@ -34,6 +35,7 @@ export function AppRouter() {
   return (
     <Suspense fallback={<LazyFallback />}>
       <Routes>
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route
@@ -43,7 +45,7 @@ export function AppRouter() {
             </RouteGuard>
           }
         >
-          <Route path="/" element={<DashboardPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/frequencies" element={<FrequenciesPage />} />
           <Route path="/facilities" element={<FacilitiesPage />} />
           <Route path="/events" element={<EventsPage />} />
