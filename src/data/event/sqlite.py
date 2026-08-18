@@ -51,8 +51,14 @@ class SQLite(EventInterfaceBase):
                 FOREIGN KEY (frequency_id) REFERENCES frequency(frequency_id) ON DELETE CASCADE ON UPDATE CASCADE,
                 FOREIGN KEY (coach_id) REFERENCES users(sub) ON DELETE CASCADE ON UPDATE CASCADE,
                 FOREIGN KEY (venue_id) REFERENCES venue(venue_id) ON DELETE CASCADE ON UPDATE CASCADE
-            );
-            CREATE INDEX IF NOT EXISTS idx_event_frequency_id ON event (frequency_id);
+            );"""
+        return sql
+
+    # ------------------------------------------------------------------
+    def get_create_indexes(self) -> LiteralString:
+        """Get the Event Table index DDL (created after any migration so the
+        columns exist even on pre-C.3 tables)."""
+        sql = """CREATE INDEX IF NOT EXISTS idx_event_frequency_id ON event (frequency_id);
             CREATE INDEX IF NOT EXISTS idx_event_coach_id ON event (coach_id);
             CREATE INDEX IF NOT EXISTS idx_event_venue_id ON event (venue_id);"""
         return sql
@@ -99,10 +105,31 @@ class SQLite(EventInterfaceBase):
                 cursor = conn.cursor()
                 sql: str = self.get_create_table()
                 cursor.executescript(sql)
+                self._migrate(conn)
+                cursor.executescript(self.get_create_indexes())
                 conn.commit()
         except sqlite3.Error as e:
             logger.error("Database initialization failed: %s", e)
             raise
+
+    # ------------------------------------------------------------------
+    def _migrate(self, conn: sqlite3.Connection) -> None:
+        """Apply guarded migrations for columns added after the initial DDL.
+
+        ``CREATE TABLE IF NOT EXISTS`` never alters an existing table, so pre-C.3
+        databases need ``ALTER TABLE ADD COLUMN`` for the Phase C fields. Each
+        column is added only when ``PRAGMA table_info`` confirms it is missing;
+        existing rows get ``NULL`` defaults (no data loss, no dev DB reset).
+        """
+        cursor = conn.cursor()
+        columns = {row["name"] for row in cursor.execute("PRAGMA table_info(event)").fetchall()}
+
+        if "description" not in columns:
+            cursor.execute("ALTER TABLE event ADD COLUMN description TEXT")
+        if "coach_id" not in columns:
+            cursor.execute("ALTER TABLE event ADD COLUMN coach_id TEXT NULL REFERENCES users(sub)")
+        if "venue_id" not in columns:
+            cursor.execute("ALTER TABLE event ADD COLUMN venue_id INTEGER NULL REFERENCES venue(venue_id)")
 
     # ------------------------------------------------------------------
     def create_event(self, event: Event) -> Optional[Event]:
