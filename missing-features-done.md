@@ -51,41 +51,47 @@ Branch: `feature/public-read-access`
   - `GET /venues`, `/events`, `/schedules`, `/facilities` without a token → all 401
 - Seed rows added for testing were removed afterward (DB counts back to original).
 
-## Phase C — Event detail, capacity, register, reschedule (C.1–C.3 done; C.4+ pending) 🔨
+## Phase C — Event detail, capacity, register, reschedule (C.1–C.6 done; C.7+ pending) 🔨
 
 Branch: `feature/event-registration`
 
 `layout.txt:11-16` — event cap/max capacity, description, member register + reschedule.
-Data-layer groundwork (C.1–C.3) is complete; migration, endpoints, and frontend
-(C.4–C.14) are still open in `missing-features-todo.md`.
+Data layer (C.1–C.4) and the capacity/register handlers (C.5–C.6) are complete;
+reschedule, route wiring, and frontend (C.7–C.14) are still open in
+`missing-features-todo.md`.
 
 | Sub-task | Deliverable | Commit |
 |----------|-------------|--------|
 | C.1 | `Event` model gains `description: str \| None = None`, `coach_id: str \| None = None`, `venue_id: int \| None = None` | `821bbaa` |
 | C.2 | `event` DDL gains `description TEXT`, `coach_id TEXT`, `venue_id INTEGER` columns + `FOREIGN KEY (coach_id) REFERENCES users(sub)` / `FOREIGN KEY (venue_id) REFERENCES venue(venue_id)` (cascade, matching the existing `frequency_id` FK convention) + `idx_event_coach_id` / `idx_event_venue_id` indexes | `06b077e` |
 | C.3 | `EventSQLite` updated for the new fields: `get_record_select`, `create_event_helper`, `create_event_returning`, `update_event`, `create_events_bulk` INSERT, `list_public_events` + `list_events_in_range` (both plain and venue-scoped select lists), `hard_delete_events_bulk` RETURNING | `06b077e` |
+| C.4 | Guarded migration in `EventSQLite.init()`: `PRAGMA table_info(event)` then `ALTER TABLE event ADD COLUMN description/coach_id/venue_id ...` (only when missing, NULL defaults). `get_create_table()` now returns just the `CREATE TABLE` and a new `get_create_indexes()` runs after migration, so pre-C.3 tables get the `idx_event_*` indexes too. Idempotent. | `eb27df5` |
+| C.5 | `EventRoutes.get_event_capacity` handler — `{event_id, registered_count, max_capacity}`; count = active `schedule` rows; `max_capacity` resolved from event's `venue→facility.max_capacity` (`None` = unlimited); 404 if event missing/inactive | `6191ca0` |
+| C.6 | `EventRoutes.register_for_event` handler — `Depends(member_role)`, creates a `Schedule` at the event's venue for `current_user.sub`; 409 already-registered; 409 at capacity; 400 no venue; 404 inactive event/venue | `6191ca0` |
 
 ### Details
 
 - Column order throughout is `event_id, start_date_time, end_date_time, frequency_id, description, coach_id, venue_id, is_active`; all selects/returns mirror it so `create_event_helper` maps correctly.
 - New-field values default to `NULL`/`None` — fully backward compatible for existing callers that don't set them.
-- The `EventRequest` route body does **not** yet carry the new fields (that lands with C.9 when the routes are wired).
+- C.4 splits `get_create_table()` into table DDL + `get_create_indexes()` so `init()` runs **CREATE TABLE → migrate → indexes**; without the split, `CREATE INDEX ... ON event (coach_id)` fails on pre-C.3 tables before the `ALTER` runs.
+- C.5/C.6 share `_resolve_max_capacity` and `_active_registrations` helpers on `EventRoutes`. Per the plan, the handlers are implemented but **not yet registered** as routes — that's C.9.
+- The `EventRequest` route body does **not** yet carry the new fields (C.9).
 - Branched from `main` (Phase B merged as `488e168` / PR #30).
 
 ### Verification
 
 - `uv run ruff check .` — clean; `uv run ruff format --check` on changed files — clean; `uv run pyright` — 0 errors.
-- Smoke test against a **throwaway DB** (fresh DDL + parent tables `facility`/`frequency`/`users`/`venue`/`schedule`), not the dev DB:
-  - `create_event` with `description`/`coach_id`/`venue_id` populated → round-trips all three
-  - `create_event` with the new fields unset → `None` (backward compatible)
-  - `get_event_by_id` / `update_event` (changing description + end time) → correct
-  - `create_events_bulk`, `list_events`, `list_public_events` (plain + `venue_id`), `list_events_in_range`, `hard_delete_events_bulk` → all map the new columns without error
-- Dev DB `swimlane.db` is **unchanged** (no migration ran); it will keep working until C.4 adds the guarded `ALTER TABLE` — **the server should not be run against the existing dev DB in the interim** because `get_record_select` now selects the new columns.
+- Smoke test (throwaway DBs):
+  - **C.4** — a hand-built *old* `event` table (no new columns) → `init()` adds all three columns, preserves an existing row as `NULL`s, and a second `init()` is a no-op (idempotent); `get_event_by_id` works on the migrated row.
+  - **C.5** — capacity on a fresh event → `{registered_count: 0, max_capacity: 2}`; missing event → 404.
+  - **C.6** — register m1 → schedule created, capacity → 1; duplicate m1 → 409; m2 → capacity 2; m3 → 409 at capacity with **no partial schedule row**; missing/inactive event → 404; event without venue → 400; inactive venue → 404.
+- **Dev DB migrated in place** (`swimlane.db`): `before` columns lacked the new fields → after `EventSQLite().init()`, `PRAGMA table_info(event)` shows `description`/`coach_id`/`venue_id` and `list_events()` works again (existing rows keep `NULL`s). The interim breakage from C.1–C.3 is resolved — no DB reset.
 
 ### Notes
 
 - **Pre-existing quirk (out of scope):** `create_events_bulk` re-selects only `last_insert_rowid()`, so a multi-row bulk returns just the last inserted row. Flagged for a future fix.
-- **Deferred:** C.4 migration (required before the app works again on an existing DB), C.5–C.9 endpoints, C.10–C.14 frontend.
+- **Postgres**: no `Event` postgres implementation exists yet, so the postgresql branch of the C.4 migration is N/A until one is added.
+- **Deferred:** C.7 reschedule, C.8 `ScheduleSQLite` helpers, C.9 route wiring, C.10–C.14 frontend.
 
 ### Public routes, HomePage link, and styles (B.8–B.10)
 
