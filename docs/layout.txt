@@ -1,0 +1,42 @@
+find by address (don't need to be logged in)
+
+find by event (don't need to be logged in)
+
+venues (don't need to be logged in)
+ venue1
+   -> schedule:
+    default to current week view
+    - monthly view option
+    - event listing option
+    -> event
+     -> current cap/max capacity
+     -> click to view event
+        -> description
+        -> click to register for event (need to be logged in as `member_role`)
+        -> click to reschedule (need to be logged in as `member_role`)
+
+my schedule of events (need to be logged in as `member_role`)
+ -> add to calendar (ical)
+
+my profile (need to be logged in as `member_role`)
+  my correspondance
+    my forms
+    my events
+    my messages
+
+manage events (need to be logged in as `coach_role`)
+  only show events when i'm the coach
+  allow me to edit existing events
+  allow me to create new events
+  allow me to see past history of events
+  allow me to see my upcoming events
+  allow me to add/edit/remove members from my events
+
+manage facility
+  everything under "manage events" plus
+  allow me to edit/create/delete/list facilities
+  allow me to edit/create/delete/list coach accounts
+
+admin
+  everything under "manage facility" plus
+  allow me to edit/create/delete/list facility managers
