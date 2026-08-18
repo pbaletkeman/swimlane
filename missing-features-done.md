@@ -51,12 +51,47 @@ Branch: `feature/public-read-access`
   - `GET /venues`, `/events`, `/schedules`, `/facilities` without a token → all 401
 - Seed rows added for testing were removed afterward (DB counts back to original).
 
-## Phase B — Public venue schedule views (week / month / event list) (B.1–B.4 done; B.5–B.10 pending) 🔨
+### Frontend half (B.5–B.7)
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| B.5 | `frontend/src/api/public.ts` — `searchVenues(q)`, `listVenues()`, `getVenue(id)`, `getVenueSchedules(id, {view, date})`, `searchEvents({venueId, from, to})` | `b05254e` |
+| B.6 | `frontend/src/api/types.ts` — `PublicVenue`, `PublicEvent`, `VenueScheduleRow` | `50b49bd` |
+| B.7.1 | `ExploreHomePage.tsx` — "Find by address" + "Find by event" search boxes → `/explore/venues?q=` | `be8a81f` |
+| B.7.2 | `ExploreVenuesPage.tsx` — searchable venue grid (address + facility name), reads `?q=` from the URL | `be8a81f` |
+| B.7.3 | `VenueSchedulePage.tsx` — Week / Month / Event-list view switcher (`Select` + `DatePicker`), default current week, rows link to event detail | `be8a81f` |
+
+### Details
+
+- The three pages live under `frontend/src/pages/explore/` and are **not routed yet**
+  — B.8 (public routes in the router) is the next sub-task. They compile and
+  typecheck as part of `tsc -b`; the venue grid and schedule page are reached by
+  URL once B.8 lands.
+- `getVenueSchedules` consumes the B.1–B.4 response shape (`PublicEvent[]`,
+  distinct events). `VenueScheduleRow` is retained per the plan as the legacy
+  Phase A per-booking shape, documented for Phase C use.
+- "Find by event" currently routes to the venue grid (`?q=…` matches facility
+  name); real event text search + event-detail destination arrive with Phase C.
+- Event rows link to `/explore/events/:eventId` per B.7.3; the route itself is
+  Phase C (C.12/C.14).
+- Layout uses PrimeReact 11 compound components (`Select.Root`, `DatePicker.Root`
+  following `EntityFormDialog.tsx`) and primeflex utilities; no `index.css`
+  additions — explore styles are B.10.
+
+### Verification
+
+- `npm run lint` (oxlint) — clean.
+- `npm run build` (`tsc -b` + Vite) — clean; all explore files typecheck.
+- Backend smoke tests for the consumed endpoints were run in the B.1–B.4
+  verification above.
+
+## Phase B — Public venue schedule views (week / month / event list) (B.1–B.7 done; B.8–B.10 pending) 🔨
 
 Branch: `feature/public-venue-schedules`
 
 `layout.txt:7-10` — venue → schedule, default current week, monthly + event-list options.
-Backend half complete; the frontend sub-tasks (B.5–B.10) are still open in
+Backend (B.1–B.4) and frontend API/types + explore pages (B.5–B.7) are complete;
+router wiring, HomePage link, and explore styles (B.8–B.10) are still open in
 `missing-features-todo.md`.
 
 | Sub-task | Deliverable | Commit |
