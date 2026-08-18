@@ -9,6 +9,9 @@ const HomePage = lazy(() => import('../pages/HomePage.tsx').then((m) => ({ defau
 const AuthCallbackPage = lazy(() =>
   import('../auth/AuthCallbackPage.tsx').then((m) => ({ default: m.AuthCallbackPage })),
 )
+const ExploreHomePage = lazy(() => import('../pages/explore/ExploreHomePage.tsx'))
+const ExploreVenuesPage = lazy(() => import('../pages/explore/ExploreVenuesPage.tsx'))
+const VenueSchedulePage = lazy(() => import('../pages/explore/VenueSchedulePage.tsx'))
 const DashboardPage = lazy(() => import('../pages/DashboardPage.tsx'))
 const FrequenciesPage = lazy(() => import('../pages/FrequenciesPage.tsx'))
 const FacilitiesPage = lazy(() => import('../pages/FacilitiesPage.tsx'))
@@ -38,6 +41,9 @@ export function AppRouter() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        <Route path="/explore" element={<ExploreHomePage />} />
+        <Route path="/explore/venues" element={<ExploreVenuesPage />} />
+        <Route path="/explore/venues/:venueId" element={<VenueSchedulePage />} />
         <Route
           element={
             <RouteGuard>
