@@ -116,6 +116,16 @@ class EventRoutes:
             methods=["DELETE"],
             dependencies=[Depends(admin_role)],
         )
+        self.router.add_api_route(
+            "/{event_id}/capacity",
+            self.get_event_capacity,
+            methods=["GET"],
+        )
+        self.router.add_api_route(
+            "/{event_id}/register",
+            self.register_for_event,
+            methods=["POST"],
+        )
 
     # ------------------------------------------------------------------
     def _get_db(self) -> EventSQLite:

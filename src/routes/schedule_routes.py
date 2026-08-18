@@ -95,6 +95,11 @@ class ScheduleRoutes:
             methods=["DELETE"],
             dependencies=[Depends(admin_role)],
         )
+        self.router.add_api_route(
+            "/{schedule_id}/reschedule",
+            self.reschedule,
+            methods=["POST"],
+        )
 
     # ------------------------------------------------------------------
     def _get_db(self) -> ScheduleSQLite:
