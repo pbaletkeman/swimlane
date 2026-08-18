@@ -11,20 +11,28 @@ export function HomePage() {
       <div className="login-card">
         <h1 className="login-title">Swimlane</h1>
         <p className="login-subtitle">Swimming team management</p>
-        <p className="home-tagline">Welcome to Swimlane. Home page content is coming soon.</p>
+        <p className="home-tagline">Browse venues and schedules — no sign-in needed.</p>
         <div className="home-actions">
           {loading ? (
             <i className="pi pi-spin pi-spinner" />
-          ) : accessToken ? (
-            <Button type="button" className="login-button" onClick={() => navigate('/dashboard')}>
-              <i className="p-button-icon pi pi-home" />
-              <span className="p-button-label">Go to Dashboard</span>
-            </Button>
           ) : (
-            <Button type="button" className="login-button" onClick={login}>
-              <i className="p-button-icon pi pi-google" />
-              <span className="p-button-label">Sign in with Google</span>
-            </Button>
+            <>
+              <Button type="button" className="login-button" onClick={() => navigate('/explore')}>
+                <i className="p-button-icon pi pi-map-marker" />
+                <span className="p-button-label">Explore venues</span>
+              </Button>
+              {accessToken ? (
+                <Button type="button" className="login-button" onClick={() => navigate('/dashboard')}>
+                  <i className="p-button-icon pi pi-home" />
+                  <span className="p-button-label">Go to Dashboard</span>
+                </Button>
+              ) : (
+                <Button type="button" className="login-button" onClick={login}>
+                  <i className="p-button-icon pi pi-google" />
+                  <span className="p-button-label">Sign in with Google</span>
+                </Button>
+              )}
+            </>
           )}
         </div>
       </div>
