@@ -51,14 +51,14 @@ Branch: `feature/public-read-access`
   - `GET /venues`, `/events`, `/schedules`, `/facilities` without a token → all 401
 - Seed rows added for testing were removed afterward (DB counts back to original).
 
-## Phase C — Event detail, capacity, register, reschedule (C.1–C.9 done; C.10+ pending) 🔨
+## Phase C — Event detail, capacity, register, reschedule (C.1–C.10 done; C.11+ pending) 🔨
 
 Branch: `feature/event-registration`
 
 `layout.txt:11-16` — event cap/max capacity, description, member register + reschedule.
-Backend is complete: data layer (C.1–C.4), capacity/register/reschedule handlers
-(C.5–C.7), `ScheduleSQLite` helpers (C.8), and route wiring (C.9). Frontend
-(C.10–C.14) is still open in `missing-features-todo.md`.
+Backend is complete (C.1–C.9) and the frontend type layer (C.10) is in place.
+Remaining work is frontend API clients + UI (C.11–C.14) in
+`missing-features-todo.md`.
 
 | Sub-task | Deliverable | Commit |
 |----------|-------------|--------|
@@ -71,6 +71,7 @@ Backend is complete: data layer (C.1–C.4), capacity/register/reschedule handle
 | C.7 | `ScheduleRoutes.reschedule` handler — `Depends(member_role)`, body `{event_id}`; 403 unless the schedule belongs to `current_user.sub`; target event must be active (404) with a venue (400, venue active 404); 409 same event, 409 already registered on target, 409 target at capacity; updates `schedule.event_id` and moves `schedule.venue_id` to the target event's venue | `0459028` |
 | C.8 | `ScheduleSQLite.get_schedule_for_member(event_id, member_id)` (active row) + `count_active_for_event(event_id)`; added to `ScheduleInterface`; `get_event_capacity`/`register_for_event` refactored to use them; capacity resolution hoisted to module-level `resolve_max_capacity(event)` in `event_routes.py` for reuse | `35ebe19` |
 | C.9 | Routes wired: `GET /events/{event_id}/capacity` (public, no auth), `POST /events/{event_id}/register` and `POST /schedules/{schedule_id}/reschedule` (auth via `Depends(member_role)` in the handler signatures) | `1a8e164` |
+| C.10 | `frontend/src/api/types.ts`: `Event` gains `description`/`coach_id`/`venue_id`; `PublicEvent` gains the same three (backend `/public` endpoints now select them per C.3); new `EventCapacity` (`max_capacity: null` = unlimited), `RegisterResponse` (a created `Schedule`), `RescheduleInput {event_id}` | `75ec70e` |
 
 ### Details
 
@@ -89,12 +90,13 @@ Backend is complete: data layer (C.1–C.4), capacity/register/reschedule handle
   - **C.5/C.6** (throwaway DB) — capacity fresh → `{0, 2}`; register m1 → count 1; duplicate → 409; m2 → count 2; m3 → 409 at capacity with **no partial schedule row**; missing/inactive event → 404; no-venue → 400; inactive venue → 404.
   - **C.7/C.8/C.9** (throwaway DB + FastAPI `TestClient` with real HS256 JWTs, routes wired) — capacity is public (no auth) `{0, 2}`; register/reschedule without a token → 401; register m1+m2 → evA full, duplicate → 409, m3 → 409; reschedule moves `event_id` + `venue_id` (evB→evC put the schedule on venue 2, evB dropped to 0); same-event → 409; already-registered target → 409; full target → 409; inactive target → 404; venue-less target → 400; someone else's schedule → 403; missing schedule → 404; final public capacities consistent.
 - **Dev DB migrated in place** (`swimlane.db`): after `EventSQLite().init()`, `PRAGMA table_info(event)` shows `description`/`coach_id`/`venue_id` and `list_events()` works again (existing rows keep `NULL`s). No DB reset.
+- **Frontend (C.10):** `npm run lint` (oxlint) clean; `npm run build` (`tsc -b` + Vite) clean — the new required `PublicEvent` fields don't break existing consumers (`getVenueSchedules`, `searchEvents`, `VenueSchedulePage`).
 
 ### Notes
 
 - **Pre-existing quirk (out of scope):** `create_events_bulk` re-selects only `last_insert_rowid()`, so a multi-row bulk returns just the last inserted row. Flagged for a future fix.
 - **Postgres**: no `Event`/`Schedule` postgres implementation exists yet, so the postgresql branch of the C.4 migration is N/A until one is added.
-- **Deferred:** C.10–C.14 frontend (types, API clients, `EventDetailPage` with capacity/register/reschedule UI, links, route).
+- **Deferred:** C.11–C.14 frontend (API clients, `EventDetailPage` with capacity/register/reschedule UI, links, route).
 
 ### Public routes, HomePage link, and styles (B.8–B.10)
 

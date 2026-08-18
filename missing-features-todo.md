@@ -85,7 +85,7 @@ Branch: `feature/event-registration`
 - [x] **C.7** — `POST /schedules/{schedule_id}/reschedule` — `member_role`; body `{event_id}`; validates the target event (active, not full, not the same); updates the caller's own schedule (must match `current_user.sub`) and moves `schedule.venue_id` to the target event's venue. Commit.
 - [x] **C.8** — Add `ScheduleSQLite.get_schedule_for_member(event_id, member_id)` and `count_active_for_event(event_id)` helpers. Commit.
 - [x] **C.9** — Wire `/events/{event_id}/capacity` + register + reschedule into `EventRoutes`/`ScheduleRoutes` (register/reschedule auth = `member_role`). Commit.
-- [ ] **C.10** — `frontend/src/api/types.ts` — `Event` gains `description`/`coach_id`/`venue_id`; add `EventCapacity`, `RegisterResponse`, `RescheduleInput`. Commit.
+- [x] **C.10** — `frontend/src/api/types.ts` — `Event` gains `description`/`coach_id`/`venue_id`; add `EventCapacity`, `RegisterResponse`, `RescheduleInput`. Commit.
 - [ ] **C.11** — `frontend/src/api/events.ts` — `getCapacity(id)`, `register(id)`; `frontend/src/api/schedules.ts` — `reschedule(id, input)`. Commit.
 - [ ] **C.12** — New public `frontend/src/pages/explore/EventDetailPage.tsx` at `/explore/events/:eventId`:
   - [ ] **C.12.1** — Render description + times + venue + capacity ("12 / 20 registered" with progress indicator). Commit.
