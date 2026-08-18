@@ -225,18 +225,20 @@ Branch: `feature/verify-document`
 
 ## Final Instruction — PR Output
 
-After each Phase's final sub-task is committed, provide **ONLY** the PR title and the PR
+Only after each Phase's final sub-task is committed, provide **ONLY** the PR title and the PR
 description, formatted as markdown:
 
 ```markdown
 # Summary
-
+\n
 ## What's Included
-
+\n
 ## Verification
-
+\n
 ## Notes
 ```
+
+Provide this for everything in the change set
 
 Use the following structure (adapted from the existing `frontend-done.md` PR write-ups):
 
