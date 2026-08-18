@@ -31,16 +31,20 @@ export default function ExploreHomePage() {
   }
 
   return (
-    <div className="flex flex-column align-items-center w-full p-3">
-      <div className="w-full flex flex-column gap-3" style={{ maxWidth: '64rem' }}>
-        <header className="flex align-items-center justify-content-between gap-3">
-          <Link to="/" className="flex align-items-center gap-2">
+    <div className="explore-page">
+      <div className="explore-container">
+        <header className="explore-header">
+          <Link to="/" className="explore-brand">
             <i className="pi pi-home" />
-            <span className="font-bold">Swimlane</span>
+            <span>Swimlane</span>
           </Link>
-          <nav className="flex align-items-center gap-3">
-            <Link to="/explore">Explore</Link>
-            <Link to="/explore/venues">Venues</Link>
+          <nav className="explore-nav">
+            <Link to="/explore" className="explore-nav-link">
+              Explore
+            </Link>
+            <Link to="/explore/venues" className="explore-nav-link">
+              Venues
+            </Link>
           </nav>
         </header>
 
@@ -49,12 +53,12 @@ export default function ExploreHomePage() {
             <Card.Title>Explore</Card.Title>
           </Card.Header>
           <Card.Content>
-            <div className="flex flex-column gap-3">
-              <form className="flex flex-column gap-2" onSubmit={submitAddress}>
-                <label htmlFor="explore-address" className="font-semibold">
+            <div className="explore-search-form">
+              <form className="explore-search-block" onSubmit={submitAddress}>
+                <label htmlFor="explore-address" className="explore-search-label">
                   Find by address
                 </label>
-                <div className="flex gap-2">
+                <div className="explore-search-row">
                   <InputText
                     id="explore-address"
                     value={addressQuery}
@@ -69,11 +73,11 @@ export default function ExploreHomePage() {
                 </div>
               </form>
 
-              <form className="flex flex-column gap-2" onSubmit={submitEvent}>
-                <label htmlFor="explore-event" className="font-semibold">
+              <form className="explore-search-block" onSubmit={submitEvent}>
+                <label htmlFor="explore-event" className="explore-search-label">
                   Find by event
                 </label>
-                <div className="flex gap-2">
+                <div className="explore-search-row">
                   <InputText
                     id="explore-event"
                     value={eventQuery}
@@ -86,7 +90,9 @@ export default function ExploreHomePage() {
                     <span className="p-button-label">Search</span>
                   </Button>
                 </div>
-                <small>Event search currently matches by facility name until event descriptions arrive.</small>
+                <small className="explore-hint">
+                  Event search currently matches by facility name until event descriptions arrive.
+                </small>
               </form>
             </div>
           </Card.Content>

@@ -95,6 +95,7 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  gap: 0.5rem;
 }
 
 .app-dashboard {
@@ -386,5 +387,157 @@
 
 .app-error-message {
   margin: 0 0 1rem;
+  color: var(--p-text-muted-color);
+}
+
+/* ---------------------------------------------------------------------------
+ * Explore (public) pages — /explore, /explore/venues, /explore/venues/:venueId
+ * ------------------------------------------------------------------------- */
+
+.explore-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+}
+
+.explore-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 64rem;
+}
+
+.explore-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.explore-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: inherit;
+}
+
+.explore-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.explore-nav-link {
+  text-decoration: none;
+  color: var(--p-text-muted-color);
+  transition: color 0.15s;
+}
+
+.explore-nav-link:hover {
+  color: var(--p-text-color);
+}
+
+.explore-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--p-text-muted-color);
+  transition: color 0.15s;
+}
+
+.explore-back-link:hover {
+  color: var(--p-text-color);
+}
+
+.explore-search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.explore-search-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.explore-search-label {
+  font-weight: 600;
+}
+
+.explore-search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.explore-hint {
+  color: var(--p-text-muted-color);
+  font-size: 0.875rem;
+}
+
+.explore-venue-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.explore-venue-card {
+  flex: 1 1 20rem;
+  max-width: 100%;
+}
+
+.explore-venue-card-address {
+  margin: 0;
+}
+
+.explore-venue-card-actions {
+  display: flex;
+}
+
+.explore-schedule-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.explore-view-select {
+  width: 12rem;
+}
+
+.explore-event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.explore-event-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.explore-event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.explore-event-time {
+  font-weight: 600;
+}
+
+.explore-event-ends {
   color: var(--p-text-muted-color);
 }

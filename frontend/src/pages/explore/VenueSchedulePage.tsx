@@ -115,10 +115,10 @@ export default function VenueSchedulePage() {
   const renderEvent = (event: PublicEvent) => (
     <Card.Root key={event.event_id}>
       <Card.Content>
-        <div className="flex align-items-center justify-content-between gap-3 flex-wrap">
-          <div className="flex flex-column gap-1">
-            <span className="font-semibold">{formatDateTime(event.start_date_time)}</span>
-            <small className="text-color-secondary">ends {formatDateTime(event.end_date_time)}</small>
+        <div className="explore-event-row">
+          <div className="explore-event-info">
+            <span className="explore-event-time">{formatDateTime(event.start_date_time)}</span>
+            <small className="explore-event-ends">ends {formatDateTime(event.end_date_time)}</small>
           </div>
           <Link to={`/explore/events/${event.event_id}`}>
             <Button type="button" variant="outlined" size="small">
@@ -132,8 +132,8 @@ export default function VenueSchedulePage() {
 
   if (loading) {
     return (
-      <div className="flex flex-column align-items-center w-full p-3">
-        <div className="w-full flex flex-column gap-3" style={{ maxWidth: '64rem' }}>
+      <div className="explore-page">
+        <div className="explore-container">
           <Skeleton height="3rem" className="w-full" />
           <Skeleton height="8rem" className="w-full" />
           <Skeleton height="8rem" className="w-full" />
@@ -144,44 +144,42 @@ export default function VenueSchedulePage() {
 
   if (venueMissing || !venue) {
     return (
-      <div className="flex flex-column align-items-center w-full p-3">
-        <div className="w-full flex flex-column gap-3" style={{ maxWidth: '64rem' }}>
-          <header className="flex align-items-center gap-3">
-            <Link to="/explore/venues" className="flex align-items-center gap-2">
+      <div className="explore-page">
+        <div className="explore-container">
+          <header className="explore-header">
+            <Link to="/explore/venues" className="explore-back-link">
               <i className="pi pi-arrow-left" />
               <span>Back to venues</span>
             </Link>
           </header>
-          <EmptyState
-            message="Venue not found"
-            hint="It may have been removed or deactivated."
-            icon="pi-map-marker"
-          />
+          <EmptyState message="Venue not found" hint="It may have been removed or deactivated." icon="pi-map-marker" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-column align-items-center w-full p-3">
-      <div className="w-full flex flex-column gap-3" style={{ maxWidth: '64rem' }}>
-        <header className="flex align-items-center justify-content-between gap-3">
-          <Link to="/" className="flex align-items-center gap-2">
+    <div className="explore-page">
+      <div className="explore-container">
+        <header className="explore-header">
+          <Link to="/" className="explore-brand">
             <i className="pi pi-home" />
-            <span className="font-bold">Swimlane</span>
+            <span>Swimlane</span>
           </Link>
-          <nav className="flex align-items-center gap-3">
-            <Link to="/explore">Explore</Link>
-            <Link to="/explore/venues">Venues</Link>
+          <nav className="explore-nav">
+            <Link to="/explore" className="explore-nav-link">
+              Explore
+            </Link>
+            <Link to="/explore/venues" className="explore-nav-link">
+              Venues
+            </Link>
           </nav>
         </header>
 
-        <div className="flex align-items-center gap-2 flex-wrap">
-          <Link to="/explore/venues" className="flex align-items-center gap-2">
-            <i className="pi pi-arrow-left" />
-            <span>Back to venues</span>
-          </Link>
-        </div>
+        <Link to="/explore/venues" className="explore-back-link">
+          <i className="pi pi-arrow-left" />
+          <span>Back to venues</span>
+        </Link>
 
         <Card.Root>
           <Card.Header>
@@ -194,14 +192,14 @@ export default function VenueSchedulePage() {
           </Card.Content>
         </Card.Root>
 
-        <div className="flex align-items-center gap-3 flex-wrap">
+        <div className="explore-schedule-controls">
           <Select.Root
             value={view}
             onValueChange={(event: SelectValueChangeEvent) => setView(event.value as ScheduleView)}
             options={VIEW_OPTIONS}
             optionLabel="label"
             optionValue="value"
-            className="w-12rem"
+            className="explore-view-select"
           >
             <Select.Trigger>
               <Select.Value placeholder="Select view" />
@@ -268,13 +266,9 @@ export default function VenueSchedulePage() {
         </div>
 
         {events.length > 0 ? (
-          <div className="flex flex-column gap-2">{events.map(renderEvent)}</div>
+          <div className="explore-event-list">{events.map(renderEvent)}</div>
         ) : (
-          <EmptyState
-            message="No events in this view"
-            hint="Try switching to a different view or date."
-            icon="pi-calendar-times"
-          />
+          <EmptyState message="No events in this view" hint="Try switching to a different view or date." icon="pi-calendar-times" />
         )}
       </div>
     </div>

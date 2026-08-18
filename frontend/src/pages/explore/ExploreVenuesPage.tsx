@@ -65,45 +65,49 @@ export default function ExploreVenuesPage() {
   }
 
   const renderVenue = (venue: PublicVenue) => (
-    <div key={venue.venue_id} className="col-12 md:col-6 xl:col-4">
-      <Card.Root className="h-full">
-        <Card.Header>
-          <Card.Title>{venue.facility_name}</Card.Title>
-        </Card.Header>
-        <Card.Content>
-          <p className="m-0">
-            {venue.street}
-            <br />
-            {venue.city}, {venue.state} {venue.postal_code}
-          </p>
-        </Card.Content>
-        <Card.Footer>
+    <Card.Root key={venue.venue_id} className="explore-venue-card">
+      <Card.Header>
+        <Card.Title>{venue.facility_name}</Card.Title>
+      </Card.Header>
+      <Card.Content>
+        <p className="explore-venue-card-address">
+          {venue.street}
+          <br />
+          {venue.city}, {venue.state} {venue.postal_code}
+        </p>
+      </Card.Content>
+      <Card.Footer>
+        <div className="explore-venue-card-actions">
           <Link to={`/explore/venues/${venue.venue_id}`}>
             <Button type="button" variant="outlined">
               <i className="pi pi-calendar" />
               <span className="p-button-label">View schedule</span>
             </Button>
           </Link>
-        </Card.Footer>
-      </Card.Root>
-    </div>
+        </div>
+      </Card.Footer>
+    </Card.Root>
   )
 
   return (
-    <div className="flex flex-column align-items-center w-full p-3">
-      <div className="w-full flex flex-column gap-3" style={{ maxWidth: '64rem' }}>
-        <header className="flex align-items-center justify-content-between gap-3">
-          <Link to="/" className="flex align-items-center gap-2">
+    <div className="explore-page">
+      <div className="explore-container">
+        <header className="explore-header">
+          <Link to="/" className="explore-brand">
             <i className="pi pi-home" />
-            <span className="font-bold">Swimlane</span>
+            <span>Swimlane</span>
           </Link>
-          <nav className="flex align-items-center gap-3">
-            <Link to="/explore">Explore</Link>
-            <Link to="/explore/venues">Venues</Link>
+          <nav className="explore-nav">
+            <Link to="/explore" className="explore-nav-link">
+              Explore
+            </Link>
+            <Link to="/explore/venues" className="explore-nav-link">
+              Venues
+            </Link>
           </nav>
         </header>
 
-        <div className="flex align-items-center gap-2">
+        <div className="explore-search-row">
           <InputText
             value={query}
             onChange={(event: ChangeEvent<HTMLInputElement>) => setQuery(event.target.value)}
@@ -122,15 +126,15 @@ export default function ExploreVenuesPage() {
         </div>
 
         {loading ? (
-          <div className="grid">
+          <div className="explore-venue-grid">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="col-12 md:col-6 xl:col-4">
+              <div key={index} className="explore-venue-card">
                 <Skeleton height="8rem" className="w-full" />
               </div>
             ))}
           </div>
         ) : venues.length > 0 ? (
-          <div className="grid">{venues.map(renderVenue)}</div>
+          <div className="explore-venue-grid">{venues.map(renderVenue)}</div>
         ) : (
           <EmptyState
             message="No venues found"
