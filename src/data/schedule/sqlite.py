@@ -255,6 +255,29 @@ class SQLite(ScheduleInterfaceBase):
         return schedules if len(schedules) > 0 else None
 
     # ------------------------------------------------------------------
+    def list_schedules_by_event_id_with_members(self, event_id: int) -> Optional[list[dict[str, Any]]]:
+        """List an event's active schedules joined with the member's raw PII columns.
+
+        Returns rows keyed by schedule fields plus the member's encrypted name/email
+        columns (``first_name_nonce``, ``first_name_ciphertext``, etc.) so the caller
+        can decrypt them. ``member_id`` is never null (the LEFT JOIN drops no rows).
+        """
+        sql = """SELECT s.schedule_id, s.venue_id, s.member_id, s.event_id, s.is_active AS is_active,
+                       u.first_name_nonce, u.first_name_ciphertext,
+                       u.last_name_nonce, u.last_name_ciphertext,
+                       u.email_nonce, u.email_ciphertext
+                FROM schedule s
+                LEFT JOIN users u ON u.sub = s.member_id
+                WHERE s.event_id = ? AND s.is_active = 1
+                ORDER BY s.schedule_id ASC"""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (event_id,))
+            rows = [dict(rs) for rs in cursor.fetchall()]
+
+        return rows if len(rows) > 0 else None
+
+    # ------------------------------------------------------------------
     def get_schedule_for_member(self, event_id: int, member_id: str) -> Optional[Schedule]:
         """Return the active schedule for a member on a specific event, if any."""
         with self._connect() as conn:

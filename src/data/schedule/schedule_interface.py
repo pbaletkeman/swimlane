@@ -61,6 +61,10 @@ class ScheduleInterface(abc.ABC):
         """List all schedules for a given event ID."""
 
     @abc.abstractmethod
+    def list_schedules_by_event_id_with_members(self, event_id: int) -> Optional[list[dict[str, Any]]]:
+        """List an event's active schedules joined with the member's raw PII columns (nonce + ciphertext)."""
+
+    @abc.abstractmethod
     def get_schedule_for_member(self, event_id: int, member_id: str) -> Optional[Schedule]:
         """Return the active schedule for a member on a specific event, if any."""
 

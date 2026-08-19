@@ -17,7 +17,9 @@ from src.data.schedule.schedule import Schedule
 from src.data.schedule.sqlite import SQLite as ScheduleSQLite
 from src.data.users.user import User
 from src.data.venue.sqlite import SQLite as VenueSQLite
-from src.roles.roles import admin_role, all_users, facility_manager_role, member_role
+from src.encryption import decrypt_field
+from src.roles.roles import admin_role, all_users, coach_role, facility_manager_role, member_role
+from src.roles.user_role import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +39,18 @@ class EventCapacity(BaseModel):
     event_id: int
     registered_count: int
     max_capacity: int | None = None
+
+
+class EventMemberItem(BaseModel):
+    """A member registered for an event, with a decrypted display name."""
+
+    schedule_id: int
+    venue_id: int
+    member_id: str
+    member_name: str
+    email: str | None = None
+    event_id: int
+    is_active: bool
 
 
 def resolve_max_capacity(event: Event) -> int | None:
@@ -119,6 +133,11 @@ class EventRoutes:
         self.router.add_api_route(
             "/{event_id}/capacity",
             self.get_event_capacity,
+            methods=["GET"],
+        )
+        self.router.add_api_route(
+            "/{event_id}/members",
+            self.list_event_members,
             methods=["GET"],
         )
         self.router.add_api_route(
@@ -337,4 +356,66 @@ class EventRoutes:
             raise
         except Exception as exc:
             logger.exception("Failed to register for event")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    def _member_display_name(self, row: dict) -> str:
+        """Decrypt a member row's name/email, falling back to the sub when missing."""
+        try:
+            if not row.get("first_name_ciphertext"):
+                return row["member_id"]
+            first = decrypt_field(row["first_name_nonce"], row["first_name_ciphertext"])
+            last = ""
+            if row.get("last_name_ciphertext"):
+                last = decrypt_field(row["last_name_nonce"], row["last_name_ciphertext"])
+            return f"{first} {last}".strip() or row["member_id"]
+        except Exception:
+            return row["member_id"]
+
+    # ------------------------------------------------------------------
+    def _member_email(self, row: dict) -> str | None:
+        """Decrypt a member row's email, or return None when unavailable."""
+        try:
+            if not row.get("email_ciphertext"):
+                return None
+            return decrypt_field(row["email_nonce"], row["email_ciphertext"])
+        except Exception:
+            return None
+
+    # ------------------------------------------------------------------
+    async def list_event_members(
+        self,
+        event_id: int,
+        current_user: User = Depends(coach_role),
+    ) -> list[EventMemberItem]:
+        """List the members registered for an event (coach of the event or manager+)."""
+        try:
+            event = self._get_db().get_event_by_id(event_id)
+            if not event:
+                raise HTTPException(status_code=404, detail="Event not found")
+
+            is_manager = current_user.role in (
+                UserRole.FACILITY_MANAGER.value,
+                UserRole.WEB_ADMIN.value,
+            )
+            if not is_manager and event.coach_id != current_user.sub:
+                raise HTTPException(status_code=403, detail="Not the coach of this event")
+
+            rows = ScheduleSQLite().list_schedules_by_event_id_with_members(event_id) or []
+            return [
+                EventMemberItem(
+                    schedule_id=row["schedule_id"],
+                    venue_id=row["venue_id"],
+                    member_id=row["member_id"],
+                    member_name=self._member_display_name(row),
+                    email=self._member_email(row),
+                    event_id=row["event_id"],
+                    is_active=bool(row["is_active"]),
+                )
+                for row in rows
+            ]
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to list event members")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
