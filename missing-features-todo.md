@@ -145,7 +145,7 @@ Branch: `feature/coach-manage-events`
 - [x] **F.1** — `GET /coach/events?scope=upcoming|past|all` — `coach_role`; returns only events where `coach_id == current_user.sub`; `upcoming` = future `start_date_time`, `past` = past. Add `EventSQLite.list_events_by_coach(coach_id, scope)`. Commit.
 - [x] **F.2** — `GET /events/{id}/members` — `coach_role`, requires `coach_id == current_user.sub` (403 otherwise) or manager+; returns schedules for the event joined with member display info. Add `ScheduleSQLite.list_schedules_by_event_id_with_members(event_id)` (left-join users for name/email; decrypt PII or return masked). Commit.
 - [ ] **F.3** — Relax `EventRoutes` create/update to `coach_role` **when the event's `coach_id` is the caller** (guard inside the handler); keep `facility_manager_role` for all events. Implement a small dependency `is_event_coach(event_id)` or inline check in `create_event`/`update_event`/`delete_event`. Commit.
-- [ ] **F.4** — `POST /events/{id}/members` — `coach_role` (own event) or manager+: add a member (creates schedule, with capacity check). Reuse Phase C register internals. Commit.
+- [x] **F.4** — `POST /events/{id}/members` — `coach_role` (own event) or manager+: add a member (creates schedule, with capacity check). Reuse Phase C register internals. Commit.
 - [ ] **F.5** — `DELETE /events/{id}/members/{schedule_id}` — remove a member (soft delete schedule), same role guard. Commit.
 - [ ] **F.6** — `PUT /events/{id}/members/{schedule_id}` — edit a member's schedule (change venue/event) if needed. Commit.
 - [ ] **F.7** — `coach_role` (currently unused) is now exercised — add a smoke test that coach gets 403 on another coach's event. Commit.
