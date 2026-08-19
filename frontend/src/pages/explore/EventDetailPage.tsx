@@ -3,11 +3,13 @@ import { Link, useParams } from 'react-router-dom'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Skeleton } from 'primereact/skeleton'
+import { Select } from 'primereact/select'
+import type { SelectValueChangeEvent } from '@primereact/types/primitive/select'
 import { ApiError } from '../../api/client.ts'
-import { getEventDetail } from '../../api/public.ts'
+import { getEventDetail, searchEvents } from '../../api/public.ts'
 import { registerForEvent } from '../../api/events.ts'
-import { schedules } from '../../api/schedules.ts'
-import type { Schedule } from '../../api/types.ts'
+import { reschedule, schedules } from '../../api/schedules.ts'
+import type { PublicEvent, Schedule } from '../../api/types.ts'
 import type { PublicEventDetail } from '../../api/types.ts'
 import { EmptyState } from '../../components/EmptyState.tsx'
 import { useAuth } from '../../auth/auth-context.ts'
@@ -36,7 +38,10 @@ export default function EventDetailPage() {
   const [eventMissing, setEventMissing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [mySchedule, setMySchedule] = useState<Schedule | null>(null)
+  const [alternates, setAlternates] = useState<PublicEvent[]>([])
+  const [targetEventId, setTargetEventId] = useState<number | null>(null)
   const [registering, setRegistering] = useState(false)
+  const [rescheduling, setRescheduling] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -80,6 +85,7 @@ export default function EventDetailPage() {
   useEffect(() => {
     if (!accessToken || !user) {
       setMySchedule(null)
+      setAlternates([])
       return
     }
     let cancelled = false
@@ -88,13 +94,27 @@ export default function EventDetailPage() {
       try {
         const result = await schedules.list()
         if (!cancelled) {
-          const mine = result.find((schedule) => schedule.is_active && schedule.event_id === id && schedule.member_id === user.sub)
+          const mine = result.find(
+            (schedule) => schedule.is_active && schedule.event_id === id && schedule.member_id === user.sub,
+          )
           setMySchedule(mine ?? null)
         }
       } catch (error) {
         if (!cancelled) {
           const message = error instanceof ApiError ? error.message : 'Could not load your registration'
           toast.error('Failed to load registration', message)
+        }
+      }
+
+      try {
+        const upcoming = await searchEvents()
+        if (!cancelled) {
+          setAlternates(upcoming.filter((event) => event.event_id !== id))
+        }
+      } catch (error) {
+        if (!cancelled) {
+          const message = error instanceof ApiError ? error.message : 'Could not load other events'
+          toast.error('Failed to load events', message)
         }
       }
     }
@@ -126,6 +146,25 @@ export default function EventDetailPage() {
       toast.error('Registration failed', message)
     } finally {
       setRegistering(false)
+    }
+  }
+
+  const handleReschedule = async () => {
+    if (!mySchedule?.schedule_id || targetEventId === null) {
+      return
+    }
+    setRescheduling(true)
+    try {
+      await reschedule(mySchedule.schedule_id, { event_id: targetEventId })
+      setMySchedule(null)
+      setTargetEventId(null)
+      toast.success('Rescheduled', 'Your registration was moved to the selected event.')
+      await refreshDetail()
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : 'Could not reschedule'
+      toast.error('Reschedule failed', message)
+    } finally {
+      setRescheduling(false)
     }
   }
 
@@ -163,6 +202,10 @@ export default function EventDetailPage() {
   const pct = max ? Math.min(100, Math.round((registered / max) * 100)) : 0
   const registeredForThisEvent = Boolean(mySchedule)
   const signedIn = Boolean(accessToken)
+  const alternateOptions = alternates.map((event) => ({
+    label: formatDateTime(event.start_date_time),
+    value: event.event_id,
+  }))
 
   return (
     <div className="explore-page">
@@ -249,6 +292,50 @@ export default function EventDetailPage() {
             </div>
           </Card.Content>
         </Card.Root>
+
+        {registeredForThisEvent ? (
+          <Card.Root>
+            <Card.Header>
+              <Card.Title>Reschedule</Card.Title>
+            </Card.Header>
+            <Card.Content>
+              <p className="explore-hint">
+                Your current registration is for the event above. Move it to a different upcoming event below.
+              </p>
+              {alternates.length > 0 ? (
+                <div className="explore-reschedule-controls">
+                  <Select.Root
+                    value={targetEventId}
+                    onValueChange={(event: SelectValueChangeEvent) => setTargetEventId(event.value as number | null)}
+                    options={alternateOptions}
+                    optionLabel="label"
+                    optionValue="value"
+                    className="explore-view-select"
+                  >
+                    <Select.Trigger>
+                      <Select.Value placeholder="Select an event" />
+                      <Select.Indicator>
+                        <i className="pi pi-chevron-down" />
+                      </Select.Indicator>
+                    </Select.Trigger>
+                    <Select.Portal>
+                      <Select.Positioner>
+                        <Select.Popup>
+                          <Select.List />
+                        </Select.Popup>
+                      </Select.Positioner>
+                    </Select.Portal>
+                  </Select.Root>
+                  <Button type="button" onClick={handleReschedule} disabled={targetEventId === null || rescheduling}>
+                    <span className="p-button-label">{rescheduling ? 'Moving…' : 'Move registration'}</span>
+                  </Button>
+                </div>
+              ) : (
+                <p className="explore-hint">No other upcoming events are available right now.</p>
+              )}
+            </Card.Content>
+          </Card.Root>
+        ) : null}
       </div>
     </div>
   )
