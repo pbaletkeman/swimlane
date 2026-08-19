@@ -321,3 +321,49 @@ Branch: `feature/my-schedule-ical`
 - `event.description` is included in `MyScheduleItem` but unused by the page (kept for future profile/coach views); the page renders `facility_name`, address, and times.
 - Manual browser pass (register → my-schedule → reschedule/cancel → iCal download) is deferred to J.6.
 - `AGENTS.md` sync (router list, `/public` + new endpoints) is deferred to J.8 per the plan.
+
+## Phase E — Member Profile / Correspondence (E.1–E.4 backend done) ✅
+
+Branch: `feature/profile-correspondence`
+
+`layout.txt:21-25` — profile with correspondence: my forms, my events, my messages.
+Backend-only round: the member form-submission endpoints (E.1–E.2), the my-events
+alias (E.3), and the new `message` entity + routes (E.4). Frontend (E.6–E.10) and
+the README update (E.5) remain for a later round.
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| E.1 | `GET /forms/me/submissions` (`member_role`) — caller's submissions joined with facility name (`submission_id`, `facility_id`, `facility_name`, `signed_at`, `submitted_at`, `is_complete`); `FormSubmissionSQLite.list_by_member(sub)` + `MySubmissionItem` | `3c0ad23` |
+| E.2 | `GET /forms/submissions/{id}` (`member_role`) — submission + answers (`SubmissionDetailResponse`); members may only read their own (403 otherwise), managers/coaches/admins any; `FormSubmissionSQLite.get_by_id_with_responses(submission_id)` | `3c0ad23` |
+| E.3 | `GET /schedules/me/events` — **decided: pure alias** of `GET /schedules/me` (same handler, same payload); registered alongside `/me` and `/me/ical` | `d85e0c9` |
+| E.4.1 | `src/data/message/message.py` — `Message(message_id, member_id FK→users.sub, sender_id FK→users.sub, subject, body, is_read=False, sent_at, is_active=True)` | `c7875e1` |
+| E.4.2 | `src/data/message/message_interface.py` — CRUD + `list_by_member(member_id)`, `mark_read(message_id)` | `c7875e1` |
+| E.4.3 | `src/data/message/sqlite.py` — DDL (`is_read` default 0, `sent_at` TEXT, both FKs to `users(sub)` with cascade, `idx_message_member_id`/`idx_message_sender_id`), CRUD impl; `list_by_member` returns **active** inbox rows only | `c7875e1`, `3c0ad23` (fix) |
+| E.4.4 | `MessageSQLite` registered in `main.py` `init_db()` | `3151977` |
+| E.4.5 | `src/routes/message_routes.py` `MessageRoutes` (`/messages`) — `GET /messages/me` (`member_role`, active inbox + `sender_name` decrypted), `PUT /messages/{id}/read` (`member_role`, own only), `POST /messages` (`coach_role`+, `{member_id, subject, body}`, 404 unknown recipient), `DELETE /messages/{id}` (soft, own inbox only), `DELETE /messages/{id}/hard` (`admin_role`); registered in `main.py` | `3151977` |
+
+### Details
+
+- **E.3 decision**: `/schedules/me/events` is a pure alias — same handler (`ScheduleRoutes.my_schedule`) registered as an additional route, so "my events" and "my schedule" can never drift. Documented here rather than as a separate aggregate.
+- **E.2 ownership guard** reuses the Phase B PDF pattern: `current_user.role == UserRole.MEMBER.value` → must own; coaches/managers/admins pass through. `SubmissionDetailResponse` carries the facility name plus the full `responses` list (needed by the future "my forms" tab to show answers).
+- **Message routing order**: `/{message_id}/read`, `/{message_id}`, `/{message_id}/hard` share the `{message_id}` prefix but no conflict exists (distinct literal suffixes + methods); `GET /messages/me` is registered first.
+- **`mark_read`** fetches the existing row, flips `is_read`, and re-saves via `update_message` (which only touches `is_read`/`is_active`), avoiding a partial `Message` construction.
+- **`create_messages_bulk`** resolves created rows via `SELECT last_insert_rowid()` (the SQL function, not `cursor.lastrowid`, which Python 3.12+ resets to `None` after `executemany`) minus the batch size — the pre-existing "last-row-only" quirk from other bulk creators was deliberately not replicated.
+- `sender_name` in `GET /messages/me` decrypts the sender's first/last name (falling back to the sender sub) so the inbox shows who sent each message (Key decision #5).
+- Branched from `feature/my-schedule-ical` (Phase D branch, unmerged) per the plan's branching rule — this branch carries the Phase C and Phase D commit history.
+
+### Verification
+
+- Backend: `uv run ruff check .` clean; `uv run pyright` 0 errors.
+- Backend smoke test (`smoke_e1_e4.py`, throwaway DB + FastAPI `TestClient`, real HS256 JWTs, FormRoutes/ScheduleRoutes/MessageRoutes wired):
+  - **E.1** — `/forms/me/submissions` → 401 no auth; 200 with member token (joined `facility_name` "City Pool", `is_complete` true, `submitted_at` set); caller-scoped (m1 sees only m1's, m2 only m2's).
+  - **E.2** — `/forms/submissions/{id}` → 401 no auth; 200 own (2 responses with correct answers); m1 reading m2's → 403; facility manager reading m2's → 200; missing → 404.
+  - **E.3** — `/schedules/me/events` → 401 no auth; 200 for member, payload identical to `/schedules/me` (event id, facility, times).
+  - **E.4** — `/messages/me` → 401 no auth; 200 with the seeded message (sender_id, subject, `is_read: false`); coach `POST /messages` to m2 → 200; member POST → 403; unknown recipient → 404; `PUT /{id}/read` own → `is_read: true`, another member's → 403; `DELETE /{id}` own → soft-deleted (drops out of inbox), another's → 403; `DELETE /{id}/hard` non-admin → 403, admin → 200; missing → 404.
+- Dev DB: `main.py` startup creates the `message` table via `init_db()` (idempotent); no migration needed elsewhere.
+
+### Notes
+
+- **E.5** (`src/routes/README.md`) and **E.6–E.10** (frontend: messages API/types, `ProfilePage`, nav footer Profile link, route) are deferred to the next Phase E round, as requested.
+- `POST /messages` sends to any `users.sub`; the member picker arrives with Phase G's user-list endpoint, so staff paste the `sub` for now.
+- No frontend/`AGENTS.md` sync yet (J.8 covers the aggregate update).

@@ -118,15 +118,15 @@ Branch: `feature/profile-correspondence`
 
 `layout.txt:21-25` — profile with correspondence: my forms, my events, my messages.
 
-- [ ] **E.1** — `GET /forms/me/submissions` — `member_role`; list caller's submissions (facility name, submitted_at, is_complete, submission_id). Add `FormSubmissionSQLite.list_by_member(sub)`. Commit.
-- [ ] **E.2** — `GET /forms/submissions/{id}` — `member_role` (own only) / manager+ (any): return a submission with its responses (needed so "my forms" can show answers). Add `FormSubmissionSQLite.get_by_id_with_responses(submission_id)`. Commit.
-- [ ] **E.3** — `GET /schedules/me/events` — alias/aggregate for "my events" (reuse Phase D `GET /schedules/me`; may be the same endpoint — decide and document). Commit.
-- [ ] **E.4** — **New `message` entity** (3-file pattern):
-  - [ ] **E.4.1** — `src/data/message/message.py` — `Message(message_id, member_id FK→users.sub, sender_id FK→users.sub, subject, body, is_read, sent_at, is_active)` — `sender_id` records who sent it (staff → member inbox; see Key decisions #5). Commit.
-- [ ] **E.4.2** — `src/data/message/message_interface.py` — CRUD + `list_by_member(member_id)`, `mark_read(message_id)`. Commit.
-- [ ] **E.4.3** — `src/data/message/sqlite.py` — DDL (`is_read` default 0, FKs to users with cascade), CRUD impl. Commit.
-- [ ] **E.4.4** — Register `MessageSQLite` in `main.py` `init_db()`. Commit.
-- [ ] **E.4.5** — `src/routes/message_routes.py` `MessageRoutes` (`/messages`): `GET /messages/me` (`member_role`), `PUT /messages/{id}/read` (`member_role`, own only), `POST /messages` (`coach_role`+ send to a member), soft/hard delete (`all_users` own / admin). Register in `main.py`. Commit.
+- [x] **E.1** — `GET /forms/me/submissions` — `member_role`; list caller's submissions (facility name, submitted_at, is_complete, submission_id). Add `FormSubmissionSQLite.list_by_member(sub)`. Commit.
+- [x] **E.2** — `GET /forms/submissions/{id}` — `member_role` (own only) / manager+ (any): return a submission with its responses (needed so "my forms" can show answers). Add `FormSubmissionSQLite.get_by_id_with_responses(submission_id)`. Commit.
+- [x] **E.3** — `GET /schedules/me/events` — alias/aggregate for "my events" (reuse Phase D `GET /schedules/me`; may be the same endpoint — decide and document). Commit.
+- [x] **E.4** — **New `message` entity** (3-file pattern):
+  - [x] **E.4.1** — `src/data/message/message.py` — `Message(message_id, member_id FK→users.sub, sender_id FK→users.sub, subject, body, is_read, sent_at, is_active)` — `sender_id` records who sent it (staff → member inbox; see Key decisions #5). Commit.
+- [x] **E.4.2** — `src/data/message/message_interface.py` — CRUD + `list_by_member(member_id)`, `mark_read(message_id)`. Commit.
+- [x] **E.4.3** — `src/data/message/sqlite.py` — DDL (`is_read` default 0, FKs to users with cascade), CRUD impl. Commit.
+- [x] **E.4.4** — Register `MessageSQLite` in `main.py` `init_db()`. Commit.
+- [x] **E.4.5** — `src/routes/message_routes.py` `MessageRoutes` (`/messages`): `GET /messages/me` (`member_role`), `PUT /messages/{id}/read` (`member_role`, own only), `POST /messages` (`coach_role`+ send to a member), soft/hard delete (`all_users` own / admin). Register in `main.py`. Commit.
 - [ ] **E.5** — `src/routes/README.md` update for new endpoints. Commit.
 - [ ] **E.6** — `frontend/src/api/forms.ts` — `listMySubmissions()`, `getSubmission(id)`; `frontend/src/api/messages.ts` — `listMine()`, `markRead(id)`, `send(input)`. Commit.
 - [ ] **E.7** — `frontend/src/api/types.ts` — `Message`, `MessageInput`, `MySubmission` types. Commit.
