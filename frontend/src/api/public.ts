@@ -1,5 +1,5 @@
 import api from './client.ts'
-import type { PublicEvent, PublicVenue } from './types.ts'
+import type { PublicEvent, PublicEventDetail, PublicVenue } from './types.ts'
 
 /**
  * Public (unauthenticated) API wrappers for the `/public` router.
@@ -58,12 +58,17 @@ export const searchEvents = (options: EventSearchOptions = {}): Promise<PublicEv
     `/public/events${buildQuery({ venue_id: options.venueId, from_dt: options.from, to_dt: options.to })}`,
   )
 
+/** Fetch a single public event with its venue and capacity; 404 for unknown/inactive. */
+export const getEventDetail = (id: number): Promise<PublicEventDetail> =>
+  api.get<PublicEventDetail>(`/public/events/${id}`)
+
 const publicApi = {
   searchVenues,
   listVenues,
   getVenue,
   getVenueSchedules,
   searchEvents,
+  getEventDetail,
 }
 
 export default publicApi

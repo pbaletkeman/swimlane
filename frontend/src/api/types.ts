@@ -107,6 +107,16 @@ export interface PublicEvent {
 }
 
 /**
+ * Public single-event detail from `GET /public/events/{id}`: event fields plus
+ * its venue summary and live capacity.
+ */
+export interface PublicEventDetail extends PublicEvent {
+  venue: PublicVenue | null
+  registered_count: number
+  max_capacity: number | null
+}
+
+/**
  * Legacy per-booking row (schedule joined with its event times) returned by the
  * Phase A `/public/venues/{id}/schedules` endpoint. Superseded by `PublicEvent`
  * after B.1–B.4 switched that endpoint to distinct events; retained for Phase C
