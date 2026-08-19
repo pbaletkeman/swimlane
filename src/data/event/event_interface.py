@@ -75,6 +75,14 @@ class EventInterface(abc.ABC):
         """List all events for a given frequency ID."""
 
     @abc.abstractmethod
+    def list_events_by_coach(self, coach_id: str, scope: str = "all") -> Optional[list[Event]]:
+        """List events assigned to a coach.
+
+        ``scope`` is one of ``"upcoming"`` (future ``start_date_time``),
+        ``"past"`` (past ``start_date_time``), or ``"all"``.
+        """
+
+    @abc.abstractmethod
     def create_events_bulk(self, events: list[Event]) -> Optional[list[Event]]:
         """Create multiple events in bulk. Returns the created events with assigned IDs."""
 

@@ -24,6 +24,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from src.middleware.logging import RequestLoggingMiddleware
 from src.routes.auth_routes import AuthRoutes
+from src.routes.coach_routes import CoachRoutes
 from src.routes.event_routes import EventRoutes
 from src.routes.facility_routes import FacilityRoutes
 from src.routes.form_routes import FormRoutes
@@ -88,6 +89,9 @@ init_db()
 # Include the router in the app
 auth_routes = AuthRoutes()
 app.include_router(auth_routes.router)
+
+coach_routes = CoachRoutes()
+app.include_router(coach_routes.router)
 
 frequency_routes = FrequencyRoutes()
 app.include_router(frequency_routes.router)

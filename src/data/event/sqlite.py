@@ -338,6 +338,36 @@ class SQLite(EventInterfaceBase):
         return events if len(events) > 0 else None
 
     # ------------------------------------------------------------------
+    def list_events_by_coach(self, coach_id: str, scope: str = "all") -> Optional[list[Event]]:
+        """List events assigned to a coach, optionally filtered by time scope.
+
+        ``scope`` is one of ``"upcoming"`` (future ``start_date_time``),
+        ``"past"`` (past ``start_date_time``), or ``"all"``.
+        """
+        now = datetime.now().isoformat(timespec="seconds")
+        if scope == "upcoming":
+            where = "WHERE coach_id = ? AND start_date_time >= ?"
+            params: tuple[Any, ...] = (coach_id, now)
+        elif scope == "past":
+            where = "WHERE coach_id = ? AND start_date_time < ?"
+            params = (coach_id, now)
+        else:
+            where = "WHERE coach_id = ?"
+            params = (coach_id,)
+
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            sql: str = self.get_record_select(where)
+            cursor.execute(sql, params)
+            events: list[Event] = []
+            for rs in cursor:
+                e = self.create_event_helper(rs)
+                if e is not None:
+                    events.append(e)
+
+        return events if len(events) > 0 else None
+
+    # ------------------------------------------------------------------
     def create_events_bulk(self, events: list[Event]) -> Optional[list[Event]]:
         """Create multiple events in bulk. Returns the created events with assigned IDs."""
         if not events:
