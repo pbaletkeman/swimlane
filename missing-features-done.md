@@ -322,14 +322,14 @@ Branch: `feature/my-schedule-ical`
 - Manual browser pass (register → my-schedule → reschedule/cancel → iCal download) is deferred to J.6.
 - `AGENTS.md` sync (router list, `/public` + new endpoints) is deferred to J.8 per the plan.
 
-## Phase E — Member Profile / Correspondence (E.1–E.4 backend done) ✅
+## Phase E — Member Profile / Correspondence (E.1–E.5 backend done) ✅
 
 Branch: `feature/profile-correspondence`
 
 `layout.txt:21-25` — profile with correspondence: my forms, my events, my messages.
-Backend-only round: the member form-submission endpoints (E.1–E.2), the my-events
-alias (E.3), and the new `message` entity + routes (E.4). Frontend (E.6–E.10) and
-the README update (E.5) remain for a later round.
+Backend round: the member form-submission endpoints (E.1–E.2), the my-events
+alias (E.3), the new `message` entity + routes (E.4), and the routes README (E.5).
+Frontend (E.6–E.10) remains for a later round.
 
 | Sub-task | Deliverable | Commit |
 |----------|-------------|--------|
@@ -341,6 +341,7 @@ the README update (E.5) remain for a later round.
 | E.4.3 | `src/data/message/sqlite.py` — DDL (`is_read` default 0, `sent_at` TEXT, both FKs to `users(sub)` with cascade, `idx_message_member_id`/`idx_message_sender_id`), CRUD impl; `list_by_member` returns **active** inbox rows only | `c7875e1`, `3c0ad23` (fix) |
 | E.4.4 | `MessageSQLite` registered in `main.py` `init_db()` | `3151977` |
 | E.4.5 | `src/routes/message_routes.py` `MessageRoutes` (`/messages`) — `GET /messages/me` (`member_role`, active inbox + `sender_name` decrypted), `PUT /messages/{id}/read` (`member_role`, own only), `POST /messages` (`coach_role`+, `{member_id, subject, body}`, 404 unknown recipient), `DELETE /messages/{id}` (soft, own inbox only), `DELETE /messages/{id}/hard` (`admin_role`); registered in `main.py` | `3151977` |
+| E.5 | `src/routes/README.md` — new rows (`message_routes.py`, `public_routes.py`), endpoint additions for `event_routes.py` (capacity/register), `schedule_routes.py` (member self-service), `form_routes.py` (submission list/detail), and the `coach_role` pattern bullet | `7937970` |
 
 ### Details
 
@@ -350,7 +351,8 @@ the README update (E.5) remain for a later round.
 - **`mark_read`** fetches the existing row, flips `is_read`, and re-saves via `update_message` (which only touches `is_read`/`is_active`), avoiding a partial `Message` construction.
 - **`create_messages_bulk`** resolves created rows via `SELECT last_insert_rowid()` (the SQL function, not `cursor.lastrowid`, which Python 3.12+ resets to `None` after `executemany`) minus the batch size — the pre-existing "last-row-only" quirk from other bulk creators was deliberately not replicated.
 - `sender_name` in `GET /messages/me` decrypts the sender's first/last name (falling back to the sender sub) so the inbox shows who sent each message (Key decision #5).
-- Branched from `feature/my-schedule-ical` per the plan's branching rule. Phase C (#31) and Phase D (#32) were merged to `main` during this round, and the Phase D branch tip had been updated to the merged commit — so this branch contains **only** the Phase E.1–E.4 changes (verified: `git diff main...feature/profile-correspondence` touches just the E.1–E.4 files).
+- Branched from `feature/my-schedule-ical` per the plan's branching rule. Phase C (#31) and Phase D (#32) were merged to `main` during this round, and the Phase D branch tip had been updated to the merged commit — so this branch contains **only** the Phase E.1–E.5 changes (verified: `git diff main...feature/profile-correspondence` touches just the E.1–E.5 files).
+- **E.5** (`src/routes/README.md`, `7937970`): added `message_routes.py` and the previously-missing `public_routes.py` rows; extended `event_routes.py` (public capacity, member register), `schedule_routes.py` (`/me`, `/me/ical`, `/me/events`, reschedule/cancel), and `form_routes.py` (submission list/detail) descriptions; added the `coach_role` pattern bullet. Every claim was verified against the actual route registrations (dependencies + handler role deps).
 
 ### Verification
 
@@ -364,6 +366,6 @@ the README update (E.5) remain for a later round.
 
 ### Notes
 
-- **E.5** (`src/routes/README.md`) and **E.6–E.10** (frontend: messages API/types, `ProfilePage`, nav footer Profile link, route) are deferred to the next Phase E round, as requested.
+- **E.6–E.10** (frontend: messages API/types, `ProfilePage`, nav footer Profile link, route) are deferred to the next Phase E round, as requested.
 - `POST /messages` sends to any `users.sub`; the member picker arrives with Phase G's user-list endpoint, so staff paste the `sub` for now.
-- No frontend/`AGENTS.md` sync yet (J.8 covers the aggregate update).
+- No frontend/`AGENTS.md` sync yet (J.8 covers the aggregate update); the `src/routes/README.md` in-repo route doc is now current.
