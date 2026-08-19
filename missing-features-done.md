@@ -279,3 +279,45 @@ routes, HomePage link, and explore styles (B.8–B.10) are all complete.
   - `/public/events?venue_id=1` → upcoming events at venue 1
   - `/public/venues/9999/schedules` → 404
 - Seed rows added for testing were removed afterward (DB counts back to original).
+
+## Phase D — Member "My Schedule" + iCal export ✅
+
+Branch: `feature/my-schedule-ical`
+
+`layout.txt:18-19` — my schedule of events, add to calendar (ical).
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| D.1 | `GET /schedules/me` (`member_role`) — caller's active schedules joined with event start/end/description, venue address, facility name, ordered by start time; `MyScheduleItem` response model | `8c87945`, `252f210` |
+| D.2 | `GET /schedules/me/ical` — `text/calendar` RFC 5545 VCALENDAR with one `VEVENT` per entry (UID `swimlane-<id>@swimlane`, DTSTART/DTEND in UTC, SUMMARY "Swimlane — \<facility\>", LOCATION venue address), `Content-Disposition: attachment; filename="swimlane-calendar.ics"`. Hand-rolled builder in `src/util/ical.py` — no new dependency | `252f210` |
+| D.3 | `ScheduleSQLite.list_active_schedules_by_member_id(member_id)` (active-only) + `list_active_schedules_by_member_id_with_details(member_id)` (the D.1 join helper) + interface entries | `8c87945` |
+| D.4 | `frontend/src/api/schedules.ts` — `listMine()`, `getMyCalendarIcs()` (`responseType: 'text'`), `cancelRegistration(id)`; `MyScheduleItem` type in `types.ts` | `b466e75` |
+| D.5.1 | `frontend/src/pages/MySchedulePage.tsx` — upcoming/past cards (date range, facility, venue address, description, status tag), loading skeletons, EmptyState | `e136126` |
+| D.5.2 | "Add to calendar (iCal)" button → fetches the `.ics` text and downloads it as `swimlane-calendar.ics` via Blob + anchor | `cfe99f1` |
+| D.5.3 | Per-row Reschedule (`Select` of alternate upcoming events → `reschedule()`) and Cancel (soft-delete via the new `POST /schedules/{id}/cancel`, `ConfirmDelete` dialog) | `5ca0e5e`, `252f210` |
+| D.6 | `My Schedule` in `frontend/src/layout/nav.ts` (`pi-calendar-plus`, `requiredRole: 'MEMBER'`) | `ab34e33` |
+| D.7 | `/my-schedule` route inside `RouteGuard` (lazy `MySchedulePage`) | `37e140a` |
+
+### Details
+
+- `/me` and `/me/ical` are registered **before** `/{schedule_id}` in `ScheduleRoutes.__init__` so FastAPI doesn't capture `me` as a schedule id.
+- The existing `DELETE /schedules/{schedule_id}` is `facility_manager_role`-gated, so D.5.3's member cancel needed its own endpoint: `POST /schedules/{schedule_id}/cancel` (`member_role`, 403 unless the schedule belongs to `current_user.sub`, 404 if missing) → soft-delete via `delete_schedule_by_id` (sets `is_active=0`).
+- `src/util/ical.py` (`_utc_stamp`, `_escape`, `build_member_calendar`) converts the naive local `event` datetimes to UTC `YYYYMMDDTHHMMSSZ` and escapes iCal TEXT reserved characters (`\`, `;`, `,`, newline); CRLF line endings per RFC 5545. The `ics` library was deliberately skipped.
+- `DTSTAMP` reuses the event's start time (no separate created timestamp exists on `schedule`); SUMMARY is always "Swimlane — \<facility name\>"; LOCATION is the joined venue address.
+- Reschedule reuses the Phase C picker pattern (`searchEvents()` filtered to events the member is not already registered for, `Select` + Move button per row). The page reloads `listMine()` after reschedule/cancel so rows stay consistent.
+- Branched from `feature/event-registration` (Phase C branch, unmerged) per the plan's branching rule — this branch carries the full Phase C commit history.
+
+### Verification
+
+- Backend: `uv run ruff check .` clean; `uv run pyright` 0 errors.
+- Backend smoke test (`smoke_d1_d2.py`, throwaway DB + FastAPI `TestClient`, real HS256 JWTs, `ScheduleRoutes` wired):
+  - `GET /schedules/me` without token → 401; with member token → 200 with both active schedules joined (facility "City Pool", street/city, event times), ordered by start time; each caller sees only their own rows.
+  - `GET /schedules/me/ical` without token → 401; with token → 200, `Content-Type: text/calendar`, `Content-Disposition` filename `swimlane-calendar.ics`, body begins `BEGIN:VCALENDAR`, one `VEVENT` per schedule with `UID:swimlane-…`, `DTSTART`/`DTEND`, `SUMMARY:Swimlane — City Pool`, `LOCATION` with escaped commas, CRLF endings.
+  - `POST /schedules/{id}/cancel` (own) → 200 `{message: "Registration cancelled"}` and the schedule disappears from `/schedules/me` (and from the iCal VEVENT count); someone else's schedule → 403; missing → 404.
+- Frontend: `npm run lint` (oxlint) clean after every commit; `npm run build` (`tsc -b` + Vite) clean — `MySchedulePage-*.js` emits as its own lazy chunk; nav/router changes typecheck.
+
+### Notes
+
+- `event.description` is included in `MyScheduleItem` but unused by the page (kept for future profile/coach views); the page renders `facility_name`, address, and times.
+- Manual browser pass (register → my-schedule → reschedule/cancel → iCal download) is deferred to J.6.
+- `AGENTS.md` sync (router list, `/public` + new endpoints) is deferred to J.8 per the plan.
