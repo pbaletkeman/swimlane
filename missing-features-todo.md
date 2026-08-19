@@ -101,16 +101,16 @@ Branch: `feature/my-schedule-ical`
 
 `layout.txt:18-19` — my schedule of events, add to calendar (ical).
 
-- [ ] **D.1** — `GET /schedules/me` — `member_role`; returns caller's active schedules joined with event (start/end), venue (address), facility (name). Use existing `ScheduleSQLite.list_schedules_by_member_id(sub)` + join helper. Commit.
-- [ ] **D.2** — `GET /schedules/me/ical` — `member_role`; returns `text/calendar` (RFC 5545) `VEVENT` per scheduled event (UID, DTSTART/DTEND, SUMMARY "Swimlane — <facility>", LOCATION venue address). Use `ics` lib? No — hand-rolled string builder in `src/routes/schedule_routes.py` or `src/util/ical.py` (no new dependency). Set `Content-Disposition: attachment; filename="swimlane-calendar.ics"`. Commit.
-- [ ] **D.3** — Add `ScheduleSQLite.list_active_schedules_by_member_id(member_id)` (active-only variant). Commit.
-- [ ] **D.4** — `frontend/src/api/schedules.ts` — `listMine()`, `getMyCalendarIcs()` (blob or text; use `responseType: 'text'` and build a Blob, or direct link). Commit.
-- [ ] **D.5** — New `frontend/src/pages/MySchedulePage.tsx` at `/my-schedule` (authenticated, `member_role`):
-  - [ ] **D.5.1** — Table/list of upcoming scheduled events (date, facility, venue, status). Commit.
-  - [ ] **D.5.2** — "Add to calendar (iCal)" button → downloads/opens the `.ics`. Commit.
-  - [ ] **D.5.3** — Per-row "Reschedule" → reuses Phase C reschedule picker; "Cancel" → soft-deletes the schedule (confirm dialog). Commit.
-- [ ] **D.6** — Add `My Schedule` to `frontend/src/layout/nav.ts` (`pi-calendar-plus`, `requiredRole: 'MEMBER'`). Commit.
-- [ ] **D.7** — Route in router (inside `RouteGuard`). Commit.
+- [x] **D.1** — `GET /schedules/me` — `member_role`; returns caller's active schedules joined with event (start/end), venue (address), facility (name). Use existing `ScheduleSQLite.list_schedules_by_member_id(sub)` + join helper. Commit.
+- [x] **D.2** — `GET /schedules/me/ical` — `member_role`; returns `text/calendar` (RFC 5545) `VEVENT` per scheduled event (UID, DTSTART/DTEND, SUMMARY "Swimlane — <facility>", LOCATION venue address). Use `ics` lib? No — hand-rolled string builder in `src/routes/schedule_routes.py` or `src/util/ical.py` (no new dependency). Set `Content-Disposition: attachment; filename="swimlane-calendar.ics"`. Commit.
+- [x] **D.3** — Add `ScheduleSQLite.list_active_schedules_by_member_id(member_id)` (active-only variant). Commit.
+- [x] **D.4** — `frontend/src/api/schedules.ts` — `listMine()`, `getMyCalendarIcs()` (blob or text; use `responseType: 'text'` and build a Blob, or direct link). Commit.
+- [x] **D.5** — New `frontend/src/pages/MySchedulePage.tsx` at `/my-schedule` (authenticated, `member_role`):
+  - [x] **D.5.1** — Table/list of upcoming scheduled events (date, facility, venue, status). Commit.
+  - [x] **D.5.2** — "Add to calendar (iCal)" button → downloads/opens the `.ics`. Commit.
+  - [x] **D.5.3** — Per-row "Reschedule" → reuses Phase C reschedule picker; "Cancel" → soft-deletes the schedule (confirm dialog). Commit.
+- [x] **D.6** — Add `My Schedule` to `frontend/src/layout/nav.ts` (`pi-calendar-plus`, `requiredRole: 'MEMBER'`). Commit.
+- [x] **D.7** — Route in router (inside `RouteGuard`). Commit.
 
 ## Phase E — Member Profile / Correspondence
 

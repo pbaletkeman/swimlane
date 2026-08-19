@@ -79,6 +79,26 @@ export interface Schedule {
 }
 
 /**
+ * A member's own schedule entry from `GET /schedules/me`: the schedule joined
+ * with its event times, event description, facility name, and venue address.
+ */
+export interface MyScheduleItem {
+  schedule_id: number
+  venue_id: number
+  member_id: string
+  event_id: number
+  is_active: boolean
+  event_start_date_time: string
+  event_end_date_time: string
+  event_description: string | null
+  facility_name: string
+  street: string
+  city: string
+  state: string
+  postal_code: string
+}
+
+/**
  * Public venue representation from the unauthenticated `/public/venues`
  * endpoints: venue fields plus its facility name.
  */

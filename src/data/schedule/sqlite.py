@@ -201,6 +201,44 @@ class SQLite(ScheduleInterfaceBase):
         return schedules if len(schedules) > 0 else None
 
     # ------------------------------------------------------------------
+    def list_active_schedules_by_member_id(self, member_id: str) -> Optional[list[Schedule]]:
+        """List active schedules for a given member ID."""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+
+            sql: str = self.get_record_select("WHERE member_id = ? AND is_active = 1")
+            cursor.execute(sql, (member_id,))
+            schedules: list[Schedule] = []
+            for rs in cursor:
+                s = self.create_schedule_helper(rs)
+                if s is not None:
+                    schedules.append(s)
+
+        return schedules if len(schedules) > 0 else None
+
+    # ------------------------------------------------------------------
+    def list_active_schedules_by_member_id_with_details(self, member_id: str) -> Optional[list[dict[str, Any]]]:
+        """List a member's active schedules joined with event, venue, and facility detail."""
+        sql = """SELECT s.schedule_id, s.venue_id, s.member_id, s.event_id, s.is_active AS is_active,
+                       e.start_date_time AS event_start_date_time,
+                       e.end_date_time AS event_end_date_time,
+                       e.description AS event_description,
+                       v.street AS street, v.city AS city, v.state AS state, v.postal_code AS postal_code,
+                       f.name AS facility_name
+                FROM schedule s
+                JOIN event e ON e.event_id = s.event_id
+                JOIN venue v ON v.venue_id = s.venue_id
+                JOIN facility f ON f.facility_id = v.facility_id
+                WHERE s.member_id = ? AND s.is_active = 1 AND e.is_active = 1 AND v.is_active = 1
+                ORDER BY e.start_date_time ASC"""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, (member_id,))
+            rows = [dict(rs) for rs in cursor.fetchall()]
+
+        return rows if len(rows) > 0 else None
+
+    # ------------------------------------------------------------------
     def list_schedules_by_event_id(self, event_id: int) -> Optional[list[Schedule]]:
         """List all schedules for a given event ID."""
         with self._connect() as conn:
