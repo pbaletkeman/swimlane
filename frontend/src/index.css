@@ -202,6 +202,127 @@
   opacity: 0.7;
 }
 
+.profile-tab-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profile-tab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-tab-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-tab-card-unread {
+  box-shadow: inset 3px 0 0 var(--primary-color);
+}
+
+.profile-tab-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+
+.profile-tab-row-button {
+  cursor: pointer;
+  text-align: left;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.profile-tab-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.profile-tab-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.profile-tab-meta {
+  margin: 0;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.profile-tab-snippet {
+  margin: 0;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-tab-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.profile-unread-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--primary-color);
+  margin-left: 0.5rem;
+}
+
+.profile-dialog-content {
+  width: min(34rem, calc(100vw - 2rem));
+}
+
+.profile-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.profile-response-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-response-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.profile-response-question {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.profile-response-answer {
+  font-weight: 500;
+}
+
+.profile-message-body {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
 .my-schedule-card-head {
   display: flex;
   align-items: center;
