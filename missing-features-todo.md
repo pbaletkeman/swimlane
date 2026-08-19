@@ -131,7 +131,7 @@ Branch: `feature/profile-correspondence`
 - [x] **E.6** — `frontend/src/api/forms.ts` — `listMySubmissions()`, `getSubmission(id)`; `frontend/src/api/messages.ts` — `listMine()`, `markRead(id)`, `send(input)`. Commit.
 - [x] **E.7** — `frontend/src/api/types.ts` — `Message`, `MessageInput`, `MySubmission` types. Commit.
 - [ ] **E.8** — New `frontend/src/pages/ProfilePage.tsx` at `/profile` (authenticated):
-  - [ ] **E.8.1** — Header card: name, email, role tag, avatar (Google `user` object). Commit.
+  - [x] **E.8.1** — Header card: name, email, role tag, avatar (Google `user` object). Commit.
   - [ ] **E.8.2** — Correspondence tabs (`Tabs`/`TabView`): **My Forms** (list of submissions → view/PDF), **My Events** (reuse `MySchedulePage` data or inline), **My Messages** (inbox with read/unread, view message dialog). Commit.
 - [ ] **E.9** — Add Profile link to sidebar footer (`frontend/src/layout/AppLayout.tsx` currently has a placeholder Profile footer item). Commit.
 - [ ] **E.10** — Route in router. Commit.
