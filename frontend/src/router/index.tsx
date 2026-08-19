@@ -12,6 +12,7 @@ const AuthCallbackPage = lazy(() =>
 const ExploreHomePage = lazy(() => import('../pages/explore/ExploreHomePage.tsx'))
 const ExploreVenuesPage = lazy(() => import('../pages/explore/ExploreVenuesPage.tsx'))
 const VenueSchedulePage = lazy(() => import('../pages/explore/VenueSchedulePage.tsx'))
+const EventDetailPage = lazy(() => import('../pages/explore/EventDetailPage.tsx'))
 const DashboardPage = lazy(() => import('../pages/DashboardPage.tsx'))
 const FrequenciesPage = lazy(() => import('../pages/FrequenciesPage.tsx'))
 const FacilitiesPage = lazy(() => import('../pages/FacilitiesPage.tsx'))
@@ -44,6 +45,7 @@ export function AppRouter() {
         <Route path="/explore" element={<ExploreHomePage />} />
         <Route path="/explore/venues" element={<ExploreVenuesPage />} />
         <Route path="/explore/venues/:venueId" element={<VenueSchedulePage />} />
+        <Route path="/explore/events/:eventId" element={<EventDetailPage />} />
         <Route
           element={
             <RouteGuard>
