@@ -6,8 +6,10 @@ import type {
   FormSubmission,
   FormSubmissionInput,
   MessageResponse,
+  MySubmission,
   QuestionInput,
   RuleInput,
+  SubmissionDetail,
 } from './types.ts'
 
 /**
@@ -21,6 +23,10 @@ export const forms = {
     api.post<FormSubmission>(`/forms/${facilityId}/submit`, body),
   getSubmissionPdf: (submissionId: number): Promise<Blob> =>
     api.get<Blob>(`/forms/submissions/${submissionId}/pdf`, { responseType: 'blob' }),
+  listMySubmissions: (): Promise<MySubmission[]> =>
+    api.get<MySubmission[]>('/forms/me/submissions'),
+  getSubmission: (submissionId: number): Promise<SubmissionDetail> =>
+    api.get<SubmissionDetail>(`/forms/submissions/${submissionId}`),
 
   createQuestion: (body: QuestionInput): Promise<FormQuestion> =>
     api.post<FormQuestion>('/forms/questions', body),

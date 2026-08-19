@@ -321,3 +321,62 @@ Branch: `feature/my-schedule-ical`
 - `event.description` is included in `MyScheduleItem` but unused by the page (kept for future profile/coach views); the page renders `facility_name`, address, and times.
 - Manual browser pass (register → my-schedule → reschedule/cancel → iCal download) is deferred to J.6.
 - `AGENTS.md` sync (router list, `/public` + new endpoints) is deferred to J.8 per the plan.
+
+## Phase E — Member Profile / Correspondence (E.1–E.10 complete) ✅
+
+Branch: `feature/profile-correspondence`
+
+`layout.txt:21-25` — profile with correspondence: my forms, my events, my messages.
+The full Phase E scope is complete: backend (E.1–E.5), frontend API layer + types
+(E.6–E.7), the `ProfilePage` (E.8), the sidebar Profile link (E.9), and the
+`/profile` route (E.10).
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| E.1 | `GET /forms/me/submissions` (`member_role`) — caller's submissions joined with facility name (`submission_id`, `facility_id`, `facility_name`, `signed_at`, `submitted_at`, `is_complete`); `FormSubmissionSQLite.list_by_member(sub)` + `MySubmissionItem` | `3c0ad23` |
+| E.2 | `GET /forms/submissions/{id}` (`member_role`) — submission + answers (`SubmissionDetailResponse`); members may only read their own (403 otherwise), managers/coaches/admins any; `FormSubmissionSQLite.get_by_id_with_responses(submission_id)` | `3c0ad23` |
+| E.3 | `GET /schedules/me/events` — **decided: pure alias** of `GET /schedules/me` (same handler, same payload); registered alongside `/me` and `/me/ical` | `d85e0c9` |
+| E.4.1 | `src/data/message/message.py` — `Message(message_id, member_id FK→users.sub, sender_id FK→users.sub, subject, body, is_read=False, sent_at, is_active=True)` | `c7875e1` |
+| E.4.2 | `src/data/message/message_interface.py` — CRUD + `list_by_member(member_id)`, `mark_read(message_id)` | `c7875e1` |
+| E.4.3 | `src/data/message/sqlite.py` — DDL (`is_read` default 0, `sent_at` TEXT, both FKs to `users(sub)` with cascade, `idx_message_member_id`/`idx_message_sender_id`), CRUD impl; `list_by_member` returns **active** inbox rows only | `c7875e1`, `3c0ad23` (fix) |
+| E.4.4 | `MessageSQLite` registered in `main.py` `init_db()` | `3151977` |
+| E.4.5 | `src/routes/message_routes.py` `MessageRoutes` (`/messages`) — `GET /messages/me` (`member_role`, active inbox + `sender_name` decrypted), `PUT /messages/{id}/read` (`member_role`, own only), `POST /messages` (`coach_role`+, `{member_id, subject, body}`, 404 unknown recipient), `DELETE /messages/{id}` (soft, own inbox only), `DELETE /messages/{id}/hard` (`admin_role`); registered in `main.py` | `3151977` |
+| E.5 | `src/routes/README.md` — new rows (`message_routes.py`, `public_routes.py`), endpoint additions for `event_routes.py` (capacity/register), `schedule_routes.py` (member self-service), `form_routes.py` (submission list/detail), and the `coach_role` pattern bullet | `7937970` |
+| E.6 | Frontend API layer — `forms.ts`: `listMySubmissions()`, `getSubmission(id)`; new `messages.ts`: `listMine()`, `markRead(id)`, `send(input)`; supporting types in `types.ts` | `82397c5` |
+| E.7 | `frontend/src/api/types.ts` — `Message`, `MessageInput`, `MySubmission` (+ `SubmissionDetail`) types | `82397c5` (added as E.6 compile deps) |
+| E.8.1 | `frontend/src/pages/ProfilePage.tsx` — header card: Google avatar, name, email, role `Tag` (reuses `getRoleFromToken` + the Dashboard `ROLE_SEVERITY`/`ROLE_LABEL` maps); `profile-header*` CSS in `index.css` | `a55f908` |
+| E.8.2 | `ProfilePage` correspondence tabs — PrimeReact `Tabs` (Root/List/Tab/Panels/Panel): **My Forms** (submission list → view detail dialog + PDF download), **My Events** (reuses `listMine()` schedule data inline), **My Messages** (inbox with unread styling + read/unread tag, opens message dialog and auto-marks read); `profile-tab*`/`profile-dialog*`/`profile-response*` CSS | `382c6c6` |
+| E.9 | `AppLayout.tsx` sidebar footer — the placeholder Profile item now navigates to `/profile` (`navigate` + `isActive` highlight + close-on-narrow, same as nav items) | `bdd56a0` |
+| E.10 | `router/index.tsx` — `/profile` route registered inside `RouteGuard` + `AppLayout`, `ProfilePage` lazy-loaded (own Vite chunk emitted) | `302c203` |
+
+### Details
+
+- **E.3 decision**: `/schedules/me/events` is a pure alias — same handler (`ScheduleRoutes.my_schedule`) registered as an additional route, so "my events" and "my schedule" can never drift. Documented here rather than as a separate aggregate.
+- **E.2 ownership guard** reuses the Phase B PDF pattern: `current_user.role == UserRole.MEMBER.value` → must own; coaches/managers/admins pass through. `SubmissionDetailResponse` carries the facility name plus the full `responses` list (needed by the future "my forms" tab to show answers).
+- **Message routing order**: `/{message_id}/read`, `/{message_id}`, `/{message_id}/hard` share the `{message_id}` prefix but no conflict exists (distinct literal suffixes + methods); `GET /messages/me` is registered first.
+- **`mark_read`** fetches the existing row, flips `is_read`, and re-saves via `update_message` (which only touches `is_read`/`is_active`), avoiding a partial `Message` construction.
+- **`create_messages_bulk`** resolves created rows via `SELECT last_insert_rowid()` (the SQL function, not `cursor.lastrowid`, which Python 3.12+ resets to `None` after `executemany`) minus the batch size — the pre-existing "last-row-only" quirk from other bulk creators was deliberately not replicated.
+- `sender_name` in `GET /messages/me` decrypts the sender's first/last name (falling back to the sender sub) so the inbox shows who sent each message (Key decision #5).
+- Branched from `feature/my-schedule-ical` per the plan's branching rule. Phase C (#31) and Phase D (#32) were merged to `main` during this round, and the Phase D branch tip had been updated to the merged commit — so this branch contains **only** the Phase E.1–E.10 changes (verified: `git diff main...feature/profile-correspondence` touches just the E.1–E.10 files).
+- **E.5** (`src/routes/README.md`, `7937970`): added `message_routes.py` and the previously-missing `public_routes.py` rows; extended `event_routes.py` (public capacity, member register), `schedule_routes.py` (`/me`, `/me/ical`, `/me/events`, reschedule/cancel), and `form_routes.py` (submission list/detail) descriptions; added the `coach_role` pattern bullet. Every claim was verified against the actual route registrations (dependencies + handler role deps).
+- **E.6** (`82397c5`): added `listMySubmissions`/`getSubmission` to `frontend/src/api/forms.ts` and the new `frontend/src/api/messages.ts` (`listMine`, `markRead`, `send`) following the existing `api.get/post/put` wrapper style. The `Message`/`MessageInput`/`MySubmission`/`SubmissionDetail` types were added to `types.ts` in this commit — they are compile-time dependencies of E.6's functions and also satisfy E.7's type list (E.7 will just confirm/extend them when reached).
+- **E.8.2** (`382c6c6`): added the three correspondence tabs using the PrimeReact 11 compound `Tabs` component (`Tabs.Root` with `value`/`onValueChange`, `Tabs.List`+`Tabs.Tab`, `Tabs.Panels`+`Tabs.Panel`). **My Forms** calls `forms.listMySubmissions()` and, per row, opens a detail `Dialog` via `forms.getSubmission(id)` (lists the stored answers) or downloads the PDF via `forms.getSubmissionPdf(id)` (same Blob/anchor pattern as `FormViewPage`). **My Events** reuses the `MySchedulePage` data layer inline (`listMine()` → `MyScheduleItem[]`) with Upcoming/Past tags. **My Messages** calls `messages.listMine()`, shows unread cards with an inset accent + dot and Read/Unread tags, opens a body `Dialog` via `handleOpenMessage`, and auto-calls `messages.markRead(id)` when an unread message is opened (inbox state updated in place). Tabs and dialogs compile via `tsc -b`; page is not yet routed (E.10) or linked (E.9).
+- **E.9** (`bdd56a0`): converted the placeholder `Sidebar.Footer` Profile item in `AppLayout.tsx` into a working link — `navigate('/profile')` on click, `isActive('/profile')` highlight, and sidebar close on narrow screens, mirroring the nav-item behavior. The route itself is registered in E.10.
+- **E.10** (`302c203`): added the `/profile` route in `frontend/src/router/index.tsx` (lazy `ProfilePage` import, inside the `RouteGuard` + `AppLayout` branch). The Vite build emits a dedicated `ProfilePage-*.js` chunk, confirming the route wiring. Manual browser pass of the tabs is deferred to J.6.
+
+### Verification
+
+- Backend: `uv run ruff check .` clean; `uv run pyright` 0 errors.
+- Frontend: `npm run lint` (oxlint) clean; `npm run build` (`tsc -b` + Vite) passes — including the new `ProfilePage.tsx` (built but not yet routed).
+- Backend smoke test (`smoke_e1_e4.py`, throwaway DB + FastAPI `TestClient`, real HS256 JWTs, FormRoutes/ScheduleRoutes/MessageRoutes wired):
+  - **E.1** — `/forms/me/submissions` → 401 no auth; 200 with member token (joined `facility_name` "City Pool", `is_complete` true, `submitted_at` set); caller-scoped (m1 sees only m1's, m2 only m2's).
+  - **E.2** — `/forms/submissions/{id}` → 401 no auth; 200 own (2 responses with correct answers); m1 reading m2's → 403; facility manager reading m2's → 200; missing → 404.
+  - **E.3** — `/schedules/me/events` → 401 no auth; 200 for member, payload identical to `/schedules/me` (event id, facility, times).
+  - **E.4** — `/messages/me` → 401 no auth; 200 with the seeded message (sender_id, subject, `is_read: false`); coach `POST /messages` to m2 → 200; member POST → 403; unknown recipient → 404; `PUT /{id}/read` own → `is_read: true`, another member's → 403; `DELETE /{id}` own → soft-deleted (drops out of inbox), another's → 403; `DELETE /{id}/hard` non-admin → 403, admin → 200; missing → 404.
+- Dev DB: `main.py` startup creates the `message` table via `init_db()` (idempotent); no migration needed elsewhere.
+
+### Notes
+
+- **Phase E is fully complete.** The next phase is F (coach "Manage Events"); E.5's J.8 aggregate docs sync still pending.
+- `POST /messages` sends to any `users.sub`; the member picker arrives with Phase G's user-list endpoint, so staff paste the `sub` for now.
+- No `AGENTS.md` sync yet (J.8 covers the aggregate update); the `src/routes/README.md` in-repo route doc is now current.

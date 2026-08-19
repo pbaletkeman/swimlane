@@ -6,7 +6,7 @@ querying/deleting submission records.
 """
 
 import abc
-from typing import Optional
+from typing import Any, Optional
 
 from src.data.facility_rule.facility_rule import FacilityRule
 from src.data.form_question.form_question import FormQuestion
@@ -40,6 +40,14 @@ class FormSubmissionInterface(abc.ABC):
     @abc.abstractmethod
     def list_submissions_by_sub(self, sub: str) -> Optional[list[FormSubmission]]:
         """List all submissions for a given user sub."""
+
+    @abc.abstractmethod
+    def list_by_member(self, sub: str) -> Optional[list[dict[str, Any]]]:
+        """List a member's submissions joined with their facility name."""
+
+    @abc.abstractmethod
+    def get_by_id_with_responses(self, submission_id: int) -> Optional[tuple[FormSubmission, list[FormResponse]]]:
+        """Retrieve a submission with its responses. Returns None if not found."""
 
     @abc.abstractmethod
     def hard_delete_submission_by_id(self, submission_id: int) -> bool:

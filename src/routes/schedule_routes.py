@@ -77,6 +77,11 @@ class ScheduleRoutes:
             methods=["GET"],
         )
         self.router.add_api_route(
+            "/me/events",
+            self.my_schedule,
+            methods=["GET"],
+        )
+        self.router.add_api_route(
             "/{schedule_id}",
             self.get_schedule,
             methods=["GET"],

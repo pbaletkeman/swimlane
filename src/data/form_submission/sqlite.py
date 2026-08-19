@@ -298,6 +298,53 @@ class SQLite(FormSubmissionInterfaceBase):
         return submissions if len(submissions) > 0 else None
 
     # ------------------------------------------------------------------
+    def get_by_id_with_responses(self, submission_id: int) -> Optional[tuple[FormSubmission, list[FormResponse]]]:
+        """Retrieve a submission with its responses. Returns None if the submission is not found."""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+
+            sql: str = self.get_record_select("WHERE submission_id = ?")
+            cursor.execute(sql, (submission_id,))
+            rs = cursor.fetchone()
+            if not rs:
+                return None
+            submission = self.create_form_submission_helper(rs)
+            if submission is None:
+                return None
+
+            cursor.execute(
+                """SELECT response_id, submission_id, question_id, answer_text, answer_bool
+                FROM form_response WHERE submission_id = ? ORDER BY response_id ASC""",
+                (submission_id,),
+            )
+            responses: list[FormResponse] = []
+            for r_rs in cursor:
+                r = self.create_form_response_helper(r_rs)
+                if r is not None:
+                    responses.append(r)
+
+        return submission, responses
+
+    # ------------------------------------------------------------------
+    def list_by_member(self, sub: str) -> Optional[list[dict[str, Any]]]:
+        """List a member's submissions joined with their facility name."""
+        with self._connect() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """SELECT fs.submission_id, fs.facility_id, f.name AS facility_name,
+                          fs.signed_at, fs.submitted_at, fs.is_complete
+                FROM form_submission fs
+                JOIN facility f ON f.facility_id = fs.facility_id
+                WHERE fs.sub = ?
+                ORDER BY fs.submitted_at DESC, fs.submission_id DESC""",
+                (sub,),
+            )
+            rows = [dict(rs) for rs in cursor.fetchall()]
+
+        return rows if len(rows) > 0 else None
+
+    # ------------------------------------------------------------------
     def hard_delete_submission_by_id(self, submission_id: int) -> bool:
         """Delete a submission (and its responses) by its ID."""
         with self._connect() as conn:
