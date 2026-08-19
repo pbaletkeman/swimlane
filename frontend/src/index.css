@@ -594,3 +594,17 @@
   background: var(--p-primary-color);
   transition: width 0.3s ease;
 }
+
+.explore-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.explore-registered-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--p-text-muted-color);
+}
