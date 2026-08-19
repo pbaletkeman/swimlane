@@ -380,3 +380,34 @@ The full Phase E scope is complete: backend (E.1–E.5), frontend API layer + ty
 - **Phase E is fully complete.** The next phase is F (coach "Manage Events"); E.5's J.8 aggregate docs sync still pending.
 - `POST /messages` sends to any `users.sub`; the member picker arrives with Phase G's user-list endpoint, so staff paste the `sub` for now.
 - No `AGENTS.md` sync yet (J.8 covers the aggregate update); the `src/routes/README.md` in-repo route doc is now current.
+
+## Phase F — Coach "Manage Events" (F.1 complete)
+
+Branch: `feature/coach-manage-events`
+
+`layout.txt:27-33` — coach-scoped events, create/edit, past/upcoming, manage members.
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| F.1 | `GET /coach/events?scope=upcoming\|past\|all` — `coach_role`; returns only events where `coach_id == current_user.sub`; `EventSQLite.list_events_by_coach(coach_id, scope)`; new `src/routes/coach_routes.py` `CoachRoutes` (`/coach` prefix) registered in `main.py` | `863a8bc` |
+
+### Details
+
+- **F.1** (`863a8bc`): added `EventInterface.list_events_by_coach(coach_id, scope)` + SQLite impl in `src/data/event/sqlite.py`. `scope` defaults to `all`; `upcoming` filters `start_date_time >= now`, `past` filters `start_date_time < now`, with `now` as `datetime.now().isoformat(timespec="seconds")` matching the stored TEXT format. Results reuse `get_record_select(where)` so ordering (`is_active DESC, start_date_time ASC`) is consistent with the rest of the Event SQLite.
+- New router `src/routes/coach_routes.py` (`CoachRoutes`, `APIRouter(prefix="/coach")`) hosts coach-scoped endpoints; F.1's `GET /coach/events` is the first. It's registered in `main.py` right after `AuthRoutes`. `scope` is typed as a `Literal["upcoming", "past", "all"]` query param so an invalid value is rejected by FastAPI (422) without manual validation.
+- The route depends on `coach_role` (COACH + FACILITY_MANAGER + WEB_ADMIN) and scopes by `current_user.sub`, so a facility manager hitting `/coach/events` gets their own coach-assigned events (which is empty unless they're also assigned) — consistent with the "own events" rule in the plan.
+
+### Verification
+
+- Backend: `uv run ruff check .` clean (one auto-fixed trailing newline in `coach_routes.py`); `uv run ruff format --check` clean on the touched files; `uv run pyright` 0 errors. (Pre-existing `docs/logging-info.md` and `src/routes/message_routes.py` format nits remain — untouched by F.1.)
+- Backend smoke test (throwaway seed in a temp-then-cleaned DB + FastAPI `TestClient`, real HS256 JWTs, full app):
+  - No token → 401; `member` token → 403.
+  - `coach1` with a future event, a past event, and another coach's future event: `/coach/events` → 200 `[past-event, future-event]` (only own, ordered by start time); `?scope=upcoming` → 200 `[future-event]`; `?scope=past` → 200 `[past-event]`; the other coach's event never appears.
+  - `facility_manager` token → 200 (empty list, no coach-assigned events).
+  - `?scope=bogus` → 422 (Literal validation).
+- Dev DB: the smoke seed rows were deleted afterward (users/event/venue/facility/frequency back to 0; users re-create on next Google login via the auth upsert).
+
+### Notes
+
+- The `F.2`–`F.7` member-management endpoints will extend `EventRoutes`/`ScheduleRoutes` and the `F.8`+ frontend will land on the same branch.
+- F.1's `CoachRoutes` lives in its own file so future coach-scoped endpoints (the plan keeps coach work on `/coach` and `/events/{id}/members`) have a natural home; the `GET /events/{id}/members` routes (F.2) will go on `EventRoutes` since they share the `/events` prefix.
