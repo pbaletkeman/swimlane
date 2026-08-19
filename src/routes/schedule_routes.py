@@ -10,9 +10,13 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from src.data.event.sqlite import SQLite as EventSQLite
 from src.data.schedule.schedule import Schedule
 from src.data.schedule.sqlite import SQLite as ScheduleSQLite
-from src.roles.roles import admin_role, all_users, facility_manager_role
+from src.data.users.user import User
+from src.data.venue.sqlite import SQLite as VenueSQLite
+from src.roles.roles import admin_role, all_users, facility_manager_role, member_role
+from src.routes.event_routes import resolve_max_capacity
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +28,12 @@ class ScheduleRequest(BaseModel):
     member_id: str
     event_id: int
     is_active: bool = True
+
+
+class RescheduleRequest(BaseModel):
+    """Request body for moving a member's registration to another event."""
+
+    event_id: int
 
 
 class ScheduleRoutes:
@@ -84,6 +94,11 @@ class ScheduleRoutes:
             self.hard_delete_schedules_bulk,
             methods=["DELETE"],
             dependencies=[Depends(admin_role)],
+        )
+        self.router.add_api_route(
+            "/{schedule_id}/reschedule",
+            self.reschedule,
+            methods=["POST"],
         )
 
     # ------------------------------------------------------------------
@@ -241,4 +256,55 @@ class ScheduleRoutes:
             raise
         except Exception as exc:
             logger.exception("Failed to hard delete schedules in bulk")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def reschedule(
+        self, schedule_id: int, body: RescheduleRequest, user: User = Depends(member_role)
+    ) -> Schedule:
+        """Move the caller's own registration to a different event."""
+        try:
+            db = self._get_db()
+            schedule = db.get_schedule_by_id(schedule_id)
+            if not schedule:
+                raise HTTPException(status_code=404, detail="Schedule not found")
+            if schedule.member_id != user.sub:
+                raise HTTPException(status_code=403, detail="You can only reschedule your own registration")
+
+            event_db = EventSQLite()
+            target = event_db.get_event_by_id(body.event_id)
+            if not target or not target.is_active:
+                raise HTTPException(status_code=404, detail="Event not found")
+            if target.venue_id is None:
+                raise HTTPException(status_code=400, detail="Target event has no venue assigned")
+
+            venue = VenueSQLite().get_venue_by_id(target.venue_id)
+            if not venue or not venue.is_active:
+                raise HTTPException(status_code=404, detail="Venue not found")
+
+            if schedule.event_id == body.event_id:
+                raise HTTPException(status_code=409, detail="You are already registered for this event")
+            if db.get_schedule_for_member(body.event_id, user.sub) is not None:
+                raise HTTPException(status_code=409, detail="You are already registered for this event")
+
+            max_capacity = resolve_max_capacity(target)
+            if max_capacity is not None and db.count_active_for_event(body.event_id) >= max_capacity:
+                raise HTTPException(status_code=409, detail="Event is at capacity")
+
+            updated = db.update_schedule(
+                Schedule(
+                    schedule_id=schedule.schedule_id,
+                    venue_id=target.venue_id,
+                    member_id=user.sub,
+                    event_id=body.event_id,
+                    is_active=True,
+                )
+            )
+            if not updated:
+                raise HTTPException(status_code=500, detail="Failed to reschedule")
+            return updated
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to reschedule")
             raise HTTPException(status_code=500, detail="Internal server error") from exc

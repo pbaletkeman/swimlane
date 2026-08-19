@@ -541,3 +541,81 @@
 .explore-event-ends {
   color: var(--p-text-muted-color);
 }
+
+.explore-event-description {
+  color: var(--p-text-color);
+}
+
+.explore-event-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+}
+
+.explore-event-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.explore-event-meta dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--p-text-muted-color);
+}
+
+.explore-event-meta dd {
+  margin: 0;
+}
+
+.explore-capacity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.explore-capacity-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.explore-capacity-track {
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--p-content-border-color);
+  overflow: hidden;
+}
+
+.explore-capacity-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--p-primary-color);
+  transition: width 0.3s ease;
+}
+
+.explore-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.explore-registered-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--p-text-muted-color);
+}
+
+.explore-reschedule-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}

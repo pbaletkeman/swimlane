@@ -10,4 +10,7 @@ class Event(BaseModel):
     start_date_time: str
     end_date_time: str
     frequency_id: int | None = None
+    description: str | None = None
+    coach_id: str | None = None
+    venue_id: int | None = None
     is_active: bool = True

@@ -76,24 +76,24 @@ Branch: `feature/event-registration`
 
 `layout.txt:11-16` — event cap/max capacity, description, member register + reschedule.
 
-- [ ] **C.1** — Extend `Event` model (`src/data/event/event.py`) with `description: str | None = None`, `coach_id: str | None = None`, `venue_id: int | None = None`. Commit.
-- [ ] **C.2** — Update `Event` DDL in `src/data/event/sqlite.py` (`get_create_table`) with the new columns + `FOREIGN KEY (coach_id) REFERENCES users(sub)` and `FOREIGN KEY (venue_id) REFERENCES venue(venue_id)`. Commit.
-- [ ] **C.3** — Update `EventSQLite` select/RETURNING/INSERT/UPDATE statements + `create_event_helper` for the new fields (mirror existing column lists). Commit.
-- [ ] **C.4** — **Migration**: `CREATE TABLE IF NOT EXISTS` will not add columns to an existing `swimlane.db` — add guarded migrations in `EventSQLite.init()`: sqlite → check `PRAGMA table_info(event)` then `ALTER TABLE event ADD COLUMN coach_id TEXT NULL REFERENCES users(sub)` / `ADD COLUMN venue_id INTEGER NULL REFERENCES venue(venue_id)`; postgresql → `ADD COLUMN IF NOT EXISTS`. No dev DB reset (see Key decisions #2). Commit.
-- [ ] **C.5** — `GET /events/{event_id}/capacity` — public: returns `{event_id, registered_count, max_capacity}`. Registered count = count of active `schedule` rows for the event; `max_capacity` from the event's `venue→facility.max_capacity`; **`max_capacity: null` = unlimited** (no 409). Add helper `EventSQLite`/`ScheduleSQLite` for the count + a facility-capacity join (or a small query in the route). Commit.
-- [ ] **C.6** — `POST /events/{event_id}/register` — `member_role`; creates a `Schedule` for `current_user.sub` at the event's venue; 409 if already registered; 409 if `registered_count >= max_capacity`; 404 if event/venue inactive. Commit.
-- [ ] **C.7** — `POST /schedules/{schedule_id}/reschedule` — `member_role`; body `{event_id}`; validates the target event (active, not full, not the same); updates the caller's own schedule (must match `current_user.sub`) and moves `schedule.venue_id` to the target event's venue. Commit.
-- [ ] **C.8** — Add `ScheduleSQLite.get_schedule_for_member(event_id, member_id)` and `count_active_for_event(event_id)` helpers. Commit.
-- [ ] **C.9** — Wire `/events/{event_id}/capacity` + register + reschedule into `EventRoutes`/`ScheduleRoutes` (register/reschedule auth = `member_role`). Commit.
-- [ ] **C.10** — `frontend/src/api/types.ts` — `Event` gains `description`/`coach_id`/`venue_id`; add `EventCapacity`, `RegisterResponse`, `RescheduleInput`. Commit.
-- [ ] **C.11** — `frontend/src/api/events.ts` — `getCapacity(id)`, `register(id)`; `frontend/src/api/schedules.ts` — `reschedule(id, input)`. Commit.
-- [ ] **C.12** — New public `frontend/src/pages/explore/EventDetailPage.tsx` at `/explore/events/:eventId`:
-  - [ ] **C.12.1** — Render description + times + venue + capacity ("12 / 20 registered" with progress indicator). Commit.
-  - [ ] **C.12.2** — If logged-in member: "Register" button → `register()` → toast + refresh capacity; disable when at capacity or already registered. Commit.
-  - [ ] **C.12.3** — If not logged in: "Sign in to register" link to `/login?frontend_url=...`. Commit.
-  - [ ] **C.12.4** — "Reschedule" flow: if member already registered, show their current schedule's event and a picker of alternate upcoming events → `reschedule()`. Commit.
-- [ ] **C.13** — Link event rows from `VenueSchedulePage` (Phase B) and `ExploreHomePage` event results into `/explore/events/:id`. Commit.
-- [ ] **C.14** — Route registered in router (public). Commit.
+- [x] **C.1** — Extend `Event` model (`src/data/event/event.py`) with `description: str | None = None`, `coach_id: str | None = None`, `venue_id: int | None = None`. Commit.
+- [x] **C.2** — Update `Event` DDL in `src/data/event/sqlite.py` (`get_create_table`) with the new columns + `FOREIGN KEY (coach_id) REFERENCES users(sub)` and `FOREIGN KEY (venue_id) REFERENCES venue(venue_id)`. Commit.
+- [x] **C.3** — Update `EventSQLite` select/RETURNING/INSERT/UPDATE statements + `create_event_helper` for the new fields (mirror existing column lists). Commit.
+- [x] **C.4** — **Migration**: `CREATE TABLE IF NOT EXISTS` will not add columns to an existing `swimlane.db` — add guarded migrations in `EventSQLite.init()`: sqlite → check `PRAGMA table_info(event)` then `ALTER TABLE event ADD COLUMN coach_id TEXT NULL REFERENCES users(sub)` / `ADD COLUMN venue_id INTEGER NULL REFERENCES venue(venue_id)`; postgresql → `ADD COLUMN IF NOT EXISTS`. No dev DB reset (see Key decisions #2). Commit.
+- [x] **C.5** — `GET /events/{event_id}/capacity` — public: returns `{event_id, registered_count, max_capacity}`. Registered count = count of active `schedule` rows for the event; `max_capacity` from the event's `venue→facility.max_capacity`; **`max_capacity: null` = unlimited** (no 409). Add helper `EventSQLite`/`ScheduleSQLite` for the count + a facility-capacity join (or a small query in the route). Commit.
+- [x] **C.6** — `POST /events/{event_id}/register` — `member_role`; creates a `Schedule` for `current_user.sub` at the event's venue; 409 if already registered; 409 if `registered_count >= max_capacity`; 404 if event/venue inactive. Commit.
+- [x] **C.7** — `POST /schedules/{schedule_id}/reschedule` — `member_role`; body `{event_id}`; validates the target event (active, not full, not the same); updates the caller's own schedule (must match `current_user.sub`) and moves `schedule.venue_id` to the target event's venue. Commit.
+- [x] **C.8** — Add `ScheduleSQLite.get_schedule_for_member(event_id, member_id)` and `count_active_for_event(event_id)` helpers. Commit.
+- [x] **C.9** — Wire `/events/{event_id}/capacity` + register + reschedule into `EventRoutes`/`ScheduleRoutes` (register/reschedule auth = `member_role`). Commit.
+- [x] **C.10** — `frontend/src/api/types.ts` — `Event` gains `description`/`coach_id`/`venue_id`; add `EventCapacity`, `RegisterResponse`, `RescheduleInput`. Commit.
+- [x] **C.11** — `frontend/src/api/events.ts` — `getCapacity(id)`, `register(id)`; `frontend/src/api/schedules.ts` — `reschedule(id, input)`. Commit.
+- [x] **C.12** — New public `frontend/src/pages/explore/EventDetailPage.tsx` at `/explore/events/:eventId`:
+  - [x] **C.12.1** — Render description + times + venue + capacity ("12 / 20 registered" with progress indicator). Commit.
+  - [x] **C.12.2** — If logged-in member: "Register" button → `register()` → toast + refresh capacity; disable when at capacity or already registered. Commit.
+  - [x] **C.12.3** — If not logged in: "Sign in to register" link to `/login?frontend_url=...`. Commit.
+  - [x] **C.12.4** — "Reschedule" flow: if member already registered, show their current schedule's event and a picker of alternate upcoming events → `reschedule()`. Commit.
+- [x] **C.13** — Link event rows from `VenueSchedulePage` (Phase B) and `ExploreHomePage` event results into `/explore/events/:id`. Commit.
+- [x] **C.14** — Route registered in router (public). Commit.
 
 ## Phase D — Member "My Schedule" + iCal export
 

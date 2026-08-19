@@ -44,17 +44,33 @@ class SQLite(EventInterfaceBase):
                 start_date_time  TEXT     NOT NULL,
                 end_date_time    TEXT     NOT NULL,
                 frequency_id     INTEGER,
+                description      TEXT,
+                coach_id         TEXT,
+                venue_id         INTEGER,
                 is_active        INTEGER  NULL DEFAULT 1,
-                FOREIGN KEY (frequency_id) REFERENCES frequency(frequency_id) ON DELETE CASCADE ON UPDATE CASCADE
-            );
-            CREATE INDEX IF NOT EXISTS idx_event_frequency_id ON event (frequency_id);"""
+                FOREIGN KEY (frequency_id) REFERENCES frequency(frequency_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (coach_id) REFERENCES users(sub) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (venue_id) REFERENCES venue(venue_id) ON DELETE CASCADE ON UPDATE CASCADE
+            );"""
+        return sql
+
+    # ------------------------------------------------------------------
+    def get_create_indexes(self) -> LiteralString:
+        """Get the Event Table index DDL (created after any migration so the
+        columns exist even on pre-C.3 tables)."""
+        sql = """CREATE INDEX IF NOT EXISTS idx_event_frequency_id ON event (frequency_id);
+            CREATE INDEX IF NOT EXISTS idx_event_coach_id ON event (coach_id);
+            CREATE INDEX IF NOT EXISTS idx_event_venue_id ON event (venue_id);"""
         return sql
 
     # ------------------------------------------------------------------
     def get_record_select(self, where: str = "") -> str:
         """Helper function to create the sql to get event info"""
-        sql: str = f"""SELECT event_id, start_date_time, end_date_time, frequency_id, is_active
-            FROM event {where} ORDER BY is_active DESC, start_date_time ASC"""
+        sql: str = (
+            "SELECT event_id, start_date_time, end_date_time, frequency_id, description, coach_id, venue_id, "
+            "is_active\n"
+            f"            FROM event {where} ORDER BY is_active DESC, start_date_time ASC"
+        )
         return sql
 
     # ------------------------------------------------------------------
@@ -66,6 +82,9 @@ class SQLite(EventInterfaceBase):
                 start_date_time=rs["start_date_time"],
                 end_date_time=rs["end_date_time"],
                 frequency_id=rs["frequency_id"],
+                description=rs["description"],
+                coach_id=rs["coach_id"],
+                venue_id=rs["venue_id"],
                 is_active=rs["is_active"],
             )
         return None
@@ -73,7 +92,10 @@ class SQLite(EventInterfaceBase):
     # ------------------------------------------------------------------
     def create_event_returning(self) -> str:
         """Create the event returning sql"""
-        return """RETURNING event_id, start_date_time, end_date_time, frequency_id, is_active;"""
+        return (
+            "RETURNING event_id, start_date_time, end_date_time, frequency_id, "
+            "description, coach_id, venue_id, is_active;"
+        )
 
     # ------------------------------------------------------------------
     def init(self) -> None:
@@ -83,10 +105,31 @@ class SQLite(EventInterfaceBase):
                 cursor = conn.cursor()
                 sql: str = self.get_create_table()
                 cursor.executescript(sql)
+                self._migrate(conn)
+                cursor.executescript(self.get_create_indexes())
                 conn.commit()
         except sqlite3.Error as e:
             logger.error("Database initialization failed: %s", e)
             raise
+
+    # ------------------------------------------------------------------
+    def _migrate(self, conn: sqlite3.Connection) -> None:
+        """Apply guarded migrations for columns added after the initial DDL.
+
+        ``CREATE TABLE IF NOT EXISTS`` never alters an existing table, so pre-C.3
+        databases need ``ALTER TABLE ADD COLUMN`` for the Phase C fields. Each
+        column is added only when ``PRAGMA table_info`` confirms it is missing;
+        existing rows get ``NULL`` defaults (no data loss, no dev DB reset).
+        """
+        cursor = conn.cursor()
+        columns = {row["name"] for row in cursor.execute("PRAGMA table_info(event)").fetchall()}
+
+        if "description" not in columns:
+            cursor.execute("ALTER TABLE event ADD COLUMN description TEXT")
+        if "coach_id" not in columns:
+            cursor.execute("ALTER TABLE event ADD COLUMN coach_id TEXT NULL REFERENCES users(sub)")
+        if "venue_id" not in columns:
+            cursor.execute("ALTER TABLE event ADD COLUMN venue_id INTEGER NULL REFERENCES venue(venue_id)")
 
     # ------------------------------------------------------------------
     def create_event(self, event: Event) -> Optional[Event]:
@@ -104,6 +147,9 @@ class SQLite(EventInterfaceBase):
                 start_date_time=?,
                 end_date_time=?,
                 frequency_id=?,
+                description=?,
+                coach_id=?,
+                venue_id=?,
                 is_active=?
             WHERE event_id=?
             {self.create_event_returning()}
@@ -118,6 +164,9 @@ class SQLite(EventInterfaceBase):
                     event.start_date_time,
                     event.end_date_time,
                     event.frequency_id,
+                    event.description,
+                    event.coach_id,
+                    event.venue_id,
                     event.is_active,
                     event.event_id,
                 ),
@@ -187,27 +236,38 @@ class SQLite(EventInterfaceBase):
         start_from: str | None = None,
         start_to: str | None = None,
         venue_id: int | None = None,
+        search: str | None = None,
     ) -> Optional[list[Event]]:
         """List active events within a start_date_time range (defaults to upcoming events).
 
         Pass ``venue_id`` to scope to events with an active schedule at that venue.
+        Pass ``search`` to free-text filter on ``event.description``.
         """
         now = datetime.now().isoformat(timespec="seconds")
         if venue_id is not None:
             conditions = ["e.is_active = 1", "s.is_active = 1", "s.venue_id = ?"]
             params: list[Any] = [venue_id]
-            select = "SELECT DISTINCT e.event_id, e.start_date_time, e.end_date_time, e.frequency_id, e.is_active"
+            select = (
+                "SELECT DISTINCT e.event_id, e.start_date_time, e.end_date_time, e.frequency_id, "
+                "e.description, e.coach_id, e.venue_id, e.is_active"
+            )
             from_clause = " FROM event e JOIN schedule s ON s.event_id = e.event_id"
         else:
             conditions = ["is_active = 1"]
             params = []
-            select = "SELECT event_id, start_date_time, end_date_time, frequency_id, is_active"
+            select = (
+                "SELECT event_id, start_date_time, end_date_time, frequency_id, "
+                "description, coach_id, venue_id, is_active"
+            )
             from_clause = " FROM event"
         conditions.append("start_date_time >= ?")
         params.append(start_from if start_from else now)
         if start_to:
             conditions.append("start_date_time <= ?")
             params.append(start_to)
+        if search:
+            conditions.append("description LIKE ?")
+            params.append(f"%{search}%")
         where = "WHERE " + " AND ".join(conditions)
 
         with self._connect() as conn:
@@ -234,7 +294,8 @@ class SQLite(EventInterfaceBase):
         Pass ``venue_id`` to scope to events with an active schedule at that venue.
         """
         if venue_id is not None:
-            sql = """SELECT DISTINCT e.event_id, e.start_date_time, e.end_date_time, e.frequency_id, e.is_active
+            sql = """SELECT DISTINCT e.event_id, e.start_date_time, e.end_date_time, e.frequency_id,
+                    e.description, e.coach_id, e.venue_id, e.is_active
                 FROM event e
                 JOIN schedule s ON s.event_id = e.event_id
                 WHERE e.is_active = 1 AND s.is_active = 1 AND s.venue_id = ?
@@ -242,7 +303,8 @@ class SQLite(EventInterfaceBase):
                 ORDER BY e.start_date_time ASC"""
             params: tuple[Any, ...] = (venue_id, end_iso, start_iso)
         else:
-            sql = """SELECT event_id, start_date_time, end_date_time, frequency_id, is_active
+            sql = """SELECT event_id, start_date_time, end_date_time, frequency_id,
+                    description, coach_id, venue_id, is_active
                 FROM event
                 WHERE is_active = 1 AND start_date_time <= ? AND end_date_time >= ?
                 ORDER BY start_date_time ASC"""
@@ -281,10 +343,12 @@ class SQLite(EventInterfaceBase):
         if not events:
             return []
 
-        sql: str = """INSERT INTO event (start_date_time, end_date_time, frequency_id, is_active)
-            VALUES (?, ?, ?, ?)"""
-
-        data: list[tuple[str, str, int | None, int]] = []
+        sql: str = (
+            "INSERT INTO event (start_date_time, end_date_time, frequency_id, description, coach_id, venue_id, "
+            "is_active)\n"
+            "            VALUES (?, ?, ?, ?, ?, ?, ?)"
+        )
+        data: list[tuple[str, str, int | None, str | None, str | None, int | None, int]] = []
         for ev in events:
             if not ev.start_date_time or not ev.end_date_time:
                 continue
@@ -293,6 +357,9 @@ class SQLite(EventInterfaceBase):
                     ev.start_date_time,
                     ev.end_date_time,
                     ev.frequency_id,
+                    ev.description,
+                    ev.coach_id,
+                    ev.venue_id,
                     int(ev.is_active),
                 )
             )
@@ -323,8 +390,11 @@ class SQLite(EventInterfaceBase):
 
         ids = [e.event_id for e in events if e.event_id is not None]
         placeholders = ", ".join(["?"] * len(ids))
-        sql: str = f"""DELETE FROM event WHERE event_id IN ({placeholders})
-            RETURNING event_id, start_date_time, end_date_time, frequency_id, is_active"""
+        sql: str = (
+            f"DELETE FROM event WHERE event_id IN ({placeholders})\n"
+            "            RETURNING event_id, start_date_time, end_date_time, frequency_id, "
+            "description, coach_id, venue_id, is_active"
+        )
 
         with self._connect() as conn:
             cursor = conn.cursor()

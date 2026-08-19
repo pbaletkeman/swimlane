@@ -51,6 +51,132 @@ Branch: `feature/public-read-access`
   - `GET /venues`, `/events`, `/schedules`, `/facilities` without a token → all 401
 - Seed rows added for testing were removed afterward (DB counts back to original).
 
+## Phase C — Event detail, capacity, register, reschedule (C.1–C.14 done) ✅
+
+Branch: `feature/event-registration`
+
+`layout.txt:11-16` — event cap/max capacity, description, member register + reschedule.
+Backend complete (C.1–C.9), frontend types + wrappers (C.10–C.11), public event
+detail page with register/reschedule (C.12), event links (C.13), and the public
+route (C.14). The full self-service flow — browse → event detail → register →
+reschedule — is implemented.
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| C.1 | `Event` model gains `description: str \| None = None`, `coach_id: str \| None = None`, `venue_id: int \| None = None` | `821bbaa` |
+| C.2 | `event` DDL gains `description TEXT`, `coach_id TEXT`, `venue_id INTEGER` columns + `FOREIGN KEY (coach_id) REFERENCES users(sub)` / `FOREIGN KEY (venue_id) REFERENCES venue(venue_id)` (cascade, matching the existing `frequency_id` FK convention) + `idx_event_coach_id` / `idx_event_venue_id` indexes | `06b077e` |
+| C.3 | `EventSQLite` updated for the new fields: `get_record_select`, `create_event_helper`, `create_event_returning`, `update_event`, `create_events_bulk` INSERT, `list_public_events` + `list_events_in_range` (both plain and venue-scoped select lists), `hard_delete_events_bulk` RETURNING | `06b077e` |
+| C.4 | Guarded migration in `EventSQLite.init()`: `PRAGMA table_info(event)` then `ALTER TABLE event ADD COLUMN description/coach_id/venue_id ...` (only when missing, NULL defaults). `get_create_table()` now returns just the `CREATE TABLE` and a new `get_create_indexes()` runs after migration, so pre-C.3 tables get the `idx_event_*` indexes too. Idempotent. | `eb27df5` |
+| C.5 | `EventRoutes.get_event_capacity` handler — `{event_id, registered_count, max_capacity}`; count = active `schedule` rows; `max_capacity` resolved from event's `venue→facility.max_capacity` (`None` = unlimited); 404 if event missing/inactive | `6191ca0` |
+| C.6 | `EventRoutes.register_for_event` handler — `Depends(member_role)`, creates a `Schedule` at the event's venue for `current_user.sub`; 409 already-registered; 409 at capacity; 400 no venue; 404 inactive event/venue | `6191ca0` |
+| C.7 | `ScheduleRoutes.reschedule` handler — `Depends(member_role)`, body `{event_id}`; 403 unless the schedule belongs to `current_user.sub`; target event must be active (404) with a venue (400, venue active 404); 409 same event, 409 already registered on target, 409 target at capacity; updates `schedule.event_id` and moves `schedule.venue_id` to the target event's venue | `0459028` |
+| C.8 | `ScheduleSQLite.get_schedule_for_member(event_id, member_id)` (active row) + `count_active_for_event(event_id)`; added to `ScheduleInterface`; `get_event_capacity`/`register_for_event` refactored to use them; capacity resolution hoisted to module-level `resolve_max_capacity(event)` in `event_routes.py` for reuse | `35ebe19` |
+| C.9 | Routes wired: `GET /events/{event_id}/capacity` (public, no auth), `POST /events/{event_id}/register` and `POST /schedules/{schedule_id}/reschedule` (auth via `Depends(member_role)` in the handler signatures) | `1a8e164` |
+| C.10 | `frontend/src/api/types.ts`: `Event` gains `description`/`coach_id`/`venue_id`; `PublicEvent` gains the same three (backend `/public` endpoints now select them per C.3); new `EventCapacity` (`max_capacity: null` = unlimited), `RegisterResponse` (a created `Schedule`), `RescheduleInput {event_id}` | `75ec70e` |
+| C.11 | `frontend/src/api/events.ts`: `getEventCapacity(id)` (public GET) + `registerForEvent(id)` (POST); `frontend/src/api/schedules.ts`: `reschedule(id, { event_id })` (POST). Added as named exports alongside the existing `createCrudApi` consts (no default-export consumers exist) | `c7dd3e4` |
+| C.12.1 | `frontend/src/pages/explore/EventDetailPage.tsx` — renders description, start/end times, venue (facility + address), and capacity ("12 / 20 registered" with a progress bar); loading skeletons + 404 `EmptyState`; `PublicEventDetail` type + `getEventDetail(id)` public wrapper. **Enabler:** new `GET /public/events/{event_id}` endpoint (public detail with venue + live capacity) and `/public` event responses now carry `description`/`coach_id`/`venue_id` | `4586bd3`, `a4be87b` |
+| C.12.2 | Register button for signed-in users (`useAuth`), calls `registerForEvent(id)` → toast + refreshes capacity via `getEventDetail`; disabled when at capacity or already registered (membership resolved from `schedules.list()` filtered by `user.sub`) | `262691c` |
+| C.12.3 | Anonymous users see a "Sign in to register" link to `/login?frontend_url=<origin>` | `262691c` |
+| C.12.4 | "Reschedule" card when already registered: shows the current registration, a `Select` picker of alternate upcoming events (`searchEvents()`), and a "Move registration" button calling `reschedule(schedule_id, {event_id})` → toast + refreshes capacity and clears the local registration | `80ba026` |
+| C.13 | Event rows link to `/explore/events/:id` — `VenueSchedulePage` rows (already linked since B.7.3) plus new inline `ExploreHomePage` event results. **Enabler:** `GET /public/events?q=` free-text search on `event.description` (deferred from A.3 until descriptions existed) | `9eac47e`, `d3b980e` |
+| C.14 | `frontend/src/router/index.tsx` — `/explore/events/:eventId` registered as a **public** route (outside `RouteGuard`) with lazy `EventDetailPage` import | `42a70bf` |
+
+### Details
+
+- Column order throughout is `event_id, start_date_time, end_date_time, frequency_id, description, coach_id, venue_id, is_active`; all selects/returns mirror it so `create_event_helper` maps correctly.
+- New-field values default to `NULL`/`None` — fully backward compatible for existing callers that don't set them.
+- C.4 splits `get_create_table()` into table DDL + `get_create_indexes()` so `init()` runs **CREATE TABLE → migrate → indexes**; without the split, `CREATE INDEX ... ON event (coach_id)` fails on pre-C.3 tables before the `ALTER` runs.
+- C.8 hoisted the venue→facility capacity lookup from `EventRoutes._resolve_max_capacity` to module-level `resolve_max_capacity(event)` (in `event_routes.py`) so `ScheduleRoutes.reschedule` shares it — no duplication between routers.
+- The `EventRequest` route body does **not** yet carry the new fields (event creation/update of `description`/`coach_id`/`venue_id` still goes through the model defaults; extending the body is out of the C-scope listed in the todo, which targets capacity/register/reschedule).
+- Branched from `main` (Phase B merged as `488e168` / PR #30).
+
+### Verification
+
+- `uv run ruff check .` — clean; `uv run ruff format --check` on changed files — clean; `uv run pyright` — 0 errors.
+- Smoke tests:
+  - **C.4** (throwaway DB) — *old* `event` table (no new columns) → `init()` adds all three columns, preserves an existing row as `NULL`s, second `init()` is a no-op; `get_event_by_id` works on the migrated row.
+  - **C.5/C.6** (throwaway DB) — capacity fresh → `{0, 2}`; register m1 → count 1; duplicate → 409; m2 → count 2; m3 → 409 at capacity with **no partial schedule row**; missing/inactive event → 404; no-venue → 400; inactive venue → 404.
+  - **C.7/C.8/C.9** (throwaway DB + FastAPI `TestClient` with real HS256 JWTs, routes wired) — capacity is public (no auth) `{0, 2}`; register/reschedule without a token → 401; register m1+m2 → evA full, duplicate → 409, m3 → 409; reschedule moves `event_id` + `venue_id` (evB→evC put the schedule on venue 2, evB dropped to 0); same-event → 409; already-registered target → 409; full target → 409; inactive target → 404; venue-less target → 400; someone else's schedule → 403; missing schedule → 404; final public capacities consistent.
+- **Dev DB migrated in place** (`swimlane.db`): after `EventSQLite().init()`, `PRAGMA table_info(event)` shows `description`/`coach_id`/`venue_id` and `list_events()` works again (existing rows keep `NULL`s). No DB reset.
+- **Frontend (C.10):** `npm run lint` (oxlint) clean; `npm run build` (`tsc -b` + Vite) clean — the new required `PublicEvent` fields don't break existing consumers (`getVenueSchedules`, `searchEvents`, `VenueSchedulePage`).
+- **Frontend (C.11):** `npm run lint` (oxlint) clean; `npm run build` (`tsc -b` + Vite) clean — the new named API exports type-check against the `EventCapacity`/`RegisterResponse`/`RescheduleInput`/`Schedule` types.
+
+### Notes
+
+- **Pre-existing quirk (out of scope):** `create_events_bulk` re-selects only `last_insert_rowid()`, so a multi-row bulk returns just the last inserted row. Flagged for a future fix.
+- **Postgres**: no `Event`/`Schedule` postgres implementation exists yet, so the postgresql branch of the C.4 migration is N/A until one is added.
+- **Deferred:** none — Phase C is complete. The full manual browser pass (explore → event detail → register → reschedule) is covered by J.6.
+
+### Public event detail page (C.12)
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| C.12.1 | `EventDetailPage.tsx` renders description, times, venue, and a capacity progress bar; `PublicEventDetail` type + `getEventDetail(id)` public API wrapper; `explore-event-meta`/`explore-capacity` styles | `a4be87b` |
+| C.12.2 | Register action for signed-in users — `registerForEvent(id)`, toast + capacity refresh, disabled when full or already registered | `262691c` |
+| C.12.3 | "Sign in to register" link to `/login?frontend_url=...` for anonymous visitors | `262691c` |
+| C.12.4 | Reschedule card — current-event note, alternate-upcoming-event `Select` picker, `reschedule()` call with toast + refresh | `80ba026` |
+| C.12 enabler | `GET /public/events/{event_id}` — public single-event detail (`PublicEventDetail` = `PublicEvent` + `venue: PublicVenue \| None` + `registered_count` + `max_capacity`); `_to_public_events` now includes `description`/`coach_id`/`venue_id` | `4586bd3` |
+
+### Details
+
+- C.12.1 renders event details **publicly** (no login required), so the page needed a public single-event source: `/public/events` only listed upcoming events and dropped the Phase C fields, and there was no `/public/events/{id}`. Added the enabler endpoint (`PublicRoutes.get_event_detail`) returning the event fields plus its venue summary (via the existing `_with_facility_name`) and live capacity (`ScheduleSQLite.count_active_for_event` + `resolve_max_capacity` from `event_routes.py`). 404 for missing/inactive events.
+- `_to_public_events` was updated to carry `description`/`coach_id`/`venue_id` so `/public/events` matches the `PublicEvent` type shipped in C.10 (previously those fields were silently dropped by the public router while the TS type declared them required).
+- The page is a lazy default-export component under `frontend/src/pages/explore/`, following `VenueSchedulePage.tsx` conventions (loading skeletons, `EmptyState` on 404, `explore-page`/`explore-container` chrome, `formatDateTime` helper).
+- Membership is resolved from `schedules.list()` filtered to `is_active && event_id === id && member_id === user.sub`; the register response (a full `Schedule`) is used to set the local registration without a refetch. Reschedule uses the matched `schedule_id` and clears it locally after success.
+- Capacity bar only renders when `max_capacity` is non-null (unlimited events show "N / unlimited registered"); the Register button label becomes "Event full" and is disabled when full.
+- The `/explore/events/:eventId` route is registered in C.14; until then the page was unreachable (verified via lint/build and the backend smoke test).
+- Branched from `main` (Phase B merged as `488e168` / PR #30); C.1–C.11 commits carried forward from the earlier C-phase work.
+
+### Verification
+
+- **Backend (C.12 enabler):** `uv run ruff check .` clean; `uv run pyright` 0 errors. Throwaway-DB smoke test (`smoke_c12.py`, FastAPI `TestClient`):
+  - `GET /public/events` → 200 and the listing now carries `description`/`coach_id`/`venue_id`.
+  - `GET /public/events/{id}` → 200 with `venue.facility_name`/`street`, `registered_count`, `max_capacity`; after registering a member the count reflects it (1).
+  - Venue-less event → `venue: null`, `max_capacity: null`; inactive event → 404; missing event → 404.
+- **Frontend:** `npm run lint` (oxlint) clean after each of the C.12.1/C.12.2-3/C.12.4 commits; `npm run build` (`tsc -b` + Vite) clean — `EventDetailPage` compiles as a lazy chunk and the new `public`/`types` changes typecheck against existing consumers.
+
+### Notes (C.12)
+
+- Scope note: C.12 is listed in the todo as frontend-only, but the page must render event details anonymously; the small `GET /public/events/{event_id}` endpoint was added as a C.12 enabler and is the only backend change in this round.
+- The reschedule picker uses `searchEvents()` (upcoming active events) excluding the current event; a member who reschedules away is no longer registered for this page's event, so the local registration is cleared and capacity refreshed.
+- No manual browser pass yet — the route is registered in C.14.
+
+### Event links (C.13)
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| C.13 | `ExploreHomePage` "Find by event" now runs the public event search inline and renders result rows (time, description, end time) each linking to `/explore/events/:id`; `EventSearchOptions` gains `q`; `searchEvents` passes it as `?q=`; `.explore-event-description` style | `9eac47e` |
+| C.13 enabler | `GET /public/events?q=` free-text search on `event.description` (`EventSQLite.list_public_events(search=…)` + interface, route `q` param) — the A.3-deferred search, now that Phase C descriptions exist | `d3b980e` |
+
+### Details
+
+- `VenueSchedulePage` already linked every event row to `/explore/events/:eventId` ("View details" button) since Phase B (B.7.3) — that half of C.13 needed no change, only the `ExploreHomePage` half.
+- The home page now shows results below the search card (loading skeletons while fetching, `EmptyState` when empty); a blank "Find by event" search lists all upcoming active events.
+- `q` combines with the existing `from_dt`/`to_dt`/`venue_id` filters in `list_public_events` (case-insensitive `LIKE`, active events only).
+- Branched from `main` (Phase B merged as `488e168`); this branch carries the full C.1–C.12 history plus the C.13 commits.
+
+### Verification
+
+- Backend: `uv run ruff check .` clean; `uv run pyright` 0 errors.
+- Backend smoke test (`smoke_c13.py`, throwaway DB + `TestClient`): `?q=city` matches the active "City meet" description only (inactive "finals" excluded); `q` + `venue_id` combine; `?q=zzz` → `[]`; no `q` → all upcoming events (2); inactive events never match.
+- Frontend: `npm run lint` (oxlint) clean; `npm run build` (`tsc -b` + Vite) clean — `ExploreHomePage` compiles (lazy chunk grew to include the result rendering + toast) and the `q` param typechecks against `searchEvents`.
+
+### Public route registration (C.14)
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| C.14 | `frontend/src/router/index.tsx` — lazy `EventDetailPage` import + `<Route path="/explore/events/:eventId" element={<EventDetailPage />} />` in the public group (outside `RouteGuard`) | `42a70bf` |
+
+### Details
+
+- The route sits alongside the other public `/explore` routes (`/explore`, `/explore/venues`, `/explore/venues/:venueId`), outside the `RouteGuard`-wrapped `AppLayout` tree, so anonymous visitors can view event details and are prompted to sign in to register (C.12.3).
+- `EventDetailPage` is a lazy default-export component; the build now emits its own `EventDetailPage-*.js` chunk, confirming the route resolves the import.
+
+### Verification
+
+- Frontend: `npm run lint` (oxlint) clean; `npm run build` (`tsc -b` + Vite) clean — `EventDetailPage-y58BGqRA.js` appears as its own lazy chunk (263 modules transformed).
+- The route completes the C.12–C.14 flow; backend capacity/register/reschedule endpoints and public event detail/search were smoke-tested in C.12/C.13 verification.
+
 ### Public routes, HomePage link, and styles (B.8–B.10)
 
 | Sub-task | Deliverable | Commit |

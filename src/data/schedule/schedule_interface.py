@@ -53,6 +53,14 @@ class ScheduleInterface(abc.ABC):
         """List all schedules for a given event ID."""
 
     @abc.abstractmethod
+    def get_schedule_for_member(self, event_id: int, member_id: str) -> Optional[Schedule]:
+        """Return the active schedule for a member on a specific event, if any."""
+
+    @abc.abstractmethod
+    def count_active_for_event(self, event_id: int) -> int:
+        """Count the number of active schedules registered for an event."""
+
+    @abc.abstractmethod
     def list_schedules_by_venue_id(self, venue_id: int) -> Optional[list[Schedule]]:
         """List all schedules for a given venue ID."""
 

@@ -50,10 +50,12 @@ class EventInterface(abc.ABC):
         start_from: str | None = None,
         start_to: str | None = None,
         venue_id: int | None = None,
+        search: str | None = None,
     ) -> Optional[list[Event]]:
         """List active events within a start_date_time range (defaults to upcoming events).
 
         Pass ``venue_id`` to scope to events with an active schedule at that venue.
+        Pass ``search`` to free-text filter on ``event.description``.
         """
 
     @abc.abstractmethod

@@ -15,8 +15,10 @@ from pydantic import BaseModel
 from src.data.event.event import Event
 from src.data.event.sqlite import SQLite as EventSQLite
 from src.data.facility.sqlite import SQLite as FacilitySQLite
+from src.data.schedule.sqlite import SQLite as ScheduleSQLite
 from src.data.venue.sqlite import SQLite as VenueSQLite
 from src.data.venue.venue import Venue
+from src.routes.event_routes import resolve_max_capacity
 from src.util.dates import day_end_iso, day_start_iso, month_range, parse_date, week_range
 
 logger = logging.getLogger(__name__)
@@ -43,7 +45,18 @@ class PublicEvent(BaseModel):
     start_date_time: str
     end_date_time: str
     frequency_id: int | None
+    description: str | None = None
+    coach_id: str | None = None
+    venue_id: int | None = None
     is_active: bool
+
+
+class PublicEventDetail(PublicEvent):
+    """Public single-event detail: event fields plus its venue and capacity."""
+
+    venue: PublicVenue | None = None
+    registered_count: int = 0
+    max_capacity: int | None = None
 
 
 class PublicRoutes:
@@ -55,6 +68,7 @@ class PublicRoutes:
         self.router.add_api_route("/venues/{venue_id}", self.get_venue, methods=["GET"])
         self.router.add_api_route("/venues/{venue_id}/schedules", self.get_venue_schedules, methods=["GET"])
         self.router.add_api_route("/events", self.list_events, methods=["GET"])
+        self.router.add_api_route("/events/{event_id}", self.get_event_detail, methods=["GET"])
 
     # ------------------------------------------------------------------
     def _with_facility_name(self, venues: list[Venue]) -> list[PublicVenue]:
@@ -118,6 +132,9 @@ class PublicRoutes:
                 start_date_time=e.start_date_time,
                 end_date_time=e.end_date_time,
                 frequency_id=e.frequency_id,
+                description=e.description,
+                coach_id=e.coach_id,
+                venue_id=e.venue_id,
                 is_active=e.is_active,
             )
             for e in events
@@ -163,15 +180,16 @@ class PublicRoutes:
     # ------------------------------------------------------------------
     async def list_events(
         self,
+        q: Optional[str] = None,
         from_dt: Optional[str] = None,
         to_dt: Optional[str] = None,
         venue_id: Optional[int] = None,
     ) -> list[PublicEvent]:
         """Public event listing, defaulting to upcoming active events.
 
-        Free-text search (``?q=``) is deferred until ``event.description`` exists
-        (Phase C); date filtering is available via ``from_dt``/``to_dt`` and the
-        listing can be scoped to one venue via ``venue_id``.
+        Free-text search via ``?q=`` matches ``event.description`` (available
+        since Phase C); date filtering is available via ``from_dt``/``to_dt`` and
+        the listing can be scoped to one venue via ``venue_id``.
         """
         try:
             db = EventSQLite()
@@ -179,10 +197,45 @@ class PublicRoutes:
                 start_from=from_dt,
                 start_to=to_dt,
                 venue_id=venue_id,
+                search=q,
             )
             return self._to_public_events(events or [])
         except HTTPException:
             raise
         except Exception as exc:
             logger.exception("Failed to list public events")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def get_event_detail(self, event_id: int) -> PublicEventDetail:
+        """Public single-event detail. 404 for unknown or inactive events."""
+        try:
+            db = EventSQLite()
+            event = db.get_event_by_id(event_id)
+            if not event or not event.is_active:
+                raise HTTPException(status_code=404, detail="Event not found")
+
+            venue: PublicVenue | None = None
+            if event.venue_id is not None:
+                v = VenueSQLite().get_venue_by_id(event.venue_id)
+                if v and v.is_active:
+                    venue = self._with_facility_name([v])[0]
+
+            return PublicEventDetail(
+                event_id=event.event_id or 0,
+                start_date_time=event.start_date_time,
+                end_date_time=event.end_date_time,
+                frequency_id=event.frequency_id,
+                description=event.description,
+                coach_id=event.coach_id,
+                venue_id=event.venue_id,
+                is_active=event.is_active,
+                venue=venue,
+                registered_count=ScheduleSQLite().count_active_for_event(event_id),
+                max_capacity=resolve_max_capacity(event),
+            )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to get public event detail")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
