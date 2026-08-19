@@ -51,14 +51,15 @@ Branch: `feature/public-read-access`
   - `GET /venues`, `/events`, `/schedules`, `/facilities` without a token → all 401
 - Seed rows added for testing were removed afterward (DB counts back to original).
 
-## Phase C — Event detail, capacity, register, reschedule (C.1–C.12 done; C.13+ pending) 🔨
+## Phase C — Event detail, capacity, register, reschedule (C.1–C.13 done; C.14 pending) 🔨
 
 Branch: `feature/event-registration`
 
 `layout.txt:11-16` — event cap/max capacity, description, member register + reschedule.
 Backend is complete (C.1–C.9), the frontend type layer is in place (C.10), the
-API wrappers are ready (C.11), and the public event detail page is done (C.12).
-Remaining work is the explore wiring (C.13–C.14) in `missing-features-todo.md`.
+API wrappers are ready (C.11), the public event detail page is done (C.12), and
+event rows now link into it (C.13). Remaining work is the route registration
+(C.14) in `missing-features-todo.md`.
 
 | Sub-task | Deliverable | Commit |
 |----------|-------------|--------|
@@ -77,6 +78,7 @@ Remaining work is the explore wiring (C.13–C.14) in `missing-features-todo.md`
 | C.12.2 | Register button for signed-in users (`useAuth`), calls `registerForEvent(id)` → toast + refreshes capacity via `getEventDetail`; disabled when at capacity or already registered (membership resolved from `schedules.list()` filtered by `user.sub`) | `262691c` |
 | C.12.3 | Anonymous users see a "Sign in to register" link to `/login?frontend_url=<origin>` | `262691c` |
 | C.12.4 | "Reschedule" card when already registered: shows the current registration, a `Select` picker of alternate upcoming events (`searchEvents()`), and a "Move registration" button calling `reschedule(schedule_id, {event_id})` → toast + refreshes capacity and clears the local registration | `80ba026` |
+| C.13 | Event rows link to `/explore/events/:id` — `VenueSchedulePage` rows (already linked since B.7.3) plus new inline `ExploreHomePage` event results. **Enabler:** `GET /public/events?q=` free-text search on `event.description` (deferred from A.3 until descriptions existed) | `9eac47e`, `d3b980e` |
 
 ### Details
 
@@ -102,7 +104,7 @@ Remaining work is the explore wiring (C.13–C.14) in `missing-features-todo.md`
 
 - **Pre-existing quirk (out of scope):** `create_events_bulk` re-selects only `last_insert_rowid()`, so a multi-row bulk returns just the last inserted row. Flagged for a future fix.
 - **Postgres**: no `Event`/`Schedule` postgres implementation exists yet, so the postgresql branch of the C.4 migration is N/A until one is added.
-- **Deferred:** C.13–C.14 frontend (event links, route registration).
+- **Deferred:** C.14 route registration for `/explore/events/:eventId`.
 
 ### Public event detail page (C.12)
 
@@ -137,6 +139,26 @@ Remaining work is the explore wiring (C.13–C.14) in `missing-features-todo.md`
 - Scope note: C.12 is listed in the todo as frontend-only, but the page must render event details anonymously; the small `GET /public/events/{event_id}` endpoint was added as a C.12 enabler and is the only backend change in this round.
 - The reschedule picker uses `searchEvents()` (upcoming active events) excluding the current event; a member who reschedules away is no longer registered for this page's event, so the local registration is cleared and capacity refreshed.
 - No manual browser pass yet — the route is registered in C.14.
+
+### Event links (C.13)
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| C.13 | `ExploreHomePage` "Find by event" now runs the public event search inline and renders result rows (time, description, end time) each linking to `/explore/events/:id`; `EventSearchOptions` gains `q`; `searchEvents` passes it as `?q=`; `.explore-event-description` style | `9eac47e` |
+| C.13 enabler | `GET /public/events?q=` free-text search on `event.description` (`EventSQLite.list_public_events(search=…)` + interface, route `q` param) — the A.3-deferred search, now that Phase C descriptions exist | `d3b980e` |
+
+### Details
+
+- `VenueSchedulePage` already linked every event row to `/explore/events/:eventId` ("View details" button) since Phase B (B.7.3) — that half of C.13 needed no change, only the `ExploreHomePage` half.
+- The home page now shows results below the search card (loading skeletons while fetching, `EmptyState` when empty); a blank "Find by event" search lists all upcoming active events.
+- `q` combines with the existing `from_dt`/`to_dt`/`venue_id` filters in `list_public_events` (case-insensitive `LIKE`, active events only).
+- Branched from `main` (Phase B merged as `488e168`); this branch carries the full C.1–C.12 history plus the C.13 commits.
+
+### Verification
+
+- Backend: `uv run ruff check .` clean; `uv run pyright` 0 errors.
+- Backend smoke test (`smoke_c13.py`, throwaway DB + `TestClient`): `?q=city` matches the active "City meet" description only (inactive "finals" excluded); `q` + `venue_id` combine; `?q=zzz` → `[]`; no `q` → all upcoming events (2); inactive events never match.
+- Frontend: `npm run lint` (oxlint) clean; `npm run build` (`tsc -b` + Vite) clean — `ExploreHomePage` compiles (lazy chunk grew to include the result rendering + toast) and the `q` param typechecks against `searchEvents`.
 
 ### Public routes, HomePage link, and styles (B.8–B.10)
 
