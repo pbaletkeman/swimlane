@@ -53,6 +53,12 @@ class EventMemberItem(BaseModel):
     is_active: bool
 
 
+class EventMemberAdd(BaseModel):
+    """Request body for adding a member to an event."""
+
+    member_id: str
+
+
 def resolve_max_capacity(event: Event) -> int | None:
     """Resolve an event's max capacity from its venue's facility.
 
@@ -139,6 +145,11 @@ class EventRoutes:
             "/{event_id}/members",
             self.list_event_members,
             methods=["GET"],
+        )
+        self.router.add_api_route(
+            "/{event_id}/members",
+            self.add_event_member,
+            methods=["POST"],
         )
         self.router.add_api_route(
             "/{event_id}/register",
@@ -323,39 +334,98 @@ class EventRoutes:
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
+    def _is_manager_or_admin(self, user: User) -> bool:
+        """True when the caller is a facility manager or web admin."""
+        return user.role in (
+            UserRole.FACILITY_MANAGER.value,
+            UserRole.WEB_ADMIN.value,
+        )
+
+    # ------------------------------------------------------------------
+    def _create_schedule_for_member(self, event_id: int, member_id: str) -> Schedule:
+        """Shared Phase C register internals: validate event/venue and create a schedule.
+
+        Raises HTTPException on any validation failure (404 missing/inactive event
+        or venue, 409 already registered or at capacity). Returns the created schedule.
+        """
+        db = self._get_db()
+        event = db.get_event_by_id(event_id)
+        if not event or not event.is_active:
+            raise HTTPException(status_code=404, detail="Event not found")
+
+        if event.venue_id is None:
+            raise HTTPException(status_code=400, detail="Event has no venue assigned")
+
+        venue = VenueSQLite().get_venue_by_id(event.venue_id)
+        if not venue or not venue.is_active:
+            raise HTTPException(status_code=404, detail="Venue not found")
+
+        schedule_db = ScheduleSQLite()
+        if schedule_db.get_schedule_for_member(event_id, member_id) is not None:
+            raise HTTPException(status_code=409, detail="Already registered for this event")
+
+        max_capacity = resolve_max_capacity(event)
+        if max_capacity is not None and schedule_db.count_active_for_event(event_id) >= max_capacity:
+            raise HTTPException(status_code=409, detail="Event is at capacity")
+
+        schedule = schedule_db.create_schedule(
+            Schedule(venue_id=event.venue_id, member_id=member_id, event_id=event_id, is_active=True)
+        )
+        if not schedule:
+            raise HTTPException(status_code=500, detail="Failed to register for event")
+        return schedule
+
+    # ------------------------------------------------------------------
     async def register_for_event(self, event_id: int, user: User = Depends(member_role)) -> Schedule:
         """Register the current member for an event (creates a Schedule row)."""
         try:
-            db = self._get_db()
-            event = db.get_event_by_id(event_id)
-            if not event or not event.is_active:
-                raise HTTPException(status_code=404, detail="Event not found")
-
-            if event.venue_id is None:
-                raise HTTPException(status_code=400, detail="Event has no venue assigned")
-
-            venue = VenueSQLite().get_venue_by_id(event.venue_id)
-            if not venue or not venue.is_active:
-                raise HTTPException(status_code=404, detail="Venue not found")
-
-            schedule_db = ScheduleSQLite()
-            if schedule_db.get_schedule_for_member(event_id, user.sub) is not None:
-                raise HTTPException(status_code=409, detail="Already registered for this event")
-
-            max_capacity = resolve_max_capacity(event)
-            if max_capacity is not None and schedule_db.count_active_for_event(event_id) >= max_capacity:
-                raise HTTPException(status_code=409, detail="Event is at capacity")
-
-            schedule = schedule_db.create_schedule(
-                Schedule(venue_id=event.venue_id, member_id=user.sub, event_id=event_id, is_active=True)
-            )
-            if not schedule:
-                raise HTTPException(status_code=500, detail="Failed to register for event")
-            return schedule
+            return self._create_schedule_for_member(event_id, user.sub)
         except HTTPException:
             raise
         except Exception as exc:
             logger.exception("Failed to register for event")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def add_event_member(
+        self,
+        event_id: int,
+        body: EventMemberAdd,
+        current_user: User = Depends(coach_role),
+    ) -> EventMemberItem:
+        """Add a member to an event (coach of the event or manager+)."""
+        try:
+            event = self._get_db().get_event_by_id(event_id)
+            if not event:
+                raise HTTPException(status_code=404, detail="Event not found")
+            if not self._is_manager_or_admin(current_user) and event.coach_id != current_user.sub:
+                raise HTTPException(status_code=403, detail="Not the coach of this event")
+
+            schedule = self._create_schedule_for_member(event_id, body.member_id)
+
+            rows = ScheduleSQLite().list_schedules_by_event_id_with_members(event_id) or []
+            row = next((r for r in rows if r["member_id"] == body.member_id), None)
+            if not row:
+                row = {
+                    "schedule_id": schedule.schedule_id or 0,
+                    "venue_id": schedule.venue_id,
+                    "member_id": schedule.member_id,
+                    "event_id": schedule.event_id,
+                    "is_active": schedule.is_active,
+                }
+            return EventMemberItem(
+                schedule_id=row["schedule_id"],
+                venue_id=row["venue_id"],
+                member_id=row["member_id"],
+                member_name=self._member_display_name(row),
+                email=self._member_email(row),
+                event_id=row["event_id"],
+                is_active=bool(row["is_active"]),
+            )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to add event member")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
@@ -394,11 +464,7 @@ class EventRoutes:
             if not event:
                 raise HTTPException(status_code=404, detail="Event not found")
 
-            is_manager = current_user.role in (
-                UserRole.FACILITY_MANAGER.value,
-                UserRole.WEB_ADMIN.value,
-            )
-            if not is_manager and event.coach_id != current_user.sub:
+            if not self._is_manager_or_admin(current_user) and event.coach_id != current_user.sub:
                 raise HTTPException(status_code=403, detail="Not the coach of this event")
 
             rows = ScheduleSQLite().list_schedules_by_event_id_with_members(event_id) or []
