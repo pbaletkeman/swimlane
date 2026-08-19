@@ -78,7 +78,15 @@ export function AppLayout() {
             <Sidebar.Footer>
               <Sidebar.Menu>
                 <Sidebar.MenuItem>
-                  <Sidebar.MenuButton>
+                  <Sidebar.MenuButton
+                    isActive={isActive('/profile')}
+                    onClick={() => {
+                      navigate('/profile')
+                      if (isNarrow) {
+                        setSidebarOpen(false)
+                      }
+                    }}
+                  >
                     <i className="pi pi-user" />
                     <span>Profile</span>
                   </Sidebar.MenuButton>
