@@ -93,7 +93,7 @@ Branch: `feature/event-registration`
   - [x] **C.12.3** — If not logged in: "Sign in to register" link to `/login?frontend_url=...`. Commit.
   - [x] **C.12.4** — "Reschedule" flow: if member already registered, show their current schedule's event and a picker of alternate upcoming events → `reschedule()`. Commit.
 - [x] **C.13** — Link event rows from `VenueSchedulePage` (Phase B) and `ExploreHomePage` event results into `/explore/events/:id`. Commit.
-- [ ] **C.14** — Route registered in router (public). Commit.
+- [x] **C.14** — Route registered in router (public). Commit.
 
 ## Phase D — Member "My Schedule" + iCal export
 

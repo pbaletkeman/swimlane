@@ -51,15 +51,15 @@ Branch: `feature/public-read-access`
   - `GET /venues`, `/events`, `/schedules`, `/facilities` without a token → all 401
 - Seed rows added for testing were removed afterward (DB counts back to original).
 
-## Phase C — Event detail, capacity, register, reschedule (C.1–C.13 done; C.14 pending) 🔨
+## Phase C — Event detail, capacity, register, reschedule (C.1–C.14 done) ✅
 
 Branch: `feature/event-registration`
 
 `layout.txt:11-16` — event cap/max capacity, description, member register + reschedule.
-Backend is complete (C.1–C.9), the frontend type layer is in place (C.10), the
-API wrappers are ready (C.11), the public event detail page is done (C.12), and
-event rows now link into it (C.13). Remaining work is the route registration
-(C.14) in `missing-features-todo.md`.
+Backend complete (C.1–C.9), frontend types + wrappers (C.10–C.11), public event
+detail page with register/reschedule (C.12), event links (C.13), and the public
+route (C.14). The full self-service flow — browse → event detail → register →
+reschedule — is implemented.
 
 | Sub-task | Deliverable | Commit |
 |----------|-------------|--------|
@@ -79,6 +79,7 @@ event rows now link into it (C.13). Remaining work is the route registration
 | C.12.3 | Anonymous users see a "Sign in to register" link to `/login?frontend_url=<origin>` | `262691c` |
 | C.12.4 | "Reschedule" card when already registered: shows the current registration, a `Select` picker of alternate upcoming events (`searchEvents()`), and a "Move registration" button calling `reschedule(schedule_id, {event_id})` → toast + refreshes capacity and clears the local registration | `80ba026` |
 | C.13 | Event rows link to `/explore/events/:id` — `VenueSchedulePage` rows (already linked since B.7.3) plus new inline `ExploreHomePage` event results. **Enabler:** `GET /public/events?q=` free-text search on `event.description` (deferred from A.3 until descriptions existed) | `9eac47e`, `d3b980e` |
+| C.14 | `frontend/src/router/index.tsx` — `/explore/events/:eventId` registered as a **public** route (outside `RouteGuard`) with lazy `EventDetailPage` import | `42a70bf` |
 
 ### Details
 
@@ -104,7 +105,7 @@ event rows now link into it (C.13). Remaining work is the route registration
 
 - **Pre-existing quirk (out of scope):** `create_events_bulk` re-selects only `last_insert_rowid()`, so a multi-row bulk returns just the last inserted row. Flagged for a future fix.
 - **Postgres**: no `Event`/`Schedule` postgres implementation exists yet, so the postgresql branch of the C.4 migration is N/A until one is added.
-- **Deferred:** C.14 route registration for `/explore/events/:eventId`.
+- **Deferred:** none — Phase C is complete. The full manual browser pass (explore → event detail → register → reschedule) is covered by J.6.
 
 ### Public event detail page (C.12)
 
@@ -123,7 +124,7 @@ event rows now link into it (C.13). Remaining work is the route registration
 - The page is a lazy default-export component under `frontend/src/pages/explore/`, following `VenueSchedulePage.tsx` conventions (loading skeletons, `EmptyState` on 404, `explore-page`/`explore-container` chrome, `formatDateTime` helper).
 - Membership is resolved from `schedules.list()` filtered to `is_active && event_id === id && member_id === user.sub`; the register response (a full `Schedule`) is used to set the local registration without a refetch. Reschedule uses the matched `schedule_id` and clears it locally after success.
 - Capacity bar only renders when `max_capacity` is non-null (unlimited events show "N / unlimited registered"); the Register button label becomes "Event full" and is disabled when full.
-- The `/explore/events/:eventId` route itself is registered in C.14 — until then the page is unreachable (verified via lint/build and the backend smoke test).
+- The `/explore/events/:eventId` route is registered in C.14; until then the page was unreachable (verified via lint/build and the backend smoke test).
 - Branched from `main` (Phase B merged as `488e168` / PR #30); C.1–C.11 commits carried forward from the earlier C-phase work.
 
 ### Verification
@@ -159,6 +160,22 @@ event rows now link into it (C.13). Remaining work is the route registration
 - Backend: `uv run ruff check .` clean; `uv run pyright` 0 errors.
 - Backend smoke test (`smoke_c13.py`, throwaway DB + `TestClient`): `?q=city` matches the active "City meet" description only (inactive "finals" excluded); `q` + `venue_id` combine; `?q=zzz` → `[]`; no `q` → all upcoming events (2); inactive events never match.
 - Frontend: `npm run lint` (oxlint) clean; `npm run build` (`tsc -b` + Vite) clean — `ExploreHomePage` compiles (lazy chunk grew to include the result rendering + toast) and the `q` param typechecks against `searchEvents`.
+
+### Public route registration (C.14)
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| C.14 | `frontend/src/router/index.tsx` — lazy `EventDetailPage` import + `<Route path="/explore/events/:eventId" element={<EventDetailPage />} />` in the public group (outside `RouteGuard`) | `42a70bf` |
+
+### Details
+
+- The route sits alongside the other public `/explore` routes (`/explore`, `/explore/venues`, `/explore/venues/:venueId`), outside the `RouteGuard`-wrapped `AppLayout` tree, so anonymous visitors can view event details and are prompted to sign in to register (C.12.3).
+- `EventDetailPage` is a lazy default-export component; the build now emits its own `EventDetailPage-*.js` chunk, confirming the route resolves the import.
+
+### Verification
+
+- Frontend: `npm run lint` (oxlint) clean; `npm run build` (`tsc -b` + Vite) clean — `EventDetailPage-y58BGqRA.js` appears as its own lazy chunk (263 modules transformed).
+- The route completes the C.12–C.14 flow; backend capacity/register/reschedule endpoints and public event detail/search were smoke-tested in C.12/C.13 verification.
 
 ### Public routes, HomePage link, and styles (B.8–B.10)
 
