@@ -350,7 +350,7 @@ the README update (E.5) remain for a later round.
 - **`mark_read`** fetches the existing row, flips `is_read`, and re-saves via `update_message` (which only touches `is_read`/`is_active`), avoiding a partial `Message` construction.
 - **`create_messages_bulk`** resolves created rows via `SELECT last_insert_rowid()` (the SQL function, not `cursor.lastrowid`, which Python 3.12+ resets to `None` after `executemany`) minus the batch size — the pre-existing "last-row-only" quirk from other bulk creators was deliberately not replicated.
 - `sender_name` in `GET /messages/me` decrypts the sender's first/last name (falling back to the sender sub) so the inbox shows who sent each message (Key decision #5).
-- Branched from `feature/my-schedule-ical` (Phase D branch, unmerged) per the plan's branching rule — this branch carries the Phase C and Phase D commit history.
+- Branched from `feature/my-schedule-ical` per the plan's branching rule. Phase C (#31) and Phase D (#32) were merged to `main` during this round, and the Phase D branch tip had been updated to the merged commit — so this branch contains **only** the Phase E.1–E.4 changes (verified: `git diff main...feature/profile-correspondence` touches just the E.1–E.4 files).
 
 ### Verification
 
