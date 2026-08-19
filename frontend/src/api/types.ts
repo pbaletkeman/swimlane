@@ -181,6 +181,56 @@ export interface FormSubmission {
   is_complete: boolean
 }
 
+/**
+ * A member's own form submission from `GET /forms/me/submissions`: submission
+ * fields joined with the facility name.
+ */
+export interface MySubmission {
+  submission_id: number
+  facility_id: number
+  facility_name: string
+  signed_at: string | null
+  submitted_at: string | null
+  is_complete: boolean
+}
+
+/**
+ * A single form submission with its answers from `GET /forms/submissions/{id}`.
+ */
+export interface SubmissionDetail {
+  submission_id: number
+  facility_id: number
+  facility_name: string
+  sub: string
+  signed_at: string | null
+  submitted_at: string | null
+  is_complete: boolean
+  responses: FormResponse[]
+}
+
+/**
+ * A message in a member's inbox from the `/messages` endpoints, with the
+ * sender's display name resolved server-side.
+ */
+export interface Message {
+  message_id: number
+  member_id: string
+  sender_id: string
+  sender_name: string
+  subject: string
+  body: string
+  is_read: boolean
+  sent_at: string | null
+  is_active: boolean
+}
+
+/** Request body for `POST /messages` (staff -> member inbox). */
+export interface MessageInput {
+  member_id: string
+  subject: string
+  body?: string
+}
+
 export interface FormResponse {
   response_id?: number
   submission_id?: number | null
