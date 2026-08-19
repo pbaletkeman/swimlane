@@ -128,7 +128,7 @@ Branch: `feature/profile-correspondence`
 - [x] **E.4.4** — Register `MessageSQLite` in `main.py` `init_db()`. Commit.
 - [x] **E.4.5** — `src/routes/message_routes.py` `MessageRoutes` (`/messages`): `GET /messages/me` (`member_role`), `PUT /messages/{id}/read` (`member_role`, own only), `POST /messages` (`coach_role`+ send to a member), soft/hard delete (`all_users` own / admin). Register in `main.py`. Commit.
 - [x] **E.5** — `src/routes/README.md` update for new endpoints. Commit.
-- [ ] **E.6** — `frontend/src/api/forms.ts` — `listMySubmissions()`, `getSubmission(id)`; `frontend/src/api/messages.ts` — `listMine()`, `markRead(id)`, `send(input)`. Commit.
+- [x] **E.6** — `frontend/src/api/forms.ts` — `listMySubmissions()`, `getSubmission(id)`; `frontend/src/api/messages.ts` — `listMine()`, `markRead(id)`, `send(input)`. Commit.
 - [ ] **E.7** — `frontend/src/api/types.ts` — `Message`, `MessageInput`, `MySubmission` types. Commit.
 - [ ] **E.8** — New `frontend/src/pages/ProfilePage.tsx` at `/profile` (authenticated):
   - [ ] **E.8.1** — Header card: name, email, role tag, avatar (Google `user` object). Commit.
