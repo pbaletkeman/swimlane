@@ -28,6 +28,7 @@ from src.routes.event_routes import EventRoutes
 from src.routes.facility_routes import FacilityRoutes
 from src.routes.form_routes import FormRoutes
 from src.routes.frequency_routes import FrequencyRoutes
+from src.routes.message_routes import MessageRoutes
 from src.routes.public_routes import PublicRoutes
 from src.routes.schedule_routes import ScheduleRoutes
 from src.routes.venue_routes import VenueRoutes
@@ -56,6 +57,7 @@ def init_db() -> None:
     from src.data.form_question.sqlite import SQLite as FormQuestionSQLite
     from src.data.form_submission.sqlite import SQLite as FormSubmissionSQLite
     from src.data.frequency.sqlite import SQLite as FrequencySQLite
+    from src.data.message.sqlite import SQLite as MessageSQLite
     from src.data.schedule.sqlite import SQLite as ScheduleSQLite
     from src.data.venue.sqlite import SQLite as VenueSQLite
 
@@ -68,6 +70,7 @@ def init_db() -> None:
         FormQuestionSQLite,
         FacilityRuleSQLite,
         FormSubmissionSQLite,
+        MessageSQLite,
     ):
         cls().init()
     logger.info("Database tables ensured")
@@ -94,6 +97,9 @@ app.include_router(facility_routes.router)
 
 form_routes = FormRoutes()
 app.include_router(form_routes.router)
+
+message_routes = MessageRoutes()
+app.include_router(message_routes.router)
 
 public_routes = PublicRoutes()
 app.include_router(public_routes.router)
