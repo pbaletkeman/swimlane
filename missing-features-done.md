@@ -322,14 +322,14 @@ Branch: `feature/my-schedule-ical`
 - Manual browser pass (register → my-schedule → reschedule/cancel → iCal download) is deferred to J.6.
 - `AGENTS.md` sync (router list, `/public` + new endpoints) is deferred to J.8 per the plan.
 
-## Phase E — Member Profile / Correspondence (E.1–E.9 done) ✅
+## Phase E — Member Profile / Correspondence (E.1–E.10 complete) ✅
 
 Branch: `feature/profile-correspondence`
 
 `layout.txt:21-25` — profile with correspondence: my forms, my events, my messages.
-The backend (E.1–E.5), the frontend API layer + types (E.6–E.7), the
-`ProfilePage` (E.8), and the sidebar Profile link (E.9) are done; the `/profile`
-route (E.10) remains for the next round.
+The full Phase E scope is complete: backend (E.1–E.5), frontend API layer + types
+(E.6–E.7), the `ProfilePage` (E.8), the sidebar Profile link (E.9), and the
+`/profile` route (E.10).
 
 | Sub-task | Deliverable | Commit |
 |----------|-------------|--------|
@@ -347,6 +347,7 @@ route (E.10) remains for the next round.
 | E.8.1 | `frontend/src/pages/ProfilePage.tsx` — header card: Google avatar, name, email, role `Tag` (reuses `getRoleFromToken` + the Dashboard `ROLE_SEVERITY`/`ROLE_LABEL` maps); `profile-header*` CSS in `index.css` | `a55f908` |
 | E.8.2 | `ProfilePage` correspondence tabs — PrimeReact `Tabs` (Root/List/Tab/Panels/Panel): **My Forms** (submission list → view detail dialog + PDF download), **My Events** (reuses `listMine()` schedule data inline), **My Messages** (inbox with unread styling + read/unread tag, opens message dialog and auto-marks read); `profile-tab*`/`profile-dialog*`/`profile-response*` CSS | `382c6c6` |
 | E.9 | `AppLayout.tsx` sidebar footer — the placeholder Profile item now navigates to `/profile` (`navigate` + `isActive` highlight + close-on-narrow, same as nav items) | `bdd56a0` |
+| E.10 | `router/index.tsx` — `/profile` route registered inside `RouteGuard` + `AppLayout`, `ProfilePage` lazy-loaded (own Vite chunk emitted) | `302c203` |
 
 ### Details
 
@@ -356,11 +357,12 @@ route (E.10) remains for the next round.
 - **`mark_read`** fetches the existing row, flips `is_read`, and re-saves via `update_message` (which only touches `is_read`/`is_active`), avoiding a partial `Message` construction.
 - **`create_messages_bulk`** resolves created rows via `SELECT last_insert_rowid()` (the SQL function, not `cursor.lastrowid`, which Python 3.12+ resets to `None` after `executemany`) minus the batch size — the pre-existing "last-row-only" quirk from other bulk creators was deliberately not replicated.
 - `sender_name` in `GET /messages/me` decrypts the sender's first/last name (falling back to the sender sub) so the inbox shows who sent each message (Key decision #5).
-- Branched from `feature/my-schedule-ical` per the plan's branching rule. Phase C (#31) and Phase D (#32) were merged to `main` during this round, and the Phase D branch tip had been updated to the merged commit — so this branch contains **only** the Phase E.1–E.9 changes (verified: `git diff main...feature/profile-correspondence` touches just the E.1–E.9 files).
+- Branched from `feature/my-schedule-ical` per the plan's branching rule. Phase C (#31) and Phase D (#32) were merged to `main` during this round, and the Phase D branch tip had been updated to the merged commit — so this branch contains **only** the Phase E.1–E.10 changes (verified: `git diff main...feature/profile-correspondence` touches just the E.1–E.10 files).
 - **E.5** (`src/routes/README.md`, `7937970`): added `message_routes.py` and the previously-missing `public_routes.py` rows; extended `event_routes.py` (public capacity, member register), `schedule_routes.py` (`/me`, `/me/ical`, `/me/events`, reschedule/cancel), and `form_routes.py` (submission list/detail) descriptions; added the `coach_role` pattern bullet. Every claim was verified against the actual route registrations (dependencies + handler role deps).
 - **E.6** (`82397c5`): added `listMySubmissions`/`getSubmission` to `frontend/src/api/forms.ts` and the new `frontend/src/api/messages.ts` (`listMine`, `markRead`, `send`) following the existing `api.get/post/put` wrapper style. The `Message`/`MessageInput`/`MySubmission`/`SubmissionDetail` types were added to `types.ts` in this commit — they are compile-time dependencies of E.6's functions and also satisfy E.7's type list (E.7 will just confirm/extend them when reached).
 - **E.8.2** (`382c6c6`): added the three correspondence tabs using the PrimeReact 11 compound `Tabs` component (`Tabs.Root` with `value`/`onValueChange`, `Tabs.List`+`Tabs.Tab`, `Tabs.Panels`+`Tabs.Panel`). **My Forms** calls `forms.listMySubmissions()` and, per row, opens a detail `Dialog` via `forms.getSubmission(id)` (lists the stored answers) or downloads the PDF via `forms.getSubmissionPdf(id)` (same Blob/anchor pattern as `FormViewPage`). **My Events** reuses the `MySchedulePage` data layer inline (`listMine()` → `MyScheduleItem[]`) with Upcoming/Past tags. **My Messages** calls `messages.listMine()`, shows unread cards with an inset accent + dot and Read/Unread tags, opens a body `Dialog` via `handleOpenMessage`, and auto-calls `messages.markRead(id)` when an unread message is opened (inbox state updated in place). Tabs and dialogs compile via `tsc -b`; page is not yet routed (E.10) or linked (E.9).
 - **E.9** (`bdd56a0`): converted the placeholder `Sidebar.Footer` Profile item in `AppLayout.tsx` into a working link — `navigate('/profile')` on click, `isActive('/profile')` highlight, and sidebar close on narrow screens, mirroring the nav-item behavior. The route itself is registered in E.10.
+- **E.10** (`302c203`): added the `/profile` route in `frontend/src/router/index.tsx` (lazy `ProfilePage` import, inside the `RouteGuard` + `AppLayout` branch). The Vite build emits a dedicated `ProfilePage-*.js` chunk, confirming the route wiring. Manual browser pass of the tabs is deferred to J.6.
 
 ### Verification
 
@@ -375,6 +377,6 @@ route (E.10) remains for the next round.
 
 ### Notes
 
-- **E.10** (frontend: `/profile` route in router) is deferred to the next Phase E round, as requested.
+- **Phase E is fully complete.** The next phase is F (coach "Manage Events"); E.5's J.8 aggregate docs sync still pending.
 - `POST /messages` sends to any `users.sub`; the member picker arrives with Phase G's user-list endpoint, so staff paste the `sub` for now.
 - No `AGENTS.md` sync yet (J.8 covers the aggregate update); the `src/routes/README.md` in-repo route doc is now current.

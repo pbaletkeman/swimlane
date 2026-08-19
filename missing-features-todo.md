@@ -134,7 +134,7 @@ Branch: `feature/profile-correspondence`
   - [x] **E.8.1** — Header card: name, email, role tag, avatar (Google `user` object). Commit.
   - [x] **E.8.2** — Correspondence tabs (`Tabs`/`TabView`): **My Forms** (list of submissions → view/PDF), **My Events** (reuse `MySchedulePage` data or inline), **My Messages** (inbox with read/unread, view message dialog). Commit.
 - [x] **E.9** — Add Profile link to sidebar footer (`frontend/src/layout/AppLayout.tsx` currently has a placeholder Profile footer item). Commit.
-- [ ] **E.10** — Route in router. Commit.
+- [x] **E.10** — Route in router. Commit.
 
 ## Phase F — Coach "Manage Events"
 
