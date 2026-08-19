@@ -20,6 +20,8 @@ export interface VenueScheduleOptions {
 export interface EventSearchOptions {
   /** Scope the listing to events with an active schedule at this venue. */
   venueId?: number
+  /** Free-text search on `event.description`. */
+  q?: string
   /** ISO start filter on `start_date_time`. */
   from?: string
   /** ISO end filter on `start_date_time`. */
@@ -55,7 +57,12 @@ export const getVenueSchedules = (id: number, options: VenueScheduleOptions = {}
 /** Search public events; defaults to upcoming active events. */
 export const searchEvents = (options: EventSearchOptions = {}): Promise<PublicEvent[]> =>
   api.get<PublicEvent[]>(
-    `/public/events${buildQuery({ venue_id: options.venueId, from_dt: options.from, to_dt: options.to })}`,
+    `/public/events${buildQuery({
+      venue_id: options.venueId,
+      q: options.q,
+      from_dt: options.from,
+      to_dt: options.to,
+    })}`,
   )
 
 /** Fetch a single public event with its venue and capacity; 404 for unknown/inactive. */

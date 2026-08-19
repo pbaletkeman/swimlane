@@ -542,6 +542,10 @@
   color: var(--p-text-muted-color);
 }
 
+.explore-event-description {
+  color: var(--p-text-color);
+}
+
 .explore-event-meta {
   display: flex;
   flex-direction: column;
