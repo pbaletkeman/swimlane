@@ -7,7 +7,7 @@ router pattern as AuthRoutes and FrequencyRoutes.
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
 
 from src.data.event.sqlite import SQLite as EventSQLite
@@ -17,6 +17,7 @@ from src.data.users.user import User
 from src.data.venue.sqlite import SQLite as VenueSQLite
 from src.roles.roles import admin_role, all_users, facility_manager_role, member_role
 from src.routes.event_routes import resolve_max_capacity
+from src.util.ical import build_member_calendar
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,24 @@ class RescheduleRequest(BaseModel):
     event_id: int
 
 
+class MyScheduleItem(BaseModel):
+    """A member's schedule joined with its event, venue, and facility detail."""
+
+    schedule_id: int
+    venue_id: int
+    member_id: str
+    event_id: int
+    is_active: bool
+    event_start_date_time: str
+    event_end_date_time: str
+    event_description: str | None = None
+    facility_name: str
+    street: str
+    city: str
+    state: str
+    postal_code: str
+
+
 class ScheduleRoutes:
     """Defines all schedule-related routes."""
 
@@ -46,6 +65,16 @@ class ScheduleRoutes:
             self.list_schedules,
             methods=["GET"],
             dependencies=[Depends(all_users)],
+        )
+        self.router.add_api_route(
+            "/me",
+            self.my_schedule,
+            methods=["GET"],
+        )
+        self.router.add_api_route(
+            "/me/ical",
+            self.my_calendar,
+            methods=["GET"],
         )
         self.router.add_api_route(
             "/{schedule_id}",
@@ -100,10 +129,64 @@ class ScheduleRoutes:
             self.reschedule,
             methods=["POST"],
         )
+        self.router.add_api_route(
+            "/{schedule_id}/cancel",
+            self.cancel_registration,
+            methods=["POST"],
+        )
 
     # ------------------------------------------------------------------
     def _get_db(self) -> ScheduleSQLite:
         return ScheduleSQLite()
+
+    # ------------------------------------------------------------------
+    async def my_schedule(self, user: User = Depends(member_role)) -> list[MyScheduleItem]:
+        """List the caller's active schedules joined with event/venue/facility detail."""
+        try:
+            db = self._get_db()
+            rows = db.list_active_schedules_by_member_id_with_details(user.sub) or []
+            return [MyScheduleItem(**row) for row in rows]
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to load my schedule")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def my_calendar(self, user: User = Depends(member_role)) -> Response:
+        """RFC 5545 iCalendar export of the caller's active schedules."""
+        try:
+            db = self._get_db()
+            rows = db.list_active_schedules_by_member_id_with_details(user.sub) or []
+            body = build_member_calendar(rows)
+            return Response(
+                content=body,
+                media_type="text/calendar",
+                headers={"Content-Disposition": 'attachment; filename="swimlane-calendar.ics"'},
+            )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to export calendar")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def cancel_registration(self, schedule_id: int, user: User = Depends(member_role)) -> dict[str, str]:
+        """Soft-cancel the caller's own registration (sets the schedule inactive)."""
+        try:
+            db = self._get_db()
+            schedule = db.get_schedule_by_id(schedule_id)
+            if not schedule:
+                raise HTTPException(status_code=404, detail="Schedule not found")
+            if schedule.member_id != user.sub:
+                raise HTTPException(status_code=403, detail="You can only cancel your own registration")
+            db.delete_schedule_by_id(schedule_id)
+            return {"message": "Registration cancelled"}
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to cancel registration")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
     async def list_schedules(self) -> list[Schedule]:
