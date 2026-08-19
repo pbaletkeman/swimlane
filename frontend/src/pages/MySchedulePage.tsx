@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
+import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { Skeleton } from 'primereact/skeleton'
 import { Tag } from 'primereact/tag'
-import { listMine } from '../api/schedules.ts'
+import { getMyCalendarIcs, listMine } from '../api/schedules.ts'
 import type { MyScheduleItem } from '../api/types.ts'
 import { EmptyState } from '../components/EmptyState.tsx'
 import { PageHeader } from '../components/PageHeader.tsx'
-import { showToastError } from '../toast/toast-context.ts'
+import { showToastError, showToastSuccess } from '../toast/toast-context.ts'
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'An unexpected error occurred.'
@@ -29,6 +30,7 @@ function venueAddress(item: MyScheduleItem): string {
 export default function MySchedulePage() {
   const [items, setItems] = useState<MyScheduleItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [downloading, setDownloading] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -45,11 +47,36 @@ export default function MySchedulePage() {
     void load()
   }, [])
 
+  const handleDownload = async () => {
+    setDownloading(true)
+    try {
+      const text = await getMyCalendarIcs()
+      const url = URL.createObjectURL(new Blob([text], { type: 'text/calendar' }))
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = 'swimlane-calendar.ics'
+      anchor.click()
+      URL.revokeObjectURL(url)
+      showToastSuccess('Calendar downloaded', 'Your schedule was exported as an .ics file.')
+    } catch (error) {
+      showToastError('Download failed', errorMessage(error))
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   const upcoming = (item: MyScheduleItem): boolean => new Date(item.event_start_date_time).getTime() > Date.now()
 
   return (
     <div className="app-crud-page">
       <PageHeader title="My Schedule" subtitle="Your upcoming registered events." />
+      <div className="my-schedule-toolbar">
+        <p className="my-schedule-reschedule-hint">Add your schedule to a calendar app such as Google Calendar or Apple Calendar.</p>
+        <Button type="button" variant="outlined" onClick={handleDownload} disabled={downloading || items.length === 0}>
+          <i className="pi pi-calendar-plus" />
+          <span className="p-button-label">{downloading ? 'Downloading…' : 'Add to calendar (iCal)'}</span>
+        </Button>
+      </div>
       {loading ? (
         <div className="my-schedule-loading">
           <Skeleton height="5rem" className="w-full" />
