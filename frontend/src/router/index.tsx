@@ -14,6 +14,7 @@ const ExploreVenuesPage = lazy(() => import('../pages/explore/ExploreVenuesPage.
 const VenueSchedulePage = lazy(() => import('../pages/explore/VenueSchedulePage.tsx'))
 const EventDetailPage = lazy(() => import('../pages/explore/EventDetailPage.tsx'))
 const DashboardPage = lazy(() => import('../pages/DashboardPage.tsx'))
+const MySchedulePage = lazy(() => import('../pages/MySchedulePage.tsx'))
 const FrequenciesPage = lazy(() => import('../pages/FrequenciesPage.tsx'))
 const FacilitiesPage = lazy(() => import('../pages/FacilitiesPage.tsx'))
 const EventsPage = lazy(() => import('../pages/EventsPage.tsx'))
@@ -54,6 +55,7 @@ export function AppRouter() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/my-schedule" element={<MySchedulePage />} />
           <Route path="/frequencies" element={<FrequenciesPage />} />
           <Route path="/facilities" element={<FacilitiesPage />} />
           <Route path="/events" element={<EventsPage />} />
