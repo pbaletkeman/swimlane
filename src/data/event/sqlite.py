@@ -236,10 +236,12 @@ class SQLite(EventInterfaceBase):
         start_from: str | None = None,
         start_to: str | None = None,
         venue_id: int | None = None,
+        search: str | None = None,
     ) -> Optional[list[Event]]:
         """List active events within a start_date_time range (defaults to upcoming events).
 
         Pass ``venue_id`` to scope to events with an active schedule at that venue.
+        Pass ``search`` to free-text filter on ``event.description``.
         """
         now = datetime.now().isoformat(timespec="seconds")
         if venue_id is not None:
@@ -263,6 +265,9 @@ class SQLite(EventInterfaceBase):
         if start_to:
             conditions.append("start_date_time <= ?")
             params.append(start_to)
+        if search:
+            conditions.append("description LIKE ?")
+            params.append(f"%{search}%")
         where = "WHERE " + " AND ".join(conditions)
 
         with self._connect() as conn:

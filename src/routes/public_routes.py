@@ -180,15 +180,16 @@ class PublicRoutes:
     # ------------------------------------------------------------------
     async def list_events(
         self,
+        q: Optional[str] = None,
         from_dt: Optional[str] = None,
         to_dt: Optional[str] = None,
         venue_id: Optional[int] = None,
     ) -> list[PublicEvent]:
         """Public event listing, defaulting to upcoming active events.
 
-        Free-text search (``?q=``) is deferred until ``event.description`` exists
-        (Phase C); date filtering is available via ``from_dt``/``to_dt`` and the
-        listing can be scoped to one venue via ``venue_id``.
+        Free-text search via ``?q=`` matches ``event.description`` (available
+        since Phase C); date filtering is available via ``from_dt``/``to_dt`` and
+        the listing can be scoped to one venue via ``venue_id``.
         """
         try:
             db = EventSQLite()
@@ -196,6 +197,7 @@ class PublicRoutes:
                 start_from=from_dt,
                 start_to=to_dt,
                 venue_id=venue_id,
+                search=q,
             )
             return self._to_public_events(events or [])
         except HTTPException:
