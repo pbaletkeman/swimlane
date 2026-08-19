@@ -57,6 +57,30 @@ class FacilityFormResponse(BaseModel):
     rules: list[FacilityRule]
 
 
+class MySubmissionItem(BaseModel):
+    """A member's form submission joined with its facility name."""
+
+    submission_id: int
+    facility_id: int
+    facility_name: str
+    signed_at: str | None = None
+    submitted_at: str | None = None
+    is_complete: bool
+
+
+class SubmissionDetailResponse(BaseModel):
+    """A single form submission with its answers."""
+
+    submission_id: int
+    facility_id: int
+    facility_name: str
+    sub: str
+    signed_at: str | None = None
+    submitted_at: str | None = None
+    is_complete: bool
+    responses: list[FormResponse]
+
+
 class QuestionRequest(BaseModel):
     """Request body for creating/updating a form question."""
 
@@ -114,6 +138,18 @@ class FormRoutes:
         self.router.add_api_route(
             "/submissions/{submission_id}/pdf",
             self.export_submission_pdf,
+            methods=["GET"],
+            dependencies=[Depends(member_role)],
+        )
+        self.router.add_api_route(
+            "/submissions/{submission_id}",
+            self.get_submission_detail,
+            methods=["GET"],
+            dependencies=[Depends(member_role)],
+        )
+        self.router.add_api_route(
+            "/me/submissions",
+            self.list_my_submissions,
             methods=["GET"],
             dependencies=[Depends(member_role)],
         )
@@ -293,6 +329,48 @@ class FormRoutes:
             raise
         except Exception as exc:
             logger.exception("Failed to export submission PDF")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def list_my_submissions(self, current_user: User = Depends(member_role)) -> list[MySubmissionItem]:
+        """List the caller's form submissions joined with facility name."""
+        try:
+            rows = self._get_form_db().list_by_member(current_user.sub) or []
+            return [MySubmissionItem(**row) for row in rows]
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to list my submissions")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def get_submission_detail(
+        self, submission_id: int, current_user: User = Depends(member_role)
+    ) -> SubmissionDetailResponse:
+        """Fetch a single submission with its responses (own only for members)."""
+        try:
+            db = self._get_form_db()
+            found = db.get_by_id_with_responses(submission_id)
+            if not found:
+                raise HTTPException(status_code=404, detail="Submission not found")
+            submission, responses = found
+            if current_user.role == UserRole.MEMBER.value and submission.sub != current_user.sub:
+                raise HTTPException(status_code=403, detail="Cannot access another member's submission")
+            facility = self._get_facility_db().get_facility_by_id(submission.facility_id)
+            return SubmissionDetailResponse(
+                submission_id=submission.submission_id or submission_id,
+                facility_id=submission.facility_id,
+                facility_name=facility.name if facility else str(submission.facility_id),
+                sub=submission.sub,
+                signed_at=submission.signed_at.isoformat() if submission.signed_at else None,
+                submitted_at=submission.submitted_at.isoformat() if submission.submitted_at else None,
+                is_complete=submission.is_complete,
+                responses=responses,
+            )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to get submission detail")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
