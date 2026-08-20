@@ -30,6 +30,9 @@ class EventRequest(BaseModel):
     start_date_time: str
     end_date_time: str
     frequency_id: int | None = None
+    description: str | None = None
+    coach_id: str | None = None
+    venue_id: int | None = None
     is_active: bool = True
 
 
@@ -57,6 +60,13 @@ class EventMemberAdd(BaseModel):
     """Request body for adding a member to an event."""
 
     member_id: str
+
+
+class EventMemberEdit(BaseModel):
+    """Request body for editing a member's schedule (venue and/or event)."""
+
+    venue_id: int | None = None
+    event_id: int | None = None
 
 
 def resolve_max_capacity(event: Event) -> int | None:
@@ -98,19 +108,19 @@ class EventRoutes:
             "",
             self.create_event,
             methods=["POST"],
-            dependencies=[Depends(facility_manager_role)],
+            dependencies=[Depends(coach_role)],
         )
         self.router.add_api_route(
             "/{event_id}",
             self.update_event,
             methods=["PUT"],
-            dependencies=[Depends(facility_manager_role)],
+            dependencies=[Depends(coach_role)],
         )
         self.router.add_api_route(
             "/{event_id}",
             self.delete_event,
             methods=["DELETE"],
-            dependencies=[Depends(facility_manager_role)],
+            dependencies=[Depends(coach_role)],
         )
         self.router.add_api_route(
             "/{event_id}/hard",
@@ -157,6 +167,11 @@ class EventRoutes:
             methods=["DELETE"],
         )
         self.router.add_api_route(
+            "/{event_id}/members/{schedule_id}",
+            self.edit_event_member,
+            methods=["PUT"],
+        )
+        self.router.add_api_route(
             "/{event_id}/register",
             self.register_for_event,
             methods=["POST"],
@@ -195,11 +210,20 @@ class EventRoutes:
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
-    async def create_event(self, body: EventRequest) -> Event:
-        """Create a new event."""
+    async def create_event(self, body: EventRequest, current_user: User = Depends(coach_role)) -> Event:
+        """Create a new event.
+
+        Coaches may create events assigned to themselves; managers+ may create
+        any event (including assigning another coach).
+        """
         try:
+            data = body.model_dump()
+            if not self._is_manager_or_admin(current_user):
+                if data.get("coach_id") not in (None, current_user.sub):
+                    raise HTTPException(status_code=403, detail="Can only create events for yourself")
+                data["coach_id"] = current_user.sub
             db = self._get_db()
-            event = Event(**body.model_dump())
+            event = Event(**data)
             created = db.create_event(event)
             if not created:
                 raise HTTPException(status_code=500, detail="Failed to create event")
@@ -211,14 +235,26 @@ class EventRoutes:
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
-    async def update_event(self, event_id: int, body: EventRequest) -> Event:
-        """Update an existing event."""
+    async def update_event(self, event_id: int, body: EventRequest, current_user: User = Depends(coach_role)) -> Event:
+        """Update an existing event.
+
+        Coaches may update events where they are the coach; managers+ may update any.
+        """
         try:
             db = self._get_db()
             existing = db.get_event_by_id(event_id)
             if not existing:
                 raise HTTPException(status_code=404, detail="Event not found")
-            event = Event(event_id=event_id, **body.model_dump())
+            if not self._is_manager_or_admin(current_user) and existing.coach_id != current_user.sub:
+                raise HTTPException(status_code=403, detail="Not the coach of this event")
+            data = body.model_dump()
+            if data.get("coach_id") is None:
+                data["coach_id"] = existing.coach_id
+            if not self._is_manager_or_admin(current_user):
+                if data.get("coach_id") not in (None, current_user.sub):
+                    raise HTTPException(status_code=403, detail="Cannot reassign this event")
+                data["coach_id"] = existing.coach_id
+            event = Event(event_id=event_id, **data)
             updated = db.update_event(event)
             if not updated:
                 raise HTTPException(status_code=500, detail="Failed to update event")
@@ -230,13 +266,18 @@ class EventRoutes:
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
-    async def delete_event(self, event_id: int) -> dict[str, str]:
-        """Soft-delete an event."""
+    async def delete_event(self, event_id: int, current_user: User = Depends(coach_role)) -> dict[str, str]:
+        """Soft-delete an event.
+
+        Coaches may delete events where they are the coach; managers+ may delete any.
+        """
         try:
             db = self._get_db()
             existing = db.get_event_by_id(event_id)
             if not existing:
                 raise HTTPException(status_code=404, detail="Event not found")
+            if not self._is_manager_or_admin(current_user) and existing.coach_id != current_user.sub:
+                raise HTTPException(status_code=403, detail="Not the coach of this event")
             db.delete_event_by_id(event_id)
             return {"message": "Event deleted"}
         except HTTPException:
@@ -461,6 +502,77 @@ class EventRoutes:
             raise
         except Exception as exc:
             logger.exception("Failed to remove event member")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def edit_event_member(
+        self,
+        event_id: int,
+        schedule_id: int,
+        body: EventMemberEdit,
+        current_user: User = Depends(coach_role),
+    ) -> EventMemberItem:
+        """Edit a member's schedule (venue/event) on an event (coach of the event or manager+)."""
+        try:
+            event = self._get_db().get_event_by_id(event_id)
+            if not event:
+                raise HTTPException(status_code=404, detail="Event not found")
+
+            if not self._is_manager_or_admin(current_user) and event.coach_id != current_user.sub:
+                raise HTTPException(status_code=403, detail="Not the coach of this event")
+
+            schedule_db = ScheduleSQLite()
+            schedule = schedule_db.get_schedule_by_id(schedule_id)
+            if not schedule or schedule.event_id != event_id:
+                raise HTTPException(status_code=404, detail="Schedule not found for this event")
+
+            new_venue = body.venue_id if body.venue_id is not None else schedule.venue_id
+            new_event = body.event_id if body.event_id is not None else schedule.event_id
+
+            if body.venue_id is not None:
+                venue = VenueSQLite().get_venue_by_id(body.venue_id)
+                if not venue or not venue.is_active:
+                    raise HTTPException(status_code=404, detail="Venue not found")
+            if body.event_id is not None:
+                target = self._get_db().get_event_by_id(body.event_id)
+                if not target or not target.is_active:
+                    raise HTTPException(status_code=404, detail="Event not found")
+
+            updated = schedule_db.update_schedule(
+                Schedule(
+                    schedule_id=schedule_id,
+                    venue_id=new_venue,
+                    member_id=schedule.member_id,
+                    event_id=new_event,
+                    is_active=schedule.is_active,
+                )
+            )
+            if not updated:
+                raise HTTPException(status_code=500, detail="Failed to edit member schedule")
+
+            rows = ScheduleSQLite().list_schedules_by_event_id_with_members(new_event) or []
+            row = next((r for r in rows if r["schedule_id"] == (updated.schedule_id or schedule_id)), None)
+            if not row:
+                row = {
+                    "schedule_id": updated.schedule_id or schedule_id,
+                    "venue_id": updated.venue_id,
+                    "member_id": updated.member_id,
+                    "event_id": updated.event_id,
+                    "is_active": updated.is_active,
+                }
+            return EventMemberItem(
+                schedule_id=row["schedule_id"],
+                venue_id=row["venue_id"],
+                member_id=row["member_id"],
+                member_name=self._member_display_name(row),
+                email=self._member_email(row),
+                event_id=row["event_id"],
+                is_active=bool(row["is_active"]),
+            )
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to edit event member")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
