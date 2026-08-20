@@ -8,12 +8,20 @@ export interface NavItem {
 }
 
 /**
- * Sidebar navigation items.
+ * Sidebar navigation items (final Phase I.2 set).
  *
  * Roles are hierarchical: `AppLayout` renders only items whose `requiredRole`
  * the caller satisfies via `hasRole` (rank-based — WEB_ADMIN passes every
- * check, so admins automatically see all items, including FACILITY_MANAGER
- * ones, with no per-item duplication needed).
+ * check, so admins automatically see all items with no per-item duplication).
+ *
+ * Role → visible items:
+ * - MEMBER:            Dashboard, Signup Forms, My Schedule, Profile (footer)
+ * - COACH:             + Manage Events
+ * - FACILITY_MANAGER:  + Frequencies, Facilities, Events, Venues, Schedules,
+ *                      Manage Users, Signup Forms builder (the builder is not a
+ *                      nav item — it is reached from the Signup Forms page and
+ *                      gated by `hasRole('FACILITY_MANAGER')` inside FormsPage)
+ * - WEB_ADMIN:         all of the above (via hierarchy)
  *
  * `Manage Users` was added in Phase G (G.7); Phase H needs no nav change —
  * WEB_ADMIN sees it through the hierarchy, and the widened admin capabilities
