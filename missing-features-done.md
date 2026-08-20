@@ -435,7 +435,7 @@ Branch: `feature/coach-manage-events`
 - F.2/F.4 share the own-event-or-manager+ guard via `_is_manager_or_admin(user)`; the Phase C register internals live in `_create_schedule_for_member(event_id, member_id)` (F.4 reuses them verbatim). F.3's create/update/delete guard reuses the same helper.
 - F.9.4 adds a member **by `sub`** (an `InputText`) because the Phase G user-list endpoint doesn't exist yet; the todo notes this explicitly. When Phase G lands, the add control can become a user `Select`.
 
-## Phase G — Facility Manager: manage coach accounts (G.1, G.2, G.3, G.4, G.5 complete)
+## Phase G — Facility Manager: manage coach accounts (G.1–G.6 complete)
 
 Branch: `feature/manage-coach-accounts`
 
@@ -453,6 +453,7 @@ Branch: `feature/manage-coach-accounts`
 | G.3 | `ManagedUser` gained `name`/`email` — decrypted server-side via `decrypt_field` then masked (`_mask`/`_mask_email`: first char + asterisks, email local part masked, domain kept); raw ciphertext or plaintext PII never leaves the API; applies to `GET /users` and `GET /users/{sub}` | `49ad660` |
 | G.4 | `frontend/src/api/users.ts` — `listUsers(role?)` (optional role filter), `getUser(sub)`, `createUser(ManagedUserInput)`, `updateUserRole(sub, role)`, `softDeleteUser(sub)`, `hardDeleteUser(sub)`; default export bundles them | `dee64fc` |
 | G.5 | `frontend/src/api/types.ts` — `ManagedUser`, `ManagedUserInput` (plus `UserInviteResult`, `UserRoleUpdateInput`, `ManagedUserRoleFilter`) | `dee64fc` |
+| G.6 | `frontend/src/pages/ManageUsersPage.tsx` — role-filtered coach/member table (name/email/role/active), email invite + role-edit dialogs (role select limited to coach/member), soft delete (managers+), admin-only hard delete; senior-role filter options shown to admins only; `.manage-users-*` CSS | `4c5285b` |
 
 ### Details
 
@@ -466,6 +467,7 @@ Branch: `feature/manage-coach-accounts`
 - **G.3** (`49ad660`): `ManagedUser` now carries masked `name` and `email`. Both are decrypted server-side (`decrypt_field`, same fallback pattern as message_routes) then masked: `_mask` keeps the first character and asterisks out the rest; `_mask_email` masks only the local part so the domain stays readable. This satisfies the "decrypt in server then truncate" option from the todo — it's strictly safer than the previous sub/role-only shape since callers still get displayable PII without any full plaintext or ciphertext leaving the server.
 - **G.4** (`dee64fc`): `frontend/src/api/users.ts` wraps all six `/users` endpoints following the `events.ts` pattern (named exports + a bundled default export, `satisfies` for request bodies, `encodeURIComponent` on the role query param). The types it needs — `ManagedUser`, `ManagedUserInput`, `UserInviteResult`, `UserRoleUpdateInput`, `ManagedUserRoleFilter` — were added to `types.ts` as a required dependency, which pre-lands G.5's `ManagedUser`/`ManagedUserInput` (G.5 becomes a pure formality tick).
 - **G.5** (`dee64fc`): no code change — `ManagedUser` (sub/role/name/email/is_active/is_deleted — masked PII) and `ManagedUserInput` (email + `role: 'coach' | 'member'`) already exist in `types.ts` from G.4, where they were required to type the wrappers. This sub-task is a formality tick.
+- **G.6** (`4c5285b`): `ManageUsersPage.tsx` mirrors the CoachEventsPage/CRUD page patterns (`app-crud-page`, `PageHeader`, `EntityDataTable`, `EntityFormDialog`, `EmptyState`, `ConfirmDelete`). Default view lists all users; the role filter restricts to coach/member for managers and adds Facility Manager/Web Admin options for admins (matching the backend's admin-only senior-role lookups). The create dialog is an email invite (`createUser`) and the edit dialog changes role via `updateUserRole` — both role selects are hard-limited to coach/member (G.6 spec; the backend would 403 senior assignments for managers anyway). Hard delete relies on `ConfirmDelete`'s built-in `hasRole('WEB_ADMIN')` gate so it only renders for admins. Route/nav wiring is intentionally deferred to G.7/G.8 (same split Phase F used for CoachEventsPage → nav → router).
 
 ### Verification
 
@@ -481,10 +483,11 @@ Branch: `feature/manage-coach-accounts`
   - **G.3** (`smoke_g3.py`): list and detail both return masked values — `"Alice Coach"` → `A**********`, `alice@example.com` → `a****@example.com`; responses contain no `ciphertext`, no `nonce`, and no plaintext name/email anywhere.
   - **G.4**: `npm run lint` (oxlint) and `npm run build` (`tsc -b` + Vite) both clean with the new `users.ts`/`types.ts`.
   - **G.5**: no new verification needed — the types shipped with G.4 and were covered by its build/lint run.
+  - **G.6**: `npm run lint` + `npm run build` clean. Caught one tsc error during dev — `Tag` severity uses `'warn'`, not `'warning'` — fixed before committing. Page is not yet reachable (route lands in G.8), so runtime behavior is verified by type-check + the G.1 smoke tests on the underlying endpoints.
 
 ### Notes
 
-- Only G.1, G.2, G.3, G.4, and G.5 are in scope so far (the user's requests). G.6/G.7/G.8 (frontend) remain on the todo. The G.1.3 `Literal["coach", "member"]`, the G.1.1 senior-role 403, G.1.4's assign bound, and G.1.5's delete bound together satisfy G.1.6 — a facility manager can never assign or manage senior roles.
+- Only G.1, G.2, G.3, G.4, G.5, and G.6 are in scope so far (the user's requests). G.7 (nav) and G.8 (router) remain on the todo. The G.1.3 `Literal["coach", "member"]`, the G.1.1 senior-role 403, G.1.4's assign bound, and G.1.5's delete bound together satisfy G.1.6 — a facility manager can never assign or manage senior roles.
 - `UserRoutes` registration in `main.py` was required by G.1.1 (the endpoints must be mounted to exist/test); G.2's `src/routes/README.md` update is the piece that was still pending and is now done.
 - G.3's mask keeps the first character so rows remain distinguishable (e.g. initials) without exposing full names/emails; the domain suffix stays visible to make email lists scannable.
 - `POST /users` only creates pre-registration invites; changing an existing user's role deliberately returns 409 so the role-change path (G.1.4) stays the single mechanism for that. Existing users auto-login with their current role unchanged — the invite is only consulted when auto-registering.

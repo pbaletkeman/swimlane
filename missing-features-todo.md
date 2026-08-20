@@ -175,7 +175,7 @@ Branch: `feature/manage-coach-accounts`
 - [x] **G.3** — PII handling: user list returns **masked** name/email (decrypt in server then truncate, or return only sub + role) to avoid leaking encrypted fields raw. Commit.
 - [x] **G.4** — `frontend/src/api/users.ts` — `list({role})`, `get(sub)`, `create(input)`, `updateRole(sub, role)`, `softDelete(sub)`, `hardDelete(sub)`. Commit.
 - [x] **G.5** — `frontend/src/api/types.ts` — `ManagedUser`, `ManagedUserInput`. Commit. (Types already landed with G.4 — a required dependency of the wrappers; ticking is a formality.)
-- [ ] **G.6** — New `frontend/src/pages/ManageUsersPage.tsx` at `/manage-users` (`facility_manager_role`): coach accounts table, create/edit dialog (role select limited to coach/member), soft + admin-only hard delete, role filter. Commit.
+- [x] **G.6** — New `frontend/src/pages/ManageUsersPage.tsx` at `/manage-users` (`facility_manager_role`): coach accounts table, create/edit dialog (role select limited to coach/member), soft + admin-only hard delete, role filter. Commit.
 - [ ] **G.7** — Add `Manage Users` (Coaches) to nav (`pi-users-cog`, `requiredRole: 'FACILITY_MANAGER'`). Commit.
 - [ ] **G.8** — Route in router; this endpoint also unblocks the Schedules page member picker (currently raw sub paste) — optional: swap `SchedulesPage.tsx` member field to a user select. Commit.
 
