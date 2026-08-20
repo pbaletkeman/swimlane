@@ -456,7 +456,7 @@ Branch: `feature/manage-coach-accounts`
 | G.6 | `frontend/src/pages/ManageUsersPage.tsx` — role-filtered coach/member table (name/email/role/active), email invite + role-edit dialogs (role select limited to coach/member), soft delete (managers+), admin-only hard delete; senior-role filter options shown to admins only; `.manage-users-*` CSS | `4c5285b` |
 | G.7 | Nav — `Manage Users` (`pi pi-users-cog`, `/manage-users`, `requiredRole: 'FACILITY_MANAGER'`) inserted between Schedules and Signup Forms | `aaaad9a` |
 | G.8 | Router — `/manage-users` lazy route behind a `FACILITY_MANAGER` `RouteGuard`; optional SchedulesPage member-picker swap done — raw sub text input → `listUsers`-backed select (masked name/email, sub as value), Member column shows the masked name | `275b353` |
-| H.1.1 | `GET /users?role=facility_manager` admin-only — no code change; the G.1.1 inline guard (`role in ("facility_manager", "web_admin")` → 403 for non-`web_admin`) already enforces it | `f9b2a0c` (docs) |
+| H.1.1 | `GET /users?role=facility_manager` admin-only — no code change; the G.1.1 inline guard (`role in ("facility_manager", "web_admin")` → 403 for non-`web_admin`) already enforces it | `22b42c7` (docs) |
 
 ### Details
 
