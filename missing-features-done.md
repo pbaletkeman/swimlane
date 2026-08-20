@@ -434,3 +434,35 @@ Branch: `feature/coach-manage-events`
 - F.1's `CoachRoutes` lives in its own file so future coach-scoped endpoints (the plan keeps coach work on `/coach` and `/events/{id}/members`) have a natural home; the `GET/POST /events/{id}/members` routes (F.2/F.4) went on `EventRoutes` since they share the `/events` prefix.
 - F.2/F.4 share the own-event-or-manager+ guard via `_is_manager_or_admin(user)`; the Phase C register internals live in `_create_schedule_for_member(event_id, member_id)` (F.4 reuses them verbatim). F.3's create/update/delete guard reuses the same helper.
 - F.9.4 adds a member **by `sub`** (an `InputText`) because the Phase G user-list endpoint doesn't exist yet; the todo notes this explicitly. When Phase G lands, the add control can become a user `Select`.
+
+## Phase G — Facility Manager: manage coach accounts (G.1.1–G.1.3 complete)
+
+Branch: `feature/manage-coach-accounts`
+
+`layout.txt:37-38` — edit/create/delete/list coach accounts.
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| G.1.1 | `GET /users` — `facility_manager_role`; optional `role` query param typed as `Literal["member", "coach", "facility_manager", "web_admin"]` (422 on invalid); uses existing `UserSQLite.list_users_by_role(role)` (all users when omitted); senior-role lookups (`facility_manager`/`web_admin`) are admin-only (403 for a manager); responses expose `sub`/`role`/`is_active`/`is_deleted` only — never ciphertext | `fa7572d` |
+| G.1.2 | `GET /users/{sub}` — `facility_manager_role`; returns one managed user (same shape as the list); 404 for unknown subs | `a1585bd` |
+| G.1.3 | `POST /users` — `facility_manager_role`; `{email, role}` with `role` limited to `coach`/`member` (privilege bound, 422 otherwise); records the intended role in a new `user_invite` table keyed by `email_hash` (upsert on `email_hash`); `auth_callback` resolves the invite **before** auto-registering so the user's first Google login applies the invited role, then consumes the invite; registered emails → 409 (role changes are the G.1.4 role-change endpoint's job); registered in `init_db()` | `ca7ef40` |
+
+### Details
+
+- **G.1.1** (`fa7572d`): new `src/routes/user_routes.py` `UserRoutes` (`APIRouter(prefix="/users", tags=["users"])`). Role filtering delegates to the existing `UserSQLite.list_users_by_role` — no new data-layer code was needed. The route is guarded by `facility_manager_role` (FACILITY_MANAGER + WEB_ADMIN). The `ManagedUser` response model deliberately omits every nonce/ciphertext column (G.3's masked name/email is still a separate sub-task, but the raw encrypted blobs are never serialized).
+- **G.1.2** (`a1585bd`): detail handler reuses the same `_to_managed` helper, so the list and detail shapes stay identical.
+- **G.1.3** (`ca7ef40`): the email-keyed invite resolves Key decisions #3 (no raw `sub` pre-seed — the `users` PII columns are `NOT NULL`, so a placeholder row isn't possible). New `src/data/user_invite/` entity (`user_invite.py` model, `user_invite_interface.py` ABC, `sqlite.py` impl) with `CREATE TABLE IF NOT EXISTS user_invite` (`email_hash` UNIQUE, `role`, `is_active`) plus `create_invite` (upsert), `get_invite_by_email_hash`, `delete_invite_by_email_hash`. `auth_callback` looks up the invite by `oauth_user.email_hash` before `db_connect().create_user(...)`, applies `invite.role` instead of the default `MEMBER`, and deletes the invite only after the user row is created. `user_invite` was added to `main.py`'s `init_db()` so the table exists before the first request.
+
+### Verification
+
+- Backend: `uv run ruff check .` clean; `uv run ruff format` clean on the touched files; `uv run pyright` 0 errors.
+- Backend smoke tests (throwaway temp DB + real HS256 JWTs + `TestClient`, full app):
+  - **G.1.1** (`smoke_g111.py`): member → 403; manager lists all (both seeded users); `?role=coach` returns only the coach; manager → 403 for `?role=web_admin`; admin → 200 for `?role=web_admin`; invalid role → 422; no token → 401.
+  - **G.1.2** (`smoke_g112.py`): member → 403; manager detail → 200 with correct `sub`/`role`; response body contains no `ciphertext`/`nonce`; unknown sub → 404.
+  - **G.1.3** (`smoke_g113.py`): member → 403; manager invite → 200 `{email, role, status: "invited"}`; invite stored keyed by `hash_field(email)`; manager inviting `web_admin` → 422 (Literal bound); registered email → 409; simulated first Google login applies the invited `coach` role and consumes the invite; the new user then appears under `?role=coach`.
+
+### Notes
+
+- Only G.1.1–G.1.3 are in scope this round (the user's request). G.1.4 (role change), G.1.5 (delete), G.1.6 (privilege-bounds sub-task), G.2 (README sync), G.3 (masked PII), G.4/G.5 (frontend) remain on the todo. The G.1.3 `Literal["coach", "member"]` and the G.1.1 senior-role 403 are forward-looking pieces of G.1.6/H.1.1.
+- `UserRoutes` is registered in `main.py` (needed so the endpoints exist and are testable); G.2's `src/routes/README.md` update is still pending.
+- `POST /users` only creates pre-registration invites; changing an existing user's role deliberately returns 409 so the role-change path (G.1.4) stays the single mechanism for that. Existing users auto-login with their current role unchanged — the invite is only consulted when auto-registering.

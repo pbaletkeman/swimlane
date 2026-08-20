@@ -165,9 +165,9 @@ Branch: `feature/manage-coach-accounts`
 `layout.txt:37-38` — edit/create/delete/list coach accounts.
 
 - [ ] **G.1** — New `src/routes/user_routes.py` `UserRoutes` (`/users`, `facility_manager_role` for coach management):
-  - [ ] **G.1.1** — `GET /users?role=coach` — list users filtered by role (uses existing `UserSQLite.list_users_by_role`). Expose role choices `member|coach|facility_manager|web_admin`. Commit.
-  - [ ] **G.1.2** — `GET /users/{sub}` — detail. Commit.
-  - [ ] **G.1.3** — `POST /users` — email-keyed invite (`facility_manager_role`; role `coach` or lower; body `{email, role}` → `email_hash`). No raw `sub` pre-seed — a manager can't know a Google `sub` and the `users` PII columns are NOT NULL. Record the intended role keyed by `email_hash`; `auth_callback` resolves it before auto-registering so first Google login applies the invited role (see Key decisions #3). If a lean Phase G is preferred, defer this sub-task — list/role-change/delete suffice. Commit.
+  - [x] **G.1.1** — `GET /users?role=coach` — list users filtered by role (uses existing `UserSQLite.list_users_by_role`). Expose role choices `member|coach|facility_manager|web_admin`. Commit.
+  - [x] **G.1.2** — `GET /users/{sub}` — detail. Commit.
+  - [x] **G.1.3** — `POST /users` — email-keyed invite (`facility_manager_role`; role `coach` or lower; body `{email, role}` → `email_hash`). No raw `sub` pre-seed — a manager can't know a Google `sub` and the `users` PII columns are NOT NULL. Record the intended role keyed by `email_hash`; `auth_callback` resolves it before auto-registering so first Google login applies the invited role (see Key decisions #3). If a lean Phase G is preferred, defer this sub-task — list/role-change/delete suffice. Commit.
   - [ ] **G.1.4** — `PUT /users/{sub}` — change role (coach/member for facility managers). Commit.
   - [ ] **G.1.5** — `DELETE /users/{sub}` / `DELETE /users/{sub}/hard` — soft/hard delete (`facility_manager_role` soft, `admin_role` hard). Commit.
   - [ ] **G.1.6** — Enforce privilege bounds: a facility manager may only assign `coach`/`member`, never `facility_manager`/`web_admin`. Commit.
