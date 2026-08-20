@@ -48,6 +48,12 @@ class UserInviteOut(BaseModel):
     status: str
 
 
+class UserRoleInput(BaseModel):
+    """Request body for changing a user's role."""
+
+    role: RoleChoice
+
+
 class UserRoutes:
     """Defines all user-management routes."""
 
@@ -70,6 +76,12 @@ class UserRoutes:
             "",
             self.create_user,
             methods=["POST"],
+            dependencies=[Depends(facility_manager_role)],
+        )
+        self.router.add_api_route(
+            "/{sub}",
+            self.change_user_role,
+            methods=["PUT"],
             dependencies=[Depends(facility_manager_role)],
         )
 
@@ -147,4 +159,32 @@ class UserRoutes:
             raise
         except Exception as exc:
             logger.exception("Failed to create user invite")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def change_user_role(
+        self,
+        sub: str,
+        body: UserRoleInput,
+        current_user: User = Depends(facility_manager_role),
+    ) -> ManagedUser:
+        """Change a user's role. Facility managers may only assign coach/member."""
+        try:
+            if body.role in ("facility_manager", "web_admin") and current_user.role != "web_admin":
+                raise HTTPException(
+                    status_code=403,
+                    detail="Only web admins may assign facility_manager or web_admin roles",
+                )
+            user = self._get_users_db().get_user_by_sub(sub)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            user.role = body.role
+            updated = self._get_users_db().update_user(user)
+            if not updated:
+                raise HTTPException(status_code=500, detail="Failed to update user role")
+            return self._to_managed(updated)
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to change user role")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
