@@ -196,15 +196,15 @@ Branch: `feature/manage-facility-managers`
 
 Branch: `feature/nav-wiring`
 
-- [ ] **I.1** — `frontend/src/router/index.tsx`: confirm public routes (`/explore/*`, `/explore/events/:eventId`) live **outside** `RouteGuard`; authenticated routes (`/my-schedule`, `/profile`, `/manage-events`, `/manage-users`) inside. Commit.
-- [ ] **I.2** — `frontend/src/layout/nav.ts` final item set + `requiredRole` per item:
+- [x] **I.1** — `frontend/src/router/index.tsx`: confirm public routes (`/explore/*`, `/explore/events/:eventId`) live **outside** `RouteGuard`; authenticated routes (`/my-schedule`, `/profile`, `/manage-events`, `/manage-users`) inside. Commit.
+- [x] **I.2** — `frontend/src/layout/nav.ts` final item set + `requiredRole` per item:
   - MEMBER: Dashboard, Signup Forms, My Schedule, Profile(footer)
   - COACH: + Manage Events
   - FACILITY_MANAGER: + Frequencies, Facilities, Events, Venues, Schedules, Manage Users, Signup Forms builder
   - WEB_ADMIN: all. Commit.
-- [ ] **I.3** — Dashboard quick links auto-reflect new nav items (already filters `NAV_ITEMS`). Commit.
-- [ ] **I.4** — Verify `/` HomePage links to `/explore` and Login; `/login?frontend_url=` still round-trips. Commit.
-- [ ] **I.5** — `HomePage`/`ExploreHomePage` copy and styles. Commit.
+- [x] **I.3** — Dashboard quick links auto-reflect new nav items (already filters `NAV_ITEMS`). Commit.
+- [x] **I.4** — Verify `/` HomePage links to `/explore` and Login; `/login?frontend_url=` still round-trips. Commit.
+- [x] **I.5** — `HomePage`/`ExploreHomePage` copy and styles. Commit.
 
 ## Phase J — Verification, docs, build
 

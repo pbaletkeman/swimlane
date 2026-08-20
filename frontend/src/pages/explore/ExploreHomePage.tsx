@@ -96,9 +96,13 @@ export default function ExploreHomePage() {
           </nav>
         </header>
 
+        <p className="explore-intro">
+          Find a pool by address, browse its schedule, or look up an upcoming event — no sign-in needed.
+        </p>
+
         <Card.Root>
           <Card.Header>
-            <Card.Title>Explore</Card.Title>
+            <Card.Title>Find a venue or event</Card.Title>
           </Card.Header>
           <Card.Content>
             <div className="explore-search-form">

@@ -98,6 +98,26 @@
   gap: 0.5rem;
 }
 
+.home-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 0.25rem 0;
+  color: var(--p-text-muted-color);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.home-divider::before,
+.home-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, currentColor 25%, transparent);
+}
+
 .app-dashboard {
   display: flex;
   flex-direction: column;
@@ -655,6 +675,12 @@
   gap: 1rem;
   width: 100%;
   max-width: 64rem;
+}
+
+.explore-intro {
+  margin: 0;
+  text-align: center;
+  color: var(--p-text-muted-color);
 }
 
 .explore-header {
