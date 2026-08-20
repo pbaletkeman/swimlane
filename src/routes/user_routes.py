@@ -42,6 +42,12 @@ class UserRoutes:
             methods=["GET"],
             dependencies=[Depends(facility_manager_role)],
         )
+        self.router.add_api_route(
+            "/{sub}",
+            self.get_user,
+            methods=["GET"],
+            dependencies=[Depends(facility_manager_role)],
+        )
 
     # ------------------------------------------------------------------
     def _get_users_db(self) -> UsersSQLite:
@@ -75,4 +81,18 @@ class UserRoutes:
             raise
         except Exception as exc:
             logger.exception("Failed to list users")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def get_user(self, sub: str) -> ManagedUser:
+        """Get a single user by their subject identifier."""
+        try:
+            user = self._get_users_db().get_user_by_sub(sub)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            return self._to_managed(user)
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to get user")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
