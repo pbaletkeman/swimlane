@@ -28,10 +28,24 @@ const ROLE_META: Record<string, { label: string; severity: 'secondary' | 'info' 
   web_admin: { label: 'Web Admin', severity: 'danger' },
 }
 
-/** Create/edit dialogs only ever assign coach or member (see G.1.3/G.1.4 bounds). */
-const ROLE_OPTIONS: EntityFormFieldOption[] = [
+/** Invite dialogs only ever assign coach or member (backend `UserInviteInput` Literal). */
+const INVITE_ROLE_OPTIONS: EntityFormFieldOption[] = [
   { label: 'Coach', value: 'coach' },
   { label: 'Member', value: 'member' },
+]
+
+/** Role-edit options for facility managers: coach/member only (cannot assign senior roles). */
+const MANAGER_ROLE_OPTIONS: EntityFormFieldOption[] = [
+  { label: 'Coach', value: 'coach' },
+  { label: 'Member', value: 'member' },
+]
+
+/** Role-edit options for web admins: coaches + facility managers (+ web admins). */
+const ADMIN_ROLE_OPTIONS: EntityFormFieldOption[] = [
+  { label: 'Coach', value: 'coach' },
+  { label: 'Member', value: 'member' },
+  { label: 'Facility Manager', value: 'facility_manager' },
+  { label: 'Web Admin', value: 'web_admin' },
 ]
 
 function roleMeta(role: string): { label: string; severity: 'secondary' | 'info' | 'warn' | 'danger' } {
@@ -43,14 +57,15 @@ function errorMessage(error: unknown): string {
 }
 
 /**
- * Manage Users page (Phase G): coach/member accounts. Role-filtered table,
- * email invites, role edits (coach/member only), soft delete for managers+,
- * admin-only hard delete (gated by the ConfirmDelete hardRole check).
+ * Manage Users page (Phase G + H.3): coach/member accounts. Role-filtered table
+ * (defaults to Coaches; admins can also filter Facility Managers/Web Admins),
+ * email invites (coach/member), role edits (admins may assign senior roles),
+ * soft delete for managers+, admin-only hard delete (ConfirmDelete hardRole gate).
  */
 export default function ManageUsersPage() {
   const { hasRole } = useAuth()
   const isAdmin = hasRole('WEB_ADMIN')
-  const [filterRole, setFilterRole] = useState<ManagedUserRoleFilter | ''>('')
+  const [filterRole, setFilterRole] = useState<ManagedUserRoleFilter | ''>('coach')
   const [rows, setRows] = useState<ManagedUser[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogVisible, setDialogVisible] = useState(false)
@@ -110,11 +125,17 @@ export default function ManageUsersPage() {
 
   const inviteFields: EntityFormField<ManagedUser>[] = [
     { name: 'email', label: 'Email', type: 'text', required: true, placeholder: 'coach@example.com' },
-    { name: 'role', label: 'Role', type: 'select', required: true, options: ROLE_OPTIONS },
+    { name: 'role', label: 'Role', type: 'select', required: true, options: INVITE_ROLE_OPTIONS },
   ]
 
   const roleFields: EntityFormField<ManagedUser>[] = [
-    { name: 'role', label: 'Role', type: 'select', required: true, options: ROLE_OPTIONS },
+    {
+      name: 'role',
+      label: 'Role',
+      type: 'select',
+      required: true,
+      options: isAdmin ? ADMIN_ROLE_OPTIONS : MANAGER_ROLE_OPTIONS,
+    },
   ]
 
   const openCreate = () => {
@@ -131,9 +152,9 @@ export default function ManageUsersPage() {
     setSubmitting(true)
     try {
       if (editing) {
-        const role = values.role === 'member' ? 'member' : 'coach'
+        const role = String(values.role ?? '')
         await updateUserRole(editing.sub, role)
-        showToastSuccess('Role updated', `${editing.name ?? editing.sub} is now a ${role}.`)
+        showToastSuccess('Role updated', `${editing.name ?? editing.sub} is now ${roleMeta(role).label}.`)
       } else {
         const email = String(values.email ?? '').trim().toLowerCase()
         const role = values.role === 'member' ? 'member' : 'coach'
