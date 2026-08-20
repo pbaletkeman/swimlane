@@ -10,10 +10,13 @@ import logging
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
+from src.data.user_invite.sqlite import SQLite as UserInviteSQLite
+from src.data.user_invite.user_invite import UserInvite
 from src.data.users.sqlite import SQLite as UsersSQLite
 from src.data.users.user import User
+from src.encryption import hash_field
 from src.roles.roles import facility_manager_role
 
 logger = logging.getLogger(__name__)
@@ -28,6 +31,21 @@ class ManagedUser(BaseModel):
     role: str
     is_active: bool
     is_deleted: bool
+
+
+class UserInviteInput(BaseModel):
+    """Request body for inviting a new user by email (coach or member only)."""
+
+    email: EmailStr
+    role: Literal["coach", "member"]
+
+
+class UserInviteOut(BaseModel):
+    """Result of creating a pre-registration invite keyed by email hash."""
+
+    email: str
+    role: str
+    status: str
 
 
 class UserRoutes:
@@ -48,10 +66,20 @@ class UserRoutes:
             methods=["GET"],
             dependencies=[Depends(facility_manager_role)],
         )
+        self.router.add_api_route(
+            "",
+            self.create_user,
+            methods=["POST"],
+            dependencies=[Depends(facility_manager_role)],
+        )
 
     # ------------------------------------------------------------------
     def _get_users_db(self) -> UsersSQLite:
         return UsersSQLite()
+
+    # ------------------------------------------------------------------
+    def _get_invite_db(self) -> UserInviteSQLite:
+        return UserInviteSQLite()
 
     # ------------------------------------------------------------------
     def _to_managed(self, user: User) -> ManagedUser:
@@ -95,4 +123,28 @@ class UserRoutes:
             raise
         except Exception as exc:
             logger.exception("Failed to get user")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def create_user(self, body: UserInviteInput) -> UserInviteOut:
+        """Invite a new user by email so their first Google login applies the invited role.
+
+        Role is limited to coach or member (privilege bound); senior-role
+        invites are out of scope for this phase. Existing users are rejected
+        here — change their role via the role-change endpoint instead.
+        """
+        try:
+            email = str(body.email).lower()
+            if self._get_users_db().get_user_by_email(email):
+                raise HTTPException(status_code=409, detail="User already registered")
+
+            email_hash = hash_field(email)
+            invite = self._get_invite_db().create_invite(UserInvite(email_hash=email_hash, role=body.role))
+            if not invite:
+                raise HTTPException(status_code=500, detail="Failed to create invite")
+            return UserInviteOut(email=email, role=invite.role, status="invited")
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to create user invite")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
