@@ -300,6 +300,9 @@ export interface EventInput {
   start_date_time: string
   end_date_time: string
   frequency_id?: number | null
+  description?: string | null
+  coach_id?: string | null
+  venue_id?: number | null
   is_active?: boolean
 }
 

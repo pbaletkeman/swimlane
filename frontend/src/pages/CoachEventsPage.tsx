@@ -1,17 +1,29 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Button } from 'primereact/button'
 import { Select } from 'primereact/select'
 import { Tag } from 'primereact/tag'
 import type { SelectValueChangeEvent } from '@primereact/types/primitive/select'
-import { getEventCapacity, listMine } from '../api/events.ts'
+import { events, getEventCapacity, listMine } from '../api/events.ts'
 import { facilities } from '../api/facilities.ts'
 import { frequencies } from '../api/frequencies.ts'
 import { venues } from '../api/venues.ts'
-import type { CoachEventScope, Event, EventCapacity, Facility, Frequency, Venue } from '../api/types.ts'
+import type {
+  CoachEventScope,
+  Event,
+  EventCapacity,
+  EventInput,
+  Facility,
+  Frequency,
+  Venue,
+} from '../api/types.ts'
+import { useAuth } from '../auth/auth-context.ts'
 import { EmptyState } from '../components/EmptyState.tsx'
 import { EntityDataTable } from '../components/EntityDataTable.tsx'
 import type { EntityDataTableColumn } from '../components/EntityDataTable.tsx'
+import { EntityFormDialog } from '../components/EntityFormDialog.tsx'
+import type { EntityFormField, EntityFormFieldOption } from '../components/EntityFormDialog.tsx'
 import { PageHeader } from '../components/PageHeader.tsx'
-import { showToastError } from '../toast/toast-context.ts'
+import { showToastError, showToastSuccess } from '../toast/toast-context.ts'
 
 const SCOPE_OPTIONS: { label: string; value: CoachEventScope }[] = [
   { label: 'Upcoming', value: 'upcoming' },
@@ -47,12 +59,20 @@ function capacityText(cap: EventCapacity | undefined): string {
   return cap.max_capacity == null ? `${cap.registered_count} / ∞` : `${cap.registered_count} / ${cap.max_capacity}`
 }
 
+function toIso(value: unknown): string {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString()
+  if (typeof value === 'string' && value) return new Date(value).toISOString()
+  return ''
+}
+
 /**
  * Coach "Manage Events" page (Phase F): the coach's own events with an
  * Upcoming / Past / All scope switcher, editable in F.9.2–F.9.3, with a
  * members management drawer in F.9.4.
  */
 export default function CoachEventsPage() {
+  const { user } = useAuth()
+  const callerSub = user?.sub ?? ''
   const [scope, setScope] = useState<CoachEventScope>('upcoming')
   const [rows, setRows] = useState<Event[]>([])
   const [venueRows, setVenueRows] = useState<Venue[]>([])
@@ -60,6 +80,22 @@ export default function CoachEventsPage() {
   const [frequencyRows, setFrequencyRows] = useState<Frequency[]>([])
   const [capacity, setCapacity] = useState<Record<number, EventCapacity>>({})
   const [loading, setLoading] = useState(true)
+  const [dialogVisible, setDialogVisible] = useState(false)
+  const [editing, setEditing] = useState<Event | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const frequencyOptions = useMemo<EntityFormFieldOption[]>(
+    () => frequencyRows.map((frequency) => ({ label: frequency.name, value: frequency.frequency_id ?? -1 })),
+    [frequencyRows],
+  )
+  const venueOptions = useMemo<EntityFormFieldOption[]>(
+    () =>
+      venueRows.map((venue) => ({
+        label: venueLabel(venue.venue_id, venueRows, facilityRows),
+        value: venue.venue_id ?? -1,
+      })),
+    [venueRows, facilityRows],
+  )
 
   const frequencyNames = useMemo(() => {
     const map = new Map<number, string>()
@@ -139,6 +175,57 @@ export default function CoachEventsPage() {
     },
   ]
 
+  const fields: EntityFormField<Event>[] = [
+    { name: 'start_date_time', label: 'Start Date Time', type: 'datetime', required: true },
+    {
+      name: 'end_date_time',
+      label: 'End Date Time',
+      type: 'datetime',
+      required: true,
+      validate: (value, values) => {
+        const start = values.start_date_time
+        if (value instanceof Date && start instanceof Date && value.getTime() <= start.getTime()) {
+          return 'End date time must be after the start date time.'
+        }
+        return undefined
+      },
+    },
+    { name: 'frequency_id', label: 'Frequency', type: 'select', options: frequencyOptions },
+    { name: 'description', label: 'Description', type: 'textarea' },
+    { name: 'venue_id', label: 'Facility / Venue', type: 'select', options: venueOptions },
+    { name: 'is_active', label: 'Active', type: 'checkbox' },
+  ]
+
+  const openEdit = (row: Event) => {
+    setEditing(row)
+    setDialogVisible(true)
+  }
+
+  const handleSubmit = async (values: Record<string, unknown>) => {
+    const input: EventInput = {
+      start_date_time: toIso(values.start_date_time),
+      end_date_time: toIso(values.end_date_time),
+      frequency_id: typeof values.frequency_id === 'number' ? values.frequency_id : null,
+      description: typeof values.description === 'string' && values.description.trim() ? values.description : null,
+      coach_id: callerSub,
+      venue_id: typeof values.venue_id === 'number' ? values.venue_id : null,
+      is_active: values.is_active === true,
+    }
+    setSubmitting(true)
+    try {
+      if (editing) {
+        await events.update(editing.event_id!, input)
+        showToastSuccess('Event updated', 'The event was updated.')
+      }
+      setDialogVisible(false)
+      await load()
+    } catch (error) {
+      showToastError('Save failed', errorMessage(error))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <div className="app-crud-page">
       <PageHeader title="Manage Events" subtitle="Your coaching events and their members." />
@@ -184,8 +271,43 @@ export default function CoachEventsPage() {
           searchableFields={['start_date_time', 'end_date_time', 'description']}
           searchPlaceholder="Search events..."
           defaultSortField="start_date_time"
+          actionsHeader="Actions"
+          actions={(row) => (
+            <div className="app-crud-row-actions">
+              <Button
+                type="button"
+                variant="text"
+                iconOnly
+                aria-label="Edit event"
+                title="Edit event"
+                onClick={() => openEdit(row)}
+              >
+                <i className="pi pi-pencil" />
+              </Button>
+            </div>
+          )}
         />
       )}
+      <EntityFormDialog
+        visible={dialogVisible}
+        title="Edit Event"
+        fields={fields}
+        initialValues={
+          editing
+            ? {
+                start_date_time: editing.start_date_time,
+                end_date_time: editing.end_date_time,
+                frequency_id: editing.frequency_id,
+                description: editing.description,
+                venue_id: editing.venue_id,
+                is_active: editing.is_active,
+              }
+            : { is_active: true }
+        }
+        onSubmit={handleSubmit}
+        onHide={() => setDialogVisible(false)}
+        submitting={submitting}
+      />
     </div>
   )
 }
