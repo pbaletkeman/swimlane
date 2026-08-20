@@ -152,6 +152,11 @@ class EventRoutes:
             methods=["POST"],
         )
         self.router.add_api_route(
+            "/{event_id}/members/{schedule_id}",
+            self.remove_event_member,
+            methods=["DELETE"],
+        )
+        self.router.add_api_route(
             "/{event_id}/register",
             self.register_for_event,
             methods=["POST"],
@@ -426,6 +431,36 @@ class EventRoutes:
             raise
         except Exception as exc:
             logger.exception("Failed to add event member")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def remove_event_member(
+        self,
+        event_id: int,
+        schedule_id: int,
+        current_user: User = Depends(coach_role),
+    ) -> dict[str, str]:
+        """Remove a member from an event by soft-deleting their schedule (coach of the event or manager+)."""
+        try:
+            event = self._get_db().get_event_by_id(event_id)
+            if not event:
+                raise HTTPException(status_code=404, detail="Event not found")
+
+            if not self._is_manager_or_admin(current_user) and event.coach_id != current_user.sub:
+                raise HTTPException(status_code=403, detail="Not the coach of this event")
+
+            schedule_db = ScheduleSQLite()
+            schedule = schedule_db.get_schedule_by_id(schedule_id)
+            if not schedule or schedule.event_id != event_id:
+                raise HTTPException(status_code=404, detail="Schedule not found for this event")
+
+            if not schedule_db.delete_schedule_by_id(schedule_id):
+                raise HTTPException(status_code=500, detail="Failed to remove member")
+            return {"message": "Member removed"}
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to remove event member")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
