@@ -19,6 +19,7 @@ const MySchedulePage = lazy(() => import('../pages/MySchedulePage.tsx'))
 const FrequenciesPage = lazy(() => import('../pages/FrequenciesPage.tsx'))
 const FacilitiesPage = lazy(() => import('../pages/FacilitiesPage.tsx'))
 const EventsPage = lazy(() => import('../pages/EventsPage.tsx'))
+const CoachEventsPage = lazy(() => import('../pages/CoachEventsPage.tsx'))
 const VenuesPage = lazy(() => import('../pages/VenuesPage.tsx'))
 const SchedulesPage = lazy(() => import('../pages/SchedulesPage.tsx'))
 const FormsPage = lazy(() => import('../pages/FormsPage.tsx'))
@@ -58,6 +59,7 @@ export function AppRouter() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/my-schedule" element={<MySchedulePage />} />
+          <Route path="/manage-events" element={<CoachEventsPage />} />
           <Route path="/frequencies" element={<FrequenciesPage />} />
           <Route path="/facilities" element={<FacilitiesPage />} />
           <Route path="/events" element={<EventsPage />} />
