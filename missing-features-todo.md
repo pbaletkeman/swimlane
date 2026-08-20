@@ -202,7 +202,7 @@ Branch: `feature/nav-wiring`
   - COACH: + Manage Events
   - FACILITY_MANAGER: + Frequencies, Facilities, Events, Venues, Schedules, Manage Users, Signup Forms builder
   - WEB_ADMIN: all. Commit.
-- [ ] **I.3** — Dashboard quick links auto-reflect new nav items (already filters `NAV_ITEMS`). Commit.
+- [x] **I.3** — Dashboard quick links auto-reflect new nav items (already filters `NAV_ITEMS`). Commit.
 - [ ] **I.4** — Verify `/` HomePage links to `/explore` and Login; `/login?frontend_url=` still round-trips. Commit.
 - [ ] **I.5** — `HomePage`/`ExploreHomePage` copy and styles. Commit.
 
