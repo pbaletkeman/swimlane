@@ -196,6 +196,11 @@ export default function CoachEventsPage() {
     { name: 'is_active', label: 'Active', type: 'checkbox' },
   ]
 
+  const openCreate = () => {
+    setEditing(null)
+    setDialogVisible(true)
+  }
+
   const openEdit = (row: Event) => {
     setEditing(row)
     setDialogVisible(true)
@@ -216,6 +221,9 @@ export default function CoachEventsPage() {
       if (editing) {
         await events.update(editing.event_id!, input)
         showToastSuccess('Event updated', 'The event was updated.')
+      } else {
+        await events.create(input)
+        showToastSuccess('Event created', 'The event was created.')
       }
       setDialogVisible(false)
       await load()
@@ -228,7 +236,7 @@ export default function CoachEventsPage() {
 
   return (
     <div className="app-crud-page">
-      <PageHeader title="Manage Events" subtitle="Your coaching events and their members." />
+      <PageHeader title="Manage Events" subtitle="Your coaching events and their members." onNew={openCreate} newLabel="New Event" />
       <div className="coach-events-toolbar">
         <Select.Root
           value={scope}
@@ -290,7 +298,7 @@ export default function CoachEventsPage() {
       )}
       <EntityFormDialog
         visible={dialogVisible}
-        title="Edit Event"
+        title={editing ? 'Edit Event' : 'New Event'}
         fields={fields}
         initialValues={
           editing
