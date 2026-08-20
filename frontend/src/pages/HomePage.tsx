@@ -11,7 +11,7 @@ export function HomePage() {
       <div className="login-card">
         <h1 className="login-title">Swimlane</h1>
         <p className="login-subtitle">Swimming team management</p>
-        <p className="home-tagline">Browse venues and schedules — no sign-in needed.</p>
+        <p className="home-tagline">Browse venues, schedules, and upcoming events — no sign-in needed.</p>
         <div className="home-actions">
           {loading ? (
             <i className="pi pi-spin pi-spinner" />
@@ -27,10 +27,15 @@ export function HomePage() {
                   <span className="p-button-label">Go to Dashboard</span>
                 </Button>
               ) : (
-                <Button type="button" className="login-button" onClick={login}>
-                  <i className="p-button-icon pi pi-google" />
-                  <span className="p-button-label">Sign in with Google</span>
-                </Button>
+                <>
+                  <div className="home-divider">
+                    <span>or</span>
+                  </div>
+                  <Button type="button" className="login-button" onClick={login}>
+                    <i className="p-button-icon pi pi-google" />
+                    <span className="p-button-label">Sign in with Google</span>
+                  </Button>
+                </>
               )}
             </>
           )}
