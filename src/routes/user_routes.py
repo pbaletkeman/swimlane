@@ -16,7 +16,7 @@ from src.data.user_invite.sqlite import SQLite as UserInviteSQLite
 from src.data.user_invite.user_invite import UserInvite
 from src.data.users.sqlite import SQLite as UsersSQLite
 from src.data.users.user import User
-from src.encryption import hash_field
+from src.encryption import decrypt_field, hash_field
 from src.roles.roles import admin_role, facility_manager_role
 
 logger = logging.getLogger(__name__)
@@ -24,11 +24,34 @@ logger = logging.getLogger(__name__)
 RoleChoice = Literal["member", "coach", "facility_manager", "web_admin"]
 
 
+def _mask(value: str | None) -> str | None:
+    """Mask a value by keeping its first character and replacing the rest with asterisks."""
+    if not value:
+        return None
+    if len(value) <= 1:
+        return value
+    return f"{value[0]}{'*' * (len(value) - 1)}"
+
+
+def _mask_email(value: str | None) -> str | None:
+    """Mask the local part of an email, keeping the domain visible."""
+    if not value or "@" not in value:
+        return _mask(value)
+    local, _, domain = value.partition("@")
+    return f"{_mask(local)}@{domain}"
+
+
 class ManagedUser(BaseModel):
-    """A user record suitable for coach management (no ciphertext fields)."""
+    """A user record suitable for coach management.
+
+    PII is decrypted server-side and masked before serialization — raw
+    ciphertext never leaves the API (see G.3).
+    """
 
     sub: str
     role: str
+    name: str | None = None
+    email: str | None = None
     is_active: bool
     is_deleted: bool
 
@@ -106,10 +129,36 @@ class UserRoutes:
         return UserInviteSQLite()
 
     # ------------------------------------------------------------------
+    def _display_name(self, user: User) -> str | None:
+        """Decrypt and combine first/last name, then mask it."""
+        try:
+            if not user.first_name_nonce or not user.first_name_ciphertext:
+                return None
+            first = decrypt_field(user.first_name_nonce, user.first_name_ciphertext)
+            last = ""
+            if user.last_name_nonce and user.last_name_ciphertext:
+                last = decrypt_field(user.last_name_nonce, user.last_name_ciphertext)
+            return _mask(f"{first} {last}".strip()) or None
+        except Exception:
+            return None
+
+    # ------------------------------------------------------------------
+    def _display_email(self, user: User) -> str | None:
+        """Decrypt the user's email and mask the local part."""
+        try:
+            if user.email_nonce and user.email_ciphertext:
+                return _mask_email(decrypt_field(user.email_nonce, user.email_ciphertext))
+        except Exception:
+            pass
+        return None
+
+    # ------------------------------------------------------------------
     def _to_managed(self, user: User) -> ManagedUser:
         return ManagedUser(
             sub=user.sub,
             role=user.role or "member",
+            name=self._display_name(user),
+            email=self._display_email(user),
             is_active=user.is_active,
             is_deleted=user.is_deleted,
         )
