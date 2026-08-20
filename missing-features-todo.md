@@ -185,9 +185,9 @@ Branch: `feature/manage-facility-managers`
 
 `layout.txt:40-42` — everything under manage facility plus facility-manager accounts.
 
-- [ ] **H.1** — Reuse `UserRoutes` with `admin_role` guard for `facility_manager` + `web_admin` role assignment:
+- [x] **H.1** — Reuse `UserRoutes` with `admin_role` guard for `facility_manager` + `web_admin` role assignment:
   - [x] **H.1.1** — `GET /users?role=facility_manager` (`admin_role` only). Commit.
-  - [ ] **H.1.2** — Extend `PUT /users/{sub}` so admins may assign `facility_manager`/`web_admin`; non-admins blocked server-side (guard in handler, not just role dependency). Commit.
+  - [x] **H.1.2** — Extend `PUT /users/{sub}` so admins may assign `facility_manager`/`web_admin`; non-admins blocked server-side (guard in handler, not just role dependency). Commit.
 - [ ] **H.2** — Verify hierarchical guard logic: `facility_manager_role` can't escalate itself; only `admin_role` can. Commit.
 - [ ] **H.3** — `ManageUsersPage` gains a role-filter: FACILITY_MANAGER sees only Coaches; WEB_ADMIN sees Coaches + Facility Managers and can assign those roles (role select options widen by `hasRole('WEB_ADMIN')`). Commit.
 - [ ] **H.4** — Nav item already added in Phase G; WEB_ADMIN automatically sees it (hierarchical rank). No new page needed — document in nav. Commit.

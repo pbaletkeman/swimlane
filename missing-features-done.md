@@ -435,7 +435,7 @@ Branch: `feature/coach-manage-events`
 - F.2/F.4 share the own-event-or-manager+ guard via `_is_manager_or_admin(user)`; the Phase C register internals live in `_create_schedule_for_member(event_id, member_id)` (F.4 reuses them verbatim). F.3's create/update/delete guard reuses the same helper.
 - F.9.4 adds a member **by `sub`** (an `InputText`) because the Phase G user-list endpoint doesn't exist yet; the todo notes this explicitly. When Phase G lands, the add control can become a user `Select`.
 
-## Phase H — Admin: manage facility managers (H.1.1 complete)
+## Phase H — Admin: manage facility managers (H.1, H.1.1, H.1.2 complete)
 
 Branch: `feature/manage-coach-accounts`
 
@@ -457,6 +457,7 @@ Branch: `feature/manage-coach-accounts`
 | G.7 | Nav — `Manage Users` (`pi pi-users-cog`, `/manage-users`, `requiredRole: 'FACILITY_MANAGER'`) inserted between Schedules and Signup Forms | `aaaad9a` |
 | G.8 | Router — `/manage-users` lazy route behind a `FACILITY_MANAGER` `RouteGuard`; optional SchedulesPage member-picker swap done — raw sub text input → `listUsers`-backed select (masked name/email, sub as value), Member column shows the masked name | `275b353` |
 | H.1.1 | `GET /users?role=facility_manager` admin-only — no code change; the G.1.1 inline guard (`role in ("facility_manager", "web_admin")` → 403 for non-`web_admin`) already enforces it | `22b42c7` (docs) |
+| H.1.2 | `PUT /users/{sub}` senior-role assignment — no code change; the G.1.4 inline guard already allows `web_admin` callers to assign `facility_manager`/`web_admin` and 403s everyone else | `f34de29` (docs) |
 
 ### Details
 
@@ -474,6 +475,7 @@ Branch: `feature/manage-coach-accounts`
 - **G.7** (`aaaad9a`): one-line nav insertion — `Manage Users` (`pi-users-cog`, `/manage-users`, `FACILITY_MANAGER`) between Schedules and Signup Forms. Nav filtering is automatic via `AppLayout`'s `hasRole(item.requiredRole)`; the route also enforces the backend's `facility_manager_role` dependency once wired in G.8.
 - **G.8** (`275b353`): two changes. (1) Router: lazy-imported `ManageUsersPage` at `/manage-users`, wrapped in a `RouteGuard requiredRole="FACILITY_MANAGER"` so non-managers are redirected to `/dashboard` even on direct URL access. (2) SchedulesPage member picker: the raw Google-sub text input is replaced with a `listUsers`-backed select — options show masked name + email with the `sub` as the value, and the Member column now renders the masked name instead of the raw sub. This closes the loop the todo flagged: Phase F's member picker could not select users until Phase G exposed the user list.
 - **H.1.1** (no new code): the admin-only `?role=facility_manager` filter shipped inside G.1.1 — `list_users` rejects any non-`web_admin` caller who asks for a senior-role filter (403), so H.1.1 is a verification pass. Branch `feature/manage-facility-managers` was cut from `main` (Phase G merged via PR #35), so the endpoint already exists here.
+- **H.1.2** (no new code): `PUT /users/{sub}` already carries the handler-level guard from G.1.4 — `body.role in ("facility_manager", "web_admin")` with a non-`web_admin` caller raises 403, and the handler-level check sits in addition to the `facility_manager_role` route dependency (which only proves the caller is manager-or-above). Admins can assign any role; managers remain restricted to coach/member. Like H.1.1, this is a verification pass, not a code change.
 
 ### Verification
 
@@ -493,11 +495,12 @@ Branch: `feature/manage-coach-accounts`
   - **G.7**: `npm run lint` + `npm run build` clean after the nav edit.
   - **G.8**: `npm run lint` + `npm run build` clean. `/manage-users` now reachable and role-gated; SchedulesPage member select is covered by the same type-check and the G.1.1/G.4 list endpoints it calls.
   - **H.1.1** (`smoke_h111.py`): web_admin lists `?role=facility_manager` → 200 with exactly the manager row(s) and `?role=web_admin` → 200 with the admin row(s); facility manager gets 403 on both senior-role filters but 200 on `?role=coach`; unfiltered `GET /users` → 200 for both. Note: the test users must include encrypted first/last names — `create_users_bulk` silently skips rows without them.
+  - **H.1.2** (`smoke_h12.py`): admin assigns `facility_manager` → 200 (role persisted), `web_admin` → 200, demote to `coach` → 200; facility manager assigning `facility_manager`/`web_admin` → 403 both, but assigning `coach` → 200; admin `?role=web_admin` listing still shows only the admin rows after the churn.
 
 ### Notes
 
 - Only G.1–G.8 are in scope so far (the user's requests) — **Phase G is now fully complete.** Phase H (admin: manage facility managers) is next on the todo. The G.1.3 `Literal["coach", "member"]`, the G.1.1 senior-role 403, G.1.4's assign bound, and G.1.5's delete bound together satisfy G.1.6 — a facility manager can never assign or manage senior roles.
-- H.1.1 done on `feature/manage-facility-managers` (branch-cut from `main` after PR #35 merged Phase G). Remaining Phase H: H.1.2 (admins assign senior roles via `PUT /users/{sub}` — the G.1.4 inline guard already permits `web_admin`, so this is likely also a verification pass), H.2 (hierarchical guard verification), H.3 (ManageUsersPage role-select widening for admins), H.4 (nav doc).
+- H.1 (H.1.1 + H.1.2) done on `feature/manage-facility-managers`. Remaining Phase H: H.2 (hierarchical guard verification), H.3 (ManageUsersPage role-select widening for admins — the only Phase H item that definitely needs frontend code), H.4 (nav doc).
 - `UserRoutes` registration in `main.py` was required by G.1.1 (the endpoints must be mounted to exist/test); G.2's `src/routes/README.md` update is the piece that was still pending and is now done.
 - G.3's mask keeps the first character so rows remain distinguishable (e.g. initials) without exposing full names/emails; the domain suffix stays visible to make email lists scannable.
 - `POST /users` only creates pre-registration invites; changing an existing user's role deliberately returns 409 so the role-change path (G.1.4) stays the single mechanism for that. Existing users auto-login with their current role unchanged — the invite is only consulted when auto-registering.
