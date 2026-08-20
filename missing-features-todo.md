@@ -171,7 +171,7 @@ Branch: `feature/manage-coach-accounts`
   - [x] **G.1.4** — `PUT /users/{sub}` — change role (coach/member for facility managers). Commit.
   - [x] **G.1.5** — `DELETE /users/{sub}` / `DELETE /users/{sub}/hard` — soft/hard delete (`facility_manager_role` soft, `admin_role` hard). Commit.
   - [x] **G.1.6** — Enforce privilege bounds: a facility manager may only assign `coach`/`member`, never `facility_manager`/`web_admin`. Commit.
-- [ ] **G.2** — Register `UserRoutes` in `main.py`; update `src/routes/README.md`. Commit.
+- [x] **G.2** — Register `UserRoutes` in `main.py`; update `src/routes/README.md`. Commit.
 - [ ] **G.3** — PII handling: user list returns **masked** name/email (decrypt in server then truncate, or return only sub + role) to avoid leaking encrypted fields raw. Commit.
 - [ ] **G.4** — `frontend/src/api/users.ts` — `list({role})`, `get(sub)`, `create(input)`, `updateRole(sub, role)`, `softDelete(sub)`, `hardDelete(sub)`. Commit.
 - [ ] **G.5** — `frontend/src/api/types.ts` — `ManagedUser`, `ManagedUserInput`. Commit.
