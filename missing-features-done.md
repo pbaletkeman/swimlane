@@ -381,7 +381,7 @@ The full Phase E scope is complete: backend (E.1–E.5), frontend API layer + ty
 - `POST /messages` sends to any `users.sub`; the member picker arrives with Phase G's user-list endpoint, so staff paste the `sub` for now.
 - No `AGENTS.md` sync yet (J.8 covers the aggregate update); the `src/routes/README.md` in-repo route doc is now current.
 
-## Phase F — Coach "Manage Events" (F.1, F.2, F.4 complete)
+## Phase F — Coach "Manage Events" (F.1, F.2, F.4, F.5 complete)
 
 Branch: `feature/coach-manage-events`
 
@@ -392,6 +392,7 @@ Branch: `feature/coach-manage-events`
 | F.1 | `GET /coach/events?scope=upcoming\|past\|all` — `coach_role`; returns only events where `coach_id == current_user.sub`; `EventSQLite.list_events_by_coach(coach_id, scope)`; new `src/routes/coach_routes.py` `CoachRoutes` (`/coach` prefix) registered in `main.py` | `863a8bc` |
 | F.2 | `GET /events/{id}/members` — `coach_role`; 403 unless the caller is the event's coach or manager+; returns active schedules joined with member display info (name/email decrypted server-side); `ScheduleSQLite.list_schedules_by_event_id_with_members(event_id)`; `EventMemberItem` response model | `fe94c7a` |
 | F.4 | `POST /events/{id}/members` — `coach_role`; 403 unless the caller is the event's coach or manager+; `{member_id}` body creates a schedule with the Phase C capacity/duplicate checks; returns the new member with decrypted display info | `c6ae0f7` |
+| F.5 | `DELETE /events/{id}/members/{schedule_id}` — `coach_role`; 403 unless the caller is the event's coach or manager+; soft-deletes the schedule (404 if missing or not on the event) | `32f4373` |
 
 ### Details
 
@@ -400,6 +401,7 @@ Branch: `feature/coach-manage-events`
 - The route depends on `coach_role` (COACH + FACILITY_MANAGER + WEB_ADMIN) and scopes by `current_user.sub`, so a facility manager hitting `/coach/events` gets their own coach-assigned events (which is empty unless they're also assigned) — consistent with the "own events" rule in the plan.
 - **F.2** (`fe94c7a`): added `ScheduleInterface.list_schedules_by_event_id_with_members` + SQLite impl in `src/data/schedule/sqlite.py` — `LEFT JOIN users u ON u.sub = s.member_id` over the event's **active** schedules, selecting the member's raw PII columns (nonce + ciphertext for first/last name and email) plus the schedule fields, ordered by `schedule_id`. `GET /events/{id}/members` is registered on `EventRoutes` (shares the `/events` prefix). The handler depends on `coach_role`, then enforces the plan's rule inline: the caller must either be the event's coach (`event.coach_id == current_user.sub`) or manager+ (`role in {FACILITY_MANAGER, WEB_ADMIN}`), else 403; missing event → 404. PII is decrypted server-side into `EventMemberItem.member_name`/`.email` (falling back to the `member_id`/`None` on missing or undecryptable columns), so no encrypted fields ever leak to the client.
 - **F.4** (`c6ae0f7`): `POST /events/{id}/members` takes `{member_id}` and creates a schedule. The Phase C `register_for_event` internals were factored into a shared `_create_schedule_for_member(event_id, member_id)` helper (404 missing/inactive event, 400 no venue, 404 missing venue, 409 already registered, 409 at capacity, create → 500 on failure); `register_for_event` now just calls it with `user.sub` and F.4 calls it with `body.member_id` after the own-event-or-manager+ guard (the same guard as F.2, now shared via `_is_manager_or_admin(user)`). The response re-queries the joined member row so it carries the same decrypted `member_name`/`email` as the F.2 list.
+- **F.5** (`32f4373`): `DELETE /events/{id}/members/{schedule_id}` applies the same own-event-or-manager+ guard, then verifies the schedule exists **and belongs to the event** (`schedule.event_id != event_id` → 404) before soft-deleting via the existing `ScheduleSQLite.delete_schedule_by_id` (sets `is_active = 0`, so removed members disappear from the F.2 list). Returns `{message: "Member removed"}`; missing event or schedule → 404. Re-removing an already soft-deleted schedule is idempotent (200) because the UPDATE still matches one row.
 
 ### Verification
 
@@ -411,10 +413,11 @@ Branch: `feature/coach-manage-events`
   - `?scope=bogus` → 422 (Literal validation).
 - **F.2** — `GET /events/{id}/members` → 401 no token; `member` token → 403; `coach2` on `coach1`'s event → 403; `coach1` on own event → 200 with both members (`member1` → `"First1 Last1"` + `member1@x.com`, `member2` likewise, decrypted) and the soft-deleted row excluded; `facility_manager` on any event → 200; missing event → 404.
 - **F.4** — `POST /events/{id}/members` → 401 no token; `member` token → 403; `coach2` on `coach1`'s event → 403; `coach1` adding `member1` to own event → 200 (`member1` + `"First1 Last1"` + `member1@x.com`, decrypted); duplicate add → 409; `facility_manager` adding `member2` (fills capacity 2) → 200; further add → 409 at capacity; missing event → 404; `coach1` on `coach2`'s event → 403.
+- **F.5** — `DELETE /events/{id}/members/{schedule_id}` → 401 no token; `member` token → 403; `coach2` on `coach1`'s event → 403; `coach1` removing own-event schedule → 200 `{message: "Member removed"}` and the member drops out of the subsequent `GET /events/{id}/members`; `facility_manager` remove → 200; schedule not on the event / missing → 404; missing event → 404; re-remove of the soft-deleted schedule → 200 (idempotent).
 - Dev DB: the smoke seed rows were deleted afterward (users/event/venue/facility/frequency back to 0; users re-create on next Google login via the auth upsert).
 
 ### Notes
 
-- The `F.3`, `F.5`–`F.7` endpoints and the `F.8`+ frontend will land on the same branch.
+- The `F.3`, `F.6`–`F.7` endpoints and the `F.8`+ frontend will land on the same branch.
 - F.1's `CoachRoutes` lives in its own file so future coach-scoped endpoints (the plan keeps coach work on `/coach` and `/events/{id}/members`) have a natural home; the `GET/POST /events/{id}/members` routes (F.2/F.4) went on `EventRoutes` since they share the `/events` prefix.
 - F.2/F.4 share the own-event-or-manager+ guard via `_is_manager_or_admin(user)`; the Phase C register internals live in `_create_schedule_for_member(event_id, member_id)` (F.4 reuses them verbatim). F.3's "relax create/update to coach when own event" can reuse the same guard.
