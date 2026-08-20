@@ -279,6 +279,41 @@ export interface MessageResponse {
 }
 
 /**
+ * A managed user from the `/users` endpoints (list/detail/role-change). PII is
+ * decrypted server-side and masked (first char + asterisks) — never plaintext
+ * or ciphertext.
+ */
+export interface ManagedUser {
+  sub: string
+  role: string
+  name: string | null
+  email: string | null
+  is_active: boolean
+  is_deleted: boolean
+}
+
+/** Request body for `POST /users` (email-keyed invite; role is coach or member). */
+export interface ManagedUserInput {
+  email: string
+  role: 'coach' | 'member'
+}
+
+/** Response body for `POST /users` — an invite created or an existing user's role updated. */
+export interface UserInviteResult {
+  email: string
+  role: string
+  status: 'invited' | 'updated'
+}
+
+/** Request body for `PUT /users/{sub}` — the new role to assign. */
+export interface UserRoleUpdateInput {
+  role: string
+}
+
+/** Lowercase backend role values accepted by `GET /users?role=`. */
+export type ManagedUserRoleFilter = 'member' | 'coach' | 'facility_manager' | 'web_admin'
+
+/**
  * Request bodies for creating/updating entities. Optional fields default
  * server-side (matching the backend `*Request` Pydantic models).
  */

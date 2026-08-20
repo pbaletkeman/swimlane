@@ -14,6 +14,8 @@ Class-based FastAPI routers for each entity, registered in `main.py`.
 | `schedule_routes.py` | `/schedules` | Schedule CRUD — list, get, create, update, soft/hard delete, bulk; member self-service `GET /me`, `GET /me/ical`, `GET /me/events`, `POST /{id}/reschedule`, `POST /{id}/cancel` |
 | `form_routes.py` | `/forms` | Form question/rule CRUD (bulk, soft/hard delete), GET facility form, POST submit, PDF export; member `GET /me/submissions`, `GET /submissions/{id}` |
 | `message_routes.py` | `/messages` | Staff→member inbox — `GET /me`, `POST /` (coach+), `PUT /{id}/read`, `DELETE /{id}` (soft, own), `DELETE /{id}/hard` (admin) |
+| `coach_routes.py` | `/coach` | Coach-scoped endpoints — `GET /events?scope=upcoming\|past\|all` (own events) |
+| `user_routes.py` | `/users` | User management (facility manager+) — `GET /` (list by role), `GET /{sub}` (detail), `POST /` (email-keyed invite), `PUT /{sub}` (role change), `DELETE /{sub}` (soft), `DELETE /{sub}/hard` (admin) |
 | `public_routes.py` | `/public` | Unauthenticated read-only browsing — venues search/list/detail, venue schedules (week/month/list), events search/list/detail |
 
 ## Pattern

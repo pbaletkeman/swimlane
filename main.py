@@ -32,6 +32,7 @@ from src.routes.frequency_routes import FrequencyRoutes
 from src.routes.message_routes import MessageRoutes
 from src.routes.public_routes import PublicRoutes
 from src.routes.schedule_routes import ScheduleRoutes
+from src.routes.user_routes import UserRoutes
 from src.routes.venue_routes import VenueRoutes
 from src.util.configs import Config
 from src.util.logging import setup_logging
@@ -60,6 +61,7 @@ def init_db() -> None:
     from src.data.frequency.sqlite import SQLite as FrequencySQLite
     from src.data.message.sqlite import SQLite as MessageSQLite
     from src.data.schedule.sqlite import SQLite as ScheduleSQLite
+    from src.data.user_invite.sqlite import SQLite as UserInviteSQLite
     from src.data.venue.sqlite import SQLite as VenueSQLite
 
     for cls in (
@@ -68,6 +70,7 @@ def init_db() -> None:
         EventSQLite,
         VenueSQLite,
         ScheduleSQLite,
+        UserInviteSQLite,
         FormQuestionSQLite,
         FacilityRuleSQLite,
         FormSubmissionSQLite,
@@ -116,6 +119,9 @@ app.include_router(venue_routes.router)
 
 schedule_routes = ScheduleRoutes()
 app.include_router(schedule_routes.router)
+
+user_routes = UserRoutes()
+app.include_router(user_routes.router)
 
 logger.info("Application startup complete")
 

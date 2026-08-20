@@ -54,6 +54,7 @@ from fastapi.security import HTTPBearer
 from jose import JWTError, exceptions, jwt
 from starlette import status
 
+from src.data.user_invite.sqlite import SQLite as UserInviteSQLite
 from src.data.users.user import User
 from src.encryption import encrypt_field, hash_field
 from src.env import TOKEN_SECRET_KEY
@@ -352,17 +353,24 @@ class AuthRoutes:
         if db_connect:
             existing_user = db_connect().get_user_by_sub(sub)
 
-        # Auto-register new users with default MEMBER role
+        # Auto-register new users with their invited role (or MEMBER by default)
         if not existing_user:
             if not db_connect:
                 raise HTTPException(status_code=500, detail="Database not configured")
             oauth_user: User = self.oauth2user(user_info)
-            oauth_user.role = UserRole.MEMBER.value
+            invited_role: str | None = None
+            if oauth_user.email_hash:
+                invite = UserInviteSQLite().get_invite_by_email_hash(oauth_user.email_hash)
+                if invite:
+                    invited_role = invite.role
+            oauth_user.role = invited_role or UserRole.MEMBER.value
             existing_user = db_connect().create_user(oauth_user)
             if not existing_user:
                 logger.error("Failed to create user with sub=%s", sub)
                 raise HTTPException(status_code=500, detail="Failed to create user")
-            logger.info("New user registered with sub=%s", sub)
+            if invited_role and oauth_user.email_hash:
+                UserInviteSQLite().delete_invite_by_email_hash(oauth_user.email_hash)
+            logger.info("New user registered with sub=%s, role=%s", sub, oauth_user.role)
         else:
             logger.info("User login successful, sub=%s", sub)
 

@@ -164,20 +164,20 @@ Branch: `feature/manage-coach-accounts`
 
 `layout.txt:37-38` — edit/create/delete/list coach accounts.
 
-- [ ] **G.1** — New `src/routes/user_routes.py` `UserRoutes` (`/users`, `facility_manager_role` for coach management):
-  - [ ] **G.1.1** — `GET /users?role=coach` — list users filtered by role (uses existing `UserSQLite.list_users_by_role`). Expose role choices `member|coach|facility_manager|web_admin`. Commit.
-  - [ ] **G.1.2** — `GET /users/{sub}` — detail. Commit.
-  - [ ] **G.1.3** — `POST /users` — email-keyed invite (`facility_manager_role`; role `coach` or lower; body `{email, role}` → `email_hash`). No raw `sub` pre-seed — a manager can't know a Google `sub` and the `users` PII columns are NOT NULL. Record the intended role keyed by `email_hash`; `auth_callback` resolves it before auto-registering so first Google login applies the invited role (see Key decisions #3). If a lean Phase G is preferred, defer this sub-task — list/role-change/delete suffice. Commit.
-  - [ ] **G.1.4** — `PUT /users/{sub}` — change role (coach/member for facility managers). Commit.
-  - [ ] **G.1.5** — `DELETE /users/{sub}` / `DELETE /users/{sub}/hard` — soft/hard delete (`facility_manager_role` soft, `admin_role` hard). Commit.
-  - [ ] **G.1.6** — Enforce privilege bounds: a facility manager may only assign `coach`/`member`, never `facility_manager`/`web_admin`. Commit.
-- [ ] **G.2** — Register `UserRoutes` in `main.py`; update `src/routes/README.md`. Commit.
-- [ ] **G.3** — PII handling: user list returns **masked** name/email (decrypt in server then truncate, or return only sub + role) to avoid leaking encrypted fields raw. Commit.
-- [ ] **G.4** — `frontend/src/api/users.ts` — `list({role})`, `get(sub)`, `create(input)`, `updateRole(sub, role)`, `softDelete(sub)`, `hardDelete(sub)`. Commit.
-- [ ] **G.5** — `frontend/src/api/types.ts` — `ManagedUser`, `ManagedUserInput`. Commit.
-- [ ] **G.6** — New `frontend/src/pages/ManageUsersPage.tsx` at `/manage-users` (`facility_manager_role`): coach accounts table, create/edit dialog (role select limited to coach/member), soft + admin-only hard delete, role filter. Commit.
-- [ ] **G.7** — Add `Manage Users` (Coaches) to nav (`pi-users-cog`, `requiredRole: 'FACILITY_MANAGER'`). Commit.
-- [ ] **G.8** — Route in router; this endpoint also unblocks the Schedules page member picker (currently raw sub paste) — optional: swap `SchedulesPage.tsx` member field to a user select. Commit.
+- [x] **G.1** — New `src/routes/user_routes.py` `UserRoutes` (`/users`, `facility_manager_role` for coach management):
+  - [x] **G.1.1** — `GET /users?role=coach` — list users filtered by role (uses existing `UserSQLite.list_users_by_role`). Expose role choices `member|coach|facility_manager|web_admin`. Commit.
+  - [x] **G.1.2** — `GET /users/{sub}` — detail. Commit.
+  - [x] **G.1.3** — `POST /users` — email-keyed invite (`facility_manager_role`; role `coach` or lower; body `{email, role}` → `email_hash`). No raw `sub` pre-seed — a manager can't know a Google `sub` and the `users` PII columns are NOT NULL. Record the intended role keyed by `email_hash`; `auth_callback` resolves it before auto-registering so first Google login applies the invited role (see Key decisions #3). If a lean Phase G is preferred, defer this sub-task — list/role-change/delete suffice. Commit.
+  - [x] **G.1.4** — `PUT /users/{sub}` — change role (coach/member for facility managers). Commit.
+  - [x] **G.1.5** — `DELETE /users/{sub}` / `DELETE /users/{sub}/hard` — soft/hard delete (`facility_manager_role` soft, `admin_role` hard). Commit.
+  - [x] **G.1.6** — Enforce privilege bounds: a facility manager may only assign `coach`/`member`, never `facility_manager`/`web_admin`. Commit.
+- [x] **G.2** — Register `UserRoutes` in `main.py`; update `src/routes/README.md`. Commit.
+- [x] **G.3** — PII handling: user list returns **masked** name/email (decrypt in server then truncate, or return only sub + role) to avoid leaking encrypted fields raw. Commit.
+- [x] **G.4** — `frontend/src/api/users.ts` — `list({role})`, `get(sub)`, `create(input)`, `updateRole(sub, role)`, `softDelete(sub)`, `hardDelete(sub)`. Commit.
+- [x] **G.5** — `frontend/src/api/types.ts` — `ManagedUser`, `ManagedUserInput`. Commit. (Types already landed with G.4 — a required dependency of the wrappers; ticking is a formality.)
+- [x] **G.6** — New `frontend/src/pages/ManageUsersPage.tsx` at `/manage-users` (`facility_manager_role`): coach accounts table, create/edit dialog (role select limited to coach/member), soft + admin-only hard delete, role filter. Commit.
+- [x] **G.7** — Add `Manage Users` (Coaches) to nav (`pi-users-cog`, `requiredRole: 'FACILITY_MANAGER'`). Commit.
+- [x] **G.8** — Route in router; this endpoint also unblocks the Schedules page member picker (currently raw sub paste) — optional: swap `SchedulesPage.tsx` member field to a user select. Commit.
 
 ## Phase H — Admin: manage facility managers
 
