@@ -50,6 +50,7 @@ export function AppRouter() {
         <Route path="/explore/venues" element={<ExploreVenuesPage />} />
         <Route path="/explore/venues/:venueId" element={<VenueSchedulePage />} />
         <Route path="/explore/events/:eventId" element={<EventDetailPage />} />
+        {/* Everything below requires auth; public routes live above, outside RouteGuard (I.1). */}
         <Route
           element={
             <RouteGuard>
