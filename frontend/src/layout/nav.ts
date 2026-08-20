@@ -16,5 +16,6 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Events', icon: 'pi pi-bolt', path: '/events', requiredRole: 'FACILITY_MANAGER' },
   { label: 'Venues', icon: 'pi pi-map-marker', path: '/venues', requiredRole: 'FACILITY_MANAGER' },
   { label: 'Schedules', icon: 'pi pi-users', path: '/schedules', requiredRole: 'FACILITY_MANAGER' },
+  { label: 'Manage Users', icon: 'pi pi-users-cog', path: '/manage-users', requiredRole: 'FACILITY_MANAGER' },
   { label: 'Signup Forms', icon: 'pi pi-file-edit', path: '/forms', requiredRole: 'MEMBER' },
 ]
