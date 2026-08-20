@@ -1,9 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from 'primereact/button'
+import { Dialog } from 'primereact/dialog'
+import { InputText } from 'primereact/inputtext'
 import { Select } from 'primereact/select'
+import { Skeleton } from 'primereact/skeleton'
 import { Tag } from 'primereact/tag'
+import type { ChangeEvent } from 'react'
+import type { DialogRootChangeEvent } from '@primereact/types/primitive/dialog'
 import type { SelectValueChangeEvent } from '@primereact/types/primitive/select'
-import { events, getEventCapacity, listMine } from '../api/events.ts'
+import {
+  addMember,
+  editMember,
+  events,
+  getEventCapacity,
+  listMembers,
+  listMine,
+  removeMember,
+} from '../api/events.ts'
 import { facilities } from '../api/facilities.ts'
 import { frequencies } from '../api/frequencies.ts'
 import { venues } from '../api/venues.ts'
@@ -12,11 +25,13 @@ import type {
   Event,
   EventCapacity,
   EventInput,
+  EventMember,
   Facility,
   Frequency,
   Venue,
 } from '../api/types.ts'
 import { useAuth } from '../auth/auth-context.ts'
+import { ConfirmDelete } from '../components/ConfirmDelete.tsx'
 import { EmptyState } from '../components/EmptyState.tsx'
 import { EntityDataTable } from '../components/EntityDataTable.tsx'
 import type { EntityDataTableColumn } from '../components/EntityDataTable.tsx'
@@ -83,6 +98,13 @@ export default function CoachEventsPage() {
   const [dialogVisible, setDialogVisible] = useState(false)
   const [editing, setEditing] = useState<Event | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [membersEvent, setMembersEvent] = useState<Event | null>(null)
+  const [members, setMembers] = useState<EventMember[]>([])
+  const [membersLoading, setMembersLoading] = useState(false)
+  const [addSub, setAddSub] = useState('')
+  const [addingMember, setAddingMember] = useState(false)
+  const [editingMember, setEditingMember] = useState<EventMember | null>(null)
+  const [savingMember, setSavingMember] = useState(false)
 
   const frequencyOptions = useMemo<EntityFormFieldOption[]>(
     () => frequencyRows.map((frequency) => ({ label: frequency.name, value: frequency.frequency_id ?? -1 })),
@@ -196,6 +218,10 @@ export default function CoachEventsPage() {
     { name: 'is_active', label: 'Active', type: 'checkbox' },
   ]
 
+  const memberFields: EntityFormField<EventMember>[] = [
+    { name: 'venue_id', label: 'Facility / Venue', type: 'select', options: venueOptions },
+  ]
+
   const openCreate = () => {
     setEditing(null)
     setDialogVisible(true)
@@ -204,6 +230,74 @@ export default function CoachEventsPage() {
   const openEdit = (row: Event) => {
     setEditing(row)
     setDialogVisible(true)
+  }
+
+  const refreshCapacity = async (eventId: number) => {
+    const cap = await getEventCapacity(eventId).catch(() => null)
+    if (cap) {
+      setCapacity((current) => ({ ...current, [eventId]: cap }))
+    }
+  }
+
+  const openMembers = async (row: Event) => {
+    setMembersEvent(row)
+    setMembers([])
+    setAddSub('')
+    setMembersLoading(true)
+    try {
+      setMembers(await listMembers(row.event_id!))
+    } catch (error) {
+      showToastError('Load failed', errorMessage(error))
+    } finally {
+      setMembersLoading(false)
+    }
+  }
+
+  const handleAddMember = async () => {
+    const sub = addSub.trim()
+    if (!sub || !membersEvent) return
+    setAddingMember(true)
+    try {
+      await addMember(membersEvent.event_id!, sub)
+      showToastSuccess('Member added', 'The member was added to the event.')
+      setAddSub('')
+      setMembers(await listMembers(membersEvent.event_id!))
+      await refreshCapacity(membersEvent.event_id!)
+    } catch (error) {
+      showToastError('Add failed', errorMessage(error))
+    } finally {
+      setAddingMember(false)
+    }
+  }
+
+  const handleRemoveMember = async (member: EventMember) => {
+    if (!membersEvent) return
+    try {
+      await removeMember(membersEvent.event_id!, member.schedule_id)
+      showToastSuccess('Member removed', 'The member was removed from the event.')
+      setMembers((current) => current.filter((item) => item.schedule_id !== member.schedule_id))
+      await refreshCapacity(membersEvent.event_id!)
+    } catch (error) {
+      showToastError('Remove failed', errorMessage(error))
+    }
+  }
+
+  const handleMemberEditSubmit = async (values: Record<string, unknown>) => {
+    if (!membersEvent || !editingMember) return
+    setSavingMember(true)
+    try {
+      await editMember(membersEvent.event_id!, editingMember.schedule_id, {
+        venue_id: typeof values.venue_id === 'number' ? values.venue_id : null,
+      })
+      showToastSuccess('Member updated', 'The member schedule was updated.')
+      setEditingMember(null)
+      setMembers(await listMembers(membersEvent.event_id!))
+      await refreshCapacity(membersEvent.event_id!)
+    } catch (error) {
+      showToastError('Save failed', errorMessage(error))
+    } finally {
+      setSavingMember(false)
+    }
   }
 
   const handleSubmit = async (values: Record<string, unknown>) => {
@@ -292,6 +386,16 @@ export default function CoachEventsPage() {
               >
                 <i className="pi pi-pencil" />
               </Button>
+              <Button
+                type="button"
+                variant="text"
+                iconOnly
+                aria-label="Manage members"
+                title="Manage members"
+                onClick={() => void openMembers(row)}
+              >
+                <i className="pi pi-users" />
+              </Button>
             </div>
           )}
         />
@@ -315,6 +419,101 @@ export default function CoachEventsPage() {
         onSubmit={handleSubmit}
         onHide={() => setDialogVisible(false)}
         submitting={submitting}
+      />
+      <Dialog.Root
+        visible={membersEvent !== null}
+        modal
+        dismissable
+        blockScroll
+        onOpenChange={(event: DialogRootChangeEvent) => {
+          if (!event.value) {
+            setMembersEvent(null)
+            setMembers([])
+          }
+        }}
+      >
+        <Dialog.Portal>
+          <Dialog.Positioner>
+            <Dialog.Content className="coach-members-dialog-content">
+              <Dialog.Header>
+                <Dialog.Title>Members — {membersEvent ? formatDateTime(membersEvent.start_date_time) : '…'}</Dialog.Title>
+                <Dialog.HeaderActions>
+                  <Dialog.Close aria-label="Close">
+                    <i className="pi pi-times" />
+                  </Dialog.Close>
+                </Dialog.HeaderActions>
+              </Dialog.Header>
+              <div className="coach-members-body">
+                <div className="coach-members-add">
+                  <InputText
+                    value={addSub}
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => setAddSub(event.target.value)}
+                    placeholder="Member sub (e.g. Google subject)"
+                    className="w-full"
+                    aria-label="Member sub"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => void handleAddMember()}
+                    loading={addingMember}
+                    disabled={addSub.trim() === ''}
+                  >
+                    <i className="pi pi-plus" />
+                    <span className="p-button-label">Add</span>
+                  </Button>
+                </div>
+                {membersLoading ? (
+                  <div className="coach-members-loading">
+                    <Skeleton height="2.5rem" className="w-full" />
+                    <Skeleton height="2.5rem" className="w-full" />
+                  </div>
+                ) : members.length === 0 ? (
+                  <EmptyState message="No members registered." hint="Add a member by their sub to register them." icon="pi-users" />
+                ) : (
+                  <ul className="coach-members-list">
+                    {members.map((member) => (
+                      <li key={member.schedule_id} className="coach-member-row">
+                        <div className="coach-member-info">
+                          <span className="coach-member-name">{member.member_name}</span>
+                          <span className="coach-member-meta">{member.email ?? member.member_id}</span>
+                          <span className="coach-member-meta">
+                            {venueLabel(member.venue_id, venueRows, facilityRows)}
+                          </span>
+                        </div>
+                        <div className="coach-member-actions">
+                          <Button
+                            type="button"
+                            variant="text"
+                            iconOnly
+                            aria-label="Edit member schedule"
+                            title="Edit member schedule"
+                            onClick={() => setEditingMember(member)}
+                          >
+                            <i className="pi pi-pencil" />
+                          </Button>
+                          <ConfirmDelete
+                            itemName={member.member_name}
+                            softLabel="Remove from event"
+                            onSoftDelete={() => void handleRemoveMember(member)}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Dialog.Portal>
+      </Dialog.Root>
+      <EntityFormDialog
+        visible={editingMember !== null}
+        title="Edit Member Schedule"
+        fields={memberFields}
+        initialValues={editingMember ? { venue_id: editingMember.venue_id } : undefined}
+        onSubmit={handleMemberEditSubmit}
+        onHide={() => setEditingMember(null)}
+        submitting={savingMember}
       />
     </div>
   )
