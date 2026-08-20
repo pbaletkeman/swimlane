@@ -29,7 +29,7 @@ export default function DashboardPage() {
 
   const role = getRoleFromToken(accessToken)
   const firstName = user?.given_name ?? user?.name?.split(/\s+/)[0] ?? 'there'
-  const quickLinks = NAV_ITEMS.filter((item) => item.path !== '/' && hasRole(item.requiredRole))
+  const quickLinks = NAV_ITEMS.filter((item) => item.path !== '/dashboard' && item.path !== '/' && hasRole(item.requiredRole))
 
   return (
     <div className="app-dashboard">
