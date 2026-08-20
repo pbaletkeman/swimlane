@@ -458,7 +458,7 @@ Branch: `feature/manage-coach-accounts`
 | G.8 | Router — `/manage-users` lazy route behind a `FACILITY_MANAGER` `RouteGuard`; optional SchedulesPage member-picker swap done — raw sub text input → `listUsers`-backed select (masked name/email, sub as value), Member column shows the masked name | `275b353` |
 | H.1.1 | `GET /users?role=facility_manager` admin-only — no code change; the G.1.1 inline guard (`role in ("facility_manager", "web_admin")` → 403 for non-`web_admin`) already enforces it | `22b42c7` (docs) |
 | H.1.2 | `PUT /users/{sub}` senior-role assignment — no code change; the G.1.4 inline guard already allows `web_admin` callers to assign `facility_manager`/`web_admin` and 403s everyone else | `ee140c3` (docs) |
-| H.2 | Hierarchical guard verification — no code change; manager cannot self-escalate or promote others (403), only admin can; coach/member blocked from the whole `/users` surface (403), unauthenticated 401 | `cd1f2ee` (docs) |
+| H.2 | Hierarchical guard verification — no code change; manager cannot self-escalate or promote others (403), only admin can; coach/member blocked from the whole `/users` surface (403), unauthenticated 401 | `943bd8a` (docs) |
 
 ### Details
 
