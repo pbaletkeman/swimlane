@@ -457,7 +457,7 @@ Branch: `feature/manage-coach-accounts`
 | G.7 | Nav — `Manage Users` (`pi pi-users-cog`, `/manage-users`, `requiredRole: 'FACILITY_MANAGER'`) inserted between Schedules and Signup Forms | `aaaad9a` |
 | G.8 | Router — `/manage-users` lazy route behind a `FACILITY_MANAGER` `RouteGuard`; optional SchedulesPage member-picker swap done — raw sub text input → `listUsers`-backed select (masked name/email, sub as value), Member column shows the masked name | `275b353` |
 | H.1.1 | `GET /users?role=facility_manager` admin-only — no code change; the G.1.1 inline guard (`role in ("facility_manager", "web_admin")` → 403 for non-`web_admin`) already enforces it | `22b42c7` (docs) |
-| H.1.2 | `PUT /users/{sub}` senior-role assignment — no code change; the G.1.4 inline guard already allows `web_admin` callers to assign `facility_manager`/`web_admin` and 403s everyone else | `f34de29` (docs) |
+| H.1.2 | `PUT /users/{sub}` senior-role assignment — no code change; the G.1.4 inline guard already allows `web_admin` callers to assign `facility_manager`/`web_admin` and 403s everyone else | `ee140c3` (docs) |
 
 ### Details
 
