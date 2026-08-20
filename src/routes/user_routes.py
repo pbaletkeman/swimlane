@@ -17,7 +17,7 @@ from src.data.user_invite.user_invite import UserInvite
 from src.data.users.sqlite import SQLite as UsersSQLite
 from src.data.users.user import User
 from src.encryption import hash_field
-from src.roles.roles import facility_manager_role
+from src.roles.roles import admin_role, facility_manager_role
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +83,18 @@ class UserRoutes:
             self.change_user_role,
             methods=["PUT"],
             dependencies=[Depends(facility_manager_role)],
+        )
+        self.router.add_api_route(
+            "/{sub}",
+            self.delete_user,
+            methods=["DELETE"],
+            dependencies=[Depends(facility_manager_role)],
+        )
+        self.router.add_api_route(
+            "/{sub}/hard",
+            self.hard_delete_user,
+            methods=["DELETE"],
+            dependencies=[Depends(admin_role)],
         )
 
     # ------------------------------------------------------------------
@@ -187,4 +199,39 @@ class UserRoutes:
             raise
         except Exception as exc:
             logger.exception("Failed to change user role")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def delete_user(self, sub: str, current_user: User = Depends(facility_manager_role)) -> dict[str, str]:
+        """Soft-delete a user (facility manager+). Senior-role users are admin-only."""
+        try:
+            user = self._get_users_db().get_user_by_sub(sub)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            if user.role in ("facility_manager", "web_admin") and current_user.role != "web_admin":
+                raise HTTPException(
+                    status_code=403,
+                    detail="Only web admins may delete users with facility_manager or web_admin roles",
+                )
+            self._get_users_db().delete_user_by_sub(sub)
+            return {"message": "User soft-deleted"}
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to soft-delete user")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
+
+    # ------------------------------------------------------------------
+    async def hard_delete_user(self, sub: str) -> dict[str, str]:
+        """Permanently delete a user (admin only)."""
+        try:
+            user = self._get_users_db().get_user_by_sub(sub)
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            self._get_users_db().hard_delete_user_by_sub(sub)
+            return {"message": "User permanently deleted"}
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("Failed to hard-delete user")
             raise HTTPException(status_code=500, detail="Internal server error") from exc
