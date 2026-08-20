@@ -435,7 +435,7 @@ Branch: `feature/coach-manage-events`
 - F.2/F.4 share the own-event-or-manager+ guard via `_is_manager_or_admin(user)`; the Phase C register internals live in `_create_schedule_for_member(event_id, member_id)` (F.4 reuses them verbatim). F.3's create/update/delete guard reuses the same helper.
 - F.9.4 adds a member **by `sub`** (an `InputText`) because the Phase G user-list endpoint doesn't exist yet; the todo notes this explicitly. When Phase G lands, the add control can become a user `Select`.
 
-## Phase G — Facility Manager: manage coach accounts (G.1, G.2, G.3, G.4 complete)
+## Phase G — Facility Manager: manage coach accounts (G.1, G.2, G.3, G.4, G.5 complete)
 
 Branch: `feature/manage-coach-accounts`
 
@@ -452,6 +452,7 @@ Branch: `feature/manage-coach-accounts`
 | G.2 | `UserRoutes` registered in `main.py` (already done in G.1.1); `src/routes/README.md` updated — added `user_routes.py` (`/users`) and fixed a Phase F omission by adding the missing `coach_routes.py` (`/coach`) row | `f0883e7` |
 | G.3 | `ManagedUser` gained `name`/`email` — decrypted server-side via `decrypt_field` then masked (`_mask`/`_mask_email`: first char + asterisks, email local part masked, domain kept); raw ciphertext or plaintext PII never leaves the API; applies to `GET /users` and `GET /users/{sub}` | `49ad660` |
 | G.4 | `frontend/src/api/users.ts` — `listUsers(role?)` (optional role filter), `getUser(sub)`, `createUser(ManagedUserInput)`, `updateUserRole(sub, role)`, `softDeleteUser(sub)`, `hardDeleteUser(sub)`; default export bundles them | `dee64fc` |
+| G.5 | `frontend/src/api/types.ts` — `ManagedUser`, `ManagedUserInput` (plus `UserInviteResult`, `UserRoleUpdateInput`, `ManagedUserRoleFilter`) | `dee64fc` |
 
 ### Details
 
@@ -464,6 +465,7 @@ Branch: `feature/manage-coach-accounts`
 - **G.2** (`f0883e7`): `UserRoutes` registration in `main.py` landed with G.1.1 (it must be mounted for the endpoints to exist), so this sub-task was the README sync. The Files table gained a `user_routes.py` row (`/users`, list/detail/invite/role-change/soft+hard delete). While there, the missing `coach_routes.py` row (`/coach`, `GET /events` scope filter) from Phase F was also added — it was the one registered router absent from the doc.
 - **G.3** (`49ad660`): `ManagedUser` now carries masked `name` and `email`. Both are decrypted server-side (`decrypt_field`, same fallback pattern as message_routes) then masked: `_mask` keeps the first character and asterisks out the rest; `_mask_email` masks only the local part so the domain stays readable. This satisfies the "decrypt in server then truncate" option from the todo — it's strictly safer than the previous sub/role-only shape since callers still get displayable PII without any full plaintext or ciphertext leaving the server.
 - **G.4** (`dee64fc`): `frontend/src/api/users.ts` wraps all six `/users` endpoints following the `events.ts` pattern (named exports + a bundled default export, `satisfies` for request bodies, `encodeURIComponent` on the role query param). The types it needs — `ManagedUser`, `ManagedUserInput`, `UserInviteResult`, `UserRoleUpdateInput`, `ManagedUserRoleFilter` — were added to `types.ts` as a required dependency, which pre-lands G.5's `ManagedUser`/`ManagedUserInput` (G.5 becomes a pure formality tick).
+- **G.5** (`dee64fc`): no code change — `ManagedUser` (sub/role/name/email/is_active/is_deleted — masked PII) and `ManagedUserInput` (email + `role: 'coach' | 'member'`) already exist in `types.ts` from G.4, where they were required to type the wrappers. This sub-task is a formality tick.
 
 ### Verification
 
@@ -478,10 +480,11 @@ Branch: `feature/manage-coach-accounts`
   - **G.2**: no runtime behavior changed — registration and the `init_db()` mount were verified by the G.1 smoke tests; the README diff is the deliverable.
   - **G.3** (`smoke_g3.py`): list and detail both return masked values — `"Alice Coach"` → `A**********`, `alice@example.com` → `a****@example.com`; responses contain no `ciphertext`, no `nonce`, and no plaintext name/email anywhere.
   - **G.4**: `npm run lint` (oxlint) and `npm run build` (`tsc -b` + Vite) both clean with the new `users.ts`/`types.ts`.
+  - **G.5**: no new verification needed — the types shipped with G.4 and were covered by its build/lint run.
 
 ### Notes
 
-- Only G.1, G.2, G.3, and G.4 are in scope so far (the user's requests). G.5/G.6/G.7/G.8 (frontend) remain on the todo — G.5's types already exist courtesy of G.4, so it's a formality. The G.1.3 `Literal["coach", "member"]`, the G.1.1 senior-role 403, G.1.4's assign bound, and G.1.5's delete bound together satisfy G.1.6 — a facility manager can never assign or manage senior roles.
+- Only G.1, G.2, G.3, G.4, and G.5 are in scope so far (the user's requests). G.6/G.7/G.8 (frontend) remain on the todo. The G.1.3 `Literal["coach", "member"]`, the G.1.1 senior-role 403, G.1.4's assign bound, and G.1.5's delete bound together satisfy G.1.6 — a facility manager can never assign or manage senior roles.
 - `UserRoutes` registration in `main.py` was required by G.1.1 (the endpoints must be mounted to exist/test); G.2's `src/routes/README.md` update is the piece that was still pending and is now done.
 - G.3's mask keeps the first character so rows remain distinguishable (e.g. initials) without exposing full names/emails; the domain suffix stays visible to make email lists scannable.
 - `POST /users` only creates pre-registration invites; changing an existing user's role deliberately returns 409 so the role-change path (G.1.4) stays the single mechanism for that. Existing users auto-login with their current role unchanged — the invite is only consulted when auto-registering.
