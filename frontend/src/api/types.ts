@@ -54,6 +54,34 @@ export interface RegisterResponse {
   is_active: boolean
 }
 
+/** Scope filter for a coach's own events (`GET /coach/events`). */
+export type CoachEventScope = 'upcoming' | 'past' | 'all'
+
+/**
+ * A member registered for an event from `GET /events/{id}/members`: the
+ * schedule joined with a server-decrypted display name and email.
+ */
+export interface EventMember {
+  schedule_id: number
+  venue_id: number
+  member_id: string
+  member_name: string
+  email: string | null
+  event_id: number
+  is_active: boolean
+}
+
+/** Request body for `POST /events/{id}/members` (coach adds a member). */
+export interface EventMemberAddInput {
+  member_id: string
+}
+
+/** Request body for `PUT /events/{id}/members/{schedule_id}`. */
+export interface EventMemberEditInput {
+  venue_id?: number | null
+  event_id?: number | null
+}
+
 /** Request body for `POST /schedules/{id}/reschedule`. */
 export interface RescheduleInput {
   event_id: number
@@ -272,6 +300,9 @@ export interface EventInput {
   start_date_time: string
   end_date_time: string
   frequency_id?: number | null
+  description?: string | null
+  coach_id?: string | null
+  venue_id?: number | null
   is_active?: boolean
 }
 

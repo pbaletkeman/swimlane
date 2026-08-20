@@ -142,21 +142,21 @@ Branch: `feature/coach-manage-events`
 
 `layout.txt:27-33` — coach-scoped events, create/edit, past/upcoming, manage members.
 
-- [ ] **F.1** — `GET /coach/events?scope=upcoming|past|all` — `coach_role`; returns only events where `coach_id == current_user.sub`; `upcoming` = future `start_date_time`, `past` = past. Add `EventSQLite.list_events_by_coach(coach_id, scope)`. Commit.
-- [ ] **F.2** — `GET /events/{id}/members` — `coach_role`, requires `coach_id == current_user.sub` (403 otherwise) or manager+; returns schedules for the event joined with member display info. Add `ScheduleSQLite.list_schedules_by_event_id_with_members(event_id)` (left-join users for name/email; decrypt PII or return masked). Commit.
-- [ ] **F.3** — Relax `EventRoutes` create/update to `coach_role` **when the event's `coach_id` is the caller** (guard inside the handler); keep `facility_manager_role` for all events. Implement a small dependency `is_event_coach(event_id)` or inline check in `create_event`/`update_event`/`delete_event`. Commit.
-- [ ] **F.4** — `POST /events/{id}/members` — `coach_role` (own event) or manager+: add a member (creates schedule, with capacity check). Reuse Phase C register internals. Commit.
-- [ ] **F.5** — `DELETE /events/{id}/members/{schedule_id}` — remove a member (soft delete schedule), same role guard. Commit.
-- [ ] **F.6** — `PUT /events/{id}/members/{schedule_id}` — edit a member's schedule (change venue/event) if needed. Commit.
-- [ ] **F.7** — `coach_role` (currently unused) is now exercised — add a smoke test that coach gets 403 on another coach's event. Commit.
-- [ ] **F.8** — `frontend/src/api/events.ts` — `listMine(scope)` (coach), `listMembers(eventId)`, `addMember(eventId, memberId)`, `removeMember(eventId, scheduleId)`. Commit.
-- [ ] **F.9** — New `frontend/src/pages/CoachEventsPage.tsx` at `/manage-events` (`coach_role`):
-  - [ ] **F.9.1** — Scope switcher: Upcoming / Past / All. Commit.
-  - [ ] **F.9.2** — Event table (date, facility/venue, capacity) → edit dialog (Phase C fields incl. description, venue, coach_id auto-set to caller). Commit.
-  - [ ] **F.9.3** — "New Event" dialog (create with `coach_id = caller.sub`). Commit.
-  - [ ] **F.9.4** — Row → "Members" drawer/table: add member by selecting from user list (needs Phase G user-list endpoint) or by sub; remove/edit members. Commit.
-- [ ] **F.10** — Add `Manage Events` to nav (`pi-user-edit`, `requiredRole: 'COACH'`). Commit.
-- [ ] **F.11** — Route in router. Commit.
+- [x] **F.1** — `GET /coach/events?scope=upcoming|past|all` — `coach_role`; returns only events where `coach_id == current_user.sub`; `upcoming` = future `start_date_time`, `past` = past. Add `EventSQLite.list_events_by_coach(coach_id, scope)`. Commit.
+- [x] **F.2** — `GET /events/{id}/members` — `coach_role`, requires `coach_id == current_user.sub` (403 otherwise) or manager+; returns schedules for the event joined with member display info. Add `ScheduleSQLite.list_schedules_by_event_id_with_members(event_id)` (left-join users for name/email; decrypt PII or return masked). Commit.
+- [x] **F.3** — Relax `EventRoutes` create/update to `coach_role` **when the event's `coach_id` is the caller** (guard inside the handler); keep `facility_manager_role` for all events. Implement a small dependency `is_event_coach(event_id)` or inline check in `create_event`/`update_event`/`delete_event`. Commit.
+- [x] **F.4** — `POST /events/{id}/members` — `coach_role` (own event) or manager+: add a member (creates schedule, with capacity check). Reuse Phase C register internals. Commit.
+- [x] **F.5** — `DELETE /events/{id}/members/{schedule_id}` — remove a member (soft delete schedule), same role guard. Commit.
+- [x] **F.6** — `PUT /events/{id}/members/{schedule_id}` — edit a member's schedule (change venue/event) if needed. Commit.
+- [x] **F.7** — `coach_role` (currently unused) is now exercised — add a smoke test that coach gets 403 on another coach's event. Commit.
+- [x] **F.8** — `frontend/src/api/events.ts` — `listMine(scope)` (coach), `listMembers(eventId)`, `addMember(eventId, memberId)`, `removeMember(eventId, scheduleId)`. Commit.
+- [x] **F.9** — New `frontend/src/pages/CoachEventsPage.tsx` at `/manage-events` (`coach_role`):
+  - [x] **F.9.1** — Scope switcher: Upcoming / Past / All. Commit.
+  - [x] **F.9.2** — Event table (date, facility/venue, capacity) → edit dialog (Phase C fields incl. description, venue, coach_id auto-set to caller). Commit.
+  - [x] **F.9.3** — "New Event" dialog (create with `coach_id = caller.sub`). Commit.
+  - [x] **F.9.4** — Row → "Members" drawer/table: add member by selecting from user list (needs Phase G user-list endpoint) or by sub; remove/edit members. Commit.
+- [x] **F.10** — Add `Manage Events` to nav (`pi-user-edit`, `requiredRole: 'COACH'`). Commit.
+- [x] **F.11** — Route in router. Commit.
 
 ## Phase G — Facility Manager: manage coach accounts
 
