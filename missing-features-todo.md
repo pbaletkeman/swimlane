@@ -204,7 +204,7 @@ Branch: `feature/nav-wiring`
   - WEB_ADMIN: all. Commit.
 - [x] **I.3** — Dashboard quick links auto-reflect new nav items (already filters `NAV_ITEMS`). Commit.
 - [x] **I.4** — Verify `/` HomePage links to `/explore` and Login; `/login?frontend_url=` still round-trips. Commit.
-- [ ] **I.5** — `HomePage`/`ExploreHomePage` copy and styles. Commit.
+- [x] **I.5** — `HomePage`/`ExploreHomePage` copy and styles. Commit.
 
 ## Phase J — Verification, docs, build
 

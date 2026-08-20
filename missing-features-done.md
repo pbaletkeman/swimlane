@@ -506,7 +506,7 @@ Branch: `feature/manage-coach-accounts`
   - **H.3**: `npm run lint` + `npm run build` clean after the widening (default filter + admin role options + submit passthrough). Runtime behavior is the same endpoints already covered by smoke_h12/smoke_h2.
   - **H.4**: `npm run lint` + `npm run build` clean after the `nav.ts` comment (no code behavior changed).
 
-## Phase I — Public/frontend wiring polish (I.1–I.4 complete)
+## Phase I — Public/frontend wiring polish (complete) ✅
 
 | Item | Deliverable | Commit |
 |---|---|---|
@@ -514,6 +514,7 @@ Branch: `feature/manage-coach-accounts`
 | I.2 | Final nav item set confirmed + documented — MEMBER: Dashboard, Signup Forms, My Schedule, Profile (footer); COACH: + Manage Events; FACILITY_MANAGER: + Frequencies, Facilities, Events, Venues, Schedules, Manage Users, builder via FormsPage; WEB_ADMIN: all via hierarchy; role→items mapping comment in `nav.ts` | `d82c819` |
 | I.3 | Dashboard quick links verified auto-reflecting `NAV_ITEMS` via `hasRole`; small polish — the filter now also excludes `/dashboard` (was leaving a self-link) | `54321a0` |
 | I.4 | `/` HomePage + Login round-trip verified — HomePage links to `/explore` and Login (authed → Dashboard); `login()` passes `?frontend_url=<SPA origin>` to `/login`, so the OAuth callback returns to the correct port; no code change | — (verification pass) |
+| I.5 | `HomePage`/`ExploreHomePage` copy + styles — clearer HomePage tagline, anonymous "or" divider between Explore and Sign-in, explore intro line, card title "Find a venue or event", new `.home-divider`/`.explore-intro` styles | `9fdcef0` |
 
 ### Details
 
@@ -521,6 +522,7 @@ Branch: `feature/manage-coach-accounts`
 - **I.2** (`d82c819`): verification pass — `NAV_ITEMS` already equals the final set with correct `requiredRole` values (MEMBER items plus the COACH/FACILITY_MANAGER add-ons from Phases F and G). The only gap in the spec vs. reality: "Signup Forms builder" is not a nav item — the builder is reached from the Signup Forms page and gated by `hasRole('FACILITY_MANAGER')` inside `FormsPage`, which is exactly how the spec's "FACILITY_MANAGER sees the builder" behavior is realized. Extended the `nav.ts` doc comment with the role→items mapping. `Profile` lives in the sidebar footer (rendered unconditionally in `AppLayout`), matching "Profile(footer)".
 - **I.3** (`54321a0`): verification pass + one-line polish. `DashboardPage` builds quick links as `NAV_ITEMS.filter(... hasRole(item.requiredRole))`, so every phase's nav additions (Manage Events → COACH, the CRUD pages + Manage Users → FACILITY_MANAGER, WEB_ADMIN → all) appear automatically — no per-item dashboard wiring exists or is needed. The polish: the filter excluded only `path !== '/'`, so a "Dashboard" self-link rendered on the dashboard; it now excludes `/dashboard` too.
 - **I.4**: verification pass, no code change. `HomePage` (`/`) renders two buttons: "Explore venues" → `navigate('/explore')`, and either "Go to Dashboard" (when an access token exists) or "Sign in with Google" → `login()`. `LoginPage` also calls `login()` and `<Navigate to="/dashboard">` when already authed. `login()` in `AuthContext.tsx` sets `window.location.href = ${apiBaseUrl}/login?frontend_url=${encodeURIComponent(window.location.origin)}` — the SPA's own origin is passed so the backend `auth_callback` returns the browser (with the JWTs) to whatever port this dev server runs on. The same `?frontend_url=` pattern is used by `EventDetailPage`'s anonymous "Sign in to register" link. The backend half (callback validates the param against localhost/127.0.0.1/::1, stores it in the session cookie for the Google round-trip) is unchanged from Phase A.
+- **I.5** (`9fdcef0`): copy + style polish on the two public landing surfaces. `HomePage`: tagline now reads "Browse venues, schedules, and upcoming events — no sign-in needed." (matches what the explore pages actually offer); an "or" divider sits between "Explore venues" and "Sign in with Google" for anonymous visitors, while authed users keep a clean Explore → Dashboard pair. `ExploreHomePage`: added an intro line under the header ("Find a pool by address, browse its schedule, or look up an upcoming event — no sign-in needed.") and retitled the search card from "Explore" to "Find a venue or event" (the header nav already carries the "Explore"/"Venues" links, so the title now says what the card does). New styles: `.home-divider` (flex line + label with hairline rules via `::before`/`::after`) and `.explore-intro` (centered muted line under the header).
 
 ### Verification
 
@@ -528,8 +530,11 @@ Branch: `feature/manage-coach-accounts`
 - **I.2**: `npm run lint` + `npm run build` clean after the `nav.ts` comment (no behavior change); item set diffed against the spec line-by-line.
 - **I.3**: `npm run lint` + `npm run build` clean after the filter change. Quick-link membership is a pure function of `NAV_ITEMS` + `hasRole`, so the same role-matrix already exercised by I.2 applies — no new endpoints involved.
 - **I.4**: code inspection (no build change). Each of the four requirements traced to its implementation: HomePage "Explore venues" → `/explore`; HomePage + LoginPage sign-in buttons → `login()`; `login()` passes `?frontend_url=<origin>`; authed HomePage shows "Go to Dashboard" and LoginPage redirects there. The `frontend_url` round-trip through `auth_callback` was smoke-tested in Phase A (backend-only OAuth with devtools capture) and needs no browser harness here.
+- **I.5**: `npm run lint` (oxlint) + `npm run build` (`tsc -b` + Vite) clean after the copy/style changes — both pages compile and the new classes exist in the bundle's stylesheet.
 
 ### Notes
+
+- Phase I is fully complete on `feature/nav-wiring` (cut from `main` after PR #36 merged Phase H). Next on the todo: Phase J (verification, docs, build).
 
 - Only G.1–G.8 are in scope so far (the user's requests) — **Phase G is now fully complete.** Phase H (admin: manage facility managers) is next on the todo. The G.1.3 `Literal["coach", "member"]`, the G.1.1 senior-role 403, G.1.4's assign bound, and G.1.5's delete bound together satisfy G.1.6 — a facility manager can never assign or manage senior roles.
 - H.1–H.4 done on `feature/manage-facility-managers` — **Phase H is fully complete.** Next on the todo: Phase I (public/frontend wiring polish, branch `feature/nav-wiring`).
@@ -537,6 +542,7 @@ Branch: `feature/manage-coach-accounts`
 - I.1 + I.2 done on `feature/nav-wiring` — both were verification passes (router boundary and nav item set already correct). Remaining Phase I: I.3 (dashboard quick links — likely already wired since `DashboardPage` filters `NAV_ITEMS`), I.4 (HomePage → `/explore` + login round-trip), I.5 (HomePage/Explore copy + styles — the one with real UI work).
 - I.1–I.3 done on `feature/nav-wiring`. Remaining Phase I: I.4 (`/` HomePage → `/explore` + login round-trip), I.5 (HomePage/Explore copy + styles — the one with real UI work).
 - I.1–I.4 done on `feature/nav-wiring` — I.4 was a pure verification pass (HomePage already links to `/explore`, `login()` already passes `?frontend_url=`). Only I.5 remains (HomePage/Explore copy + styles — the one with real UI work).
+- I.1–I.5 done on `feature/nav-wiring` — **Phase I is fully complete.** Next on the todo: Phase J (verification, docs, build).
 - `UserRoutes` registration in `main.py` was required by G.1.1 (the endpoints must be mounted to exist/test); G.2's `src/routes/README.md` update is the piece that was still pending and is now done.
 - G.3's mask keeps the first character so rows remain distinguishable (e.g. initials) without exposing full names/emails; the domain suffix stays visible to make email lists scannable.
 - `POST /users` only creates pre-registration invites; changing an existing user's role deliberately returns 409 so the role-change path (G.1.4) stays the single mechanism for that. Existing users auto-login with their current role unchanged — the invite is only consulted when auto-registering.
