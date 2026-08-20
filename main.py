@@ -32,6 +32,7 @@ from src.routes.frequency_routes import FrequencyRoutes
 from src.routes.message_routes import MessageRoutes
 from src.routes.public_routes import PublicRoutes
 from src.routes.schedule_routes import ScheduleRoutes
+from src.routes.user_routes import UserRoutes
 from src.routes.venue_routes import VenueRoutes
 from src.util.configs import Config
 from src.util.logging import setup_logging
@@ -116,6 +117,9 @@ app.include_router(venue_routes.router)
 
 schedule_routes = ScheduleRoutes()
 app.include_router(schedule_routes.router)
+
+user_routes = UserRoutes()
+app.include_router(user_routes.router)
 
 logger.info("Application startup complete")
 
