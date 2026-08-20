@@ -196,7 +196,7 @@ Branch: `feature/manage-facility-managers`
 
 Branch: `feature/nav-wiring`
 
-- [ ] **I.1** — `frontend/src/router/index.tsx`: confirm public routes (`/explore/*`, `/explore/events/:eventId`) live **outside** `RouteGuard`; authenticated routes (`/my-schedule`, `/profile`, `/manage-events`, `/manage-users`) inside. Commit.
+- [x] **I.1** — `frontend/src/router/index.tsx`: confirm public routes (`/explore/*`, `/explore/events/:eventId`) live **outside** `RouteGuard`; authenticated routes (`/my-schedule`, `/profile`, `/manage-events`, `/manage-users`) inside. Commit.
 - [ ] **I.2** — `frontend/src/layout/nav.ts` final item set + `requiredRole` per item:
   - MEMBER: Dashboard, Signup Forms, My Schedule, Profile(footer)
   - COACH: + Manage Events
