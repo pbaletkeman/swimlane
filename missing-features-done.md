@@ -435,7 +435,7 @@ Branch: `feature/coach-manage-events`
 - F.2/F.4 share the own-event-or-manager+ guard via `_is_manager_or_admin(user)`; the Phase C register internals live in `_create_schedule_for_member(event_id, member_id)` (F.4 reuses them verbatim). F.3's create/update/delete guard reuses the same helper.
 - F.9.4 adds a member **by `sub`** (an `InputText`) because the Phase G user-list endpoint doesn't exist yet; the todo notes this explicitly. When Phase G lands, the add control can become a user `Select`.
 
-## Phase H — Admin: manage facility managers (H.1–H.3 complete)
+## Phase H — Admin: manage facility managers (H.1–H.4 complete)
 
 Branch: `feature/manage-coach-accounts`
 
@@ -460,6 +460,7 @@ Branch: `feature/manage-coach-accounts`
 | H.1.2 | `PUT /users/{sub}` senior-role assignment — no code change; the G.1.4 inline guard already allows `web_admin` callers to assign `facility_manager`/`web_admin` and 403s everyone else | `ee140c3` (docs) |
 | H.2 | Hierarchical guard verification — no code change; manager cannot self-escalate or promote others (403), only admin can; coach/member blocked from the whole `/users` surface (403), unauthenticated 401 | `943bd8a` (docs) |
 | H.3 | `ManageUsersPage` widened for admins — default role filter is Coach; role-edit select shows coach/member for managers, adds Facility Manager/Web Admin for admins (`isAdmin`); invite dialog stays coach/member; edit submit no longer normalizes role to coach/member | `2055c34` |
+| H.4 | Nav doc — no nav change needed; `Manage Users` (G.7) is already visible to WEB_ADMIN via the rank-based `hasRole`; added a header comment in `nav.ts` documenting the hierarchy and that H.3's admin capabilities live in the page | `e59e533` |
 
 ### Details
 
@@ -480,6 +481,7 @@ Branch: `feature/manage-coach-accounts`
 - **H.1.2** (no new code): `PUT /users/{sub}` already carries the handler-level guard from G.1.4 — `body.role in ("facility_manager", "web_admin")` with a non-`web_admin` caller raises 403, and the handler-level check sits in addition to the `facility_manager_role` route dependency (which only proves the caller is manager-or-above). Admins can assign any role; managers remain restricted to coach/member. Like H.1.1, this is a verification pass, not a code change.
 - **H.2** (no new code): verification of the hierarchical boundary — the RoleChecker rank logic (manager ≥ manager) admits managers to `/users`, but the handler-level guards cap what a manager can *do* there (list/assign/delete senior roles all 403). The key property is negative: no role below `web_admin` can produce a `facility_manager` or `web_admin` account, including via self-escalation.
 - **H.3** (`2055c34`): `ManageUsersPage` role handling widened. The role FILTER now defaults to Coach (so a facility manager opens on the coach list, per "sees only Coaches"); managers still get All/Member options, and admins additionally get Facility Manager/Web Admin (already in place from G.6). The role-EDIT select is the real change: it uses `MANAGER_ROLE_OPTIONS` (coach/member) for non-admins and `ADMIN_ROLE_OPTIONS` (+ Facility Manager, Web Admin) for `hasRole('WEB_ADMIN')` callers — the backend's G.1.4 guard would 403 a manager who tries anyway, so the UI and server bounds stay consistent. The invite dialog is untouched (`INVITE_ROLE_OPTIONS`, coach/member) because the backend invite Literal can't express senior roles. A subtle fix came with the widening: `handleSubmit`'s edit branch previously normalized the chosen role to `coach`/`member`, which would have silently destroyed an admin's `facility_manager`/`web_admin` assignment — it now passes the selected value through verbatim.
+- **H.4** (`e59e533`): documentation only. `Manage Users` was added to the nav in G.7 with `requiredRole: 'FACILITY_MANAGER'`; because `hasRole` is rank-based (`ROLE_RANK[caller] <= ROLE_RANK[required]`, WEB_ADMIN = 0), admins already see it with no extra entry. Added a header comment in `frontend/src/layout/nav.ts` explaining the hierarchy and noting Phase H requires no nav change (the admin-facing capabilities are in the page via H.3).
 
 ### Verification
 
@@ -502,11 +504,12 @@ Branch: `feature/manage-coach-accounts`
   - **H.1.2** (`smoke_h12.py`): admin assigns `facility_manager` → 200 (role persisted), `web_admin` → 200, demote to `coach` → 200; facility manager assigning `facility_manager`/`web_admin` → 403 both, but assigning `coach` → 200; admin `?role=web_admin` listing still shows only the admin rows after the churn.
   - **H.2** (`smoke_h2.py`): manager self-promote to `facility_manager`/`web_admin` → 403 both; manager promotes a coach → 403; admin promotes the manager to `facility_manager` and a coach to `web_admin` → 200 both; coach and member get 403 on `GET /users`, `PUT /users/{sub}`, and `?role=facility_manager`; no token → 401; admin listing after the escalations shows exactly the expected senior-role rows.
   - **H.3**: `npm run lint` + `npm run build` clean after the widening (default filter + admin role options + submit passthrough). Runtime behavior is the same endpoints already covered by smoke_h12/smoke_h2.
+  - **H.4**: `npm run lint` + `npm run build` clean after the `nav.ts` comment (no code behavior changed).
 
 ### Notes
 
 - Only G.1–G.8 are in scope so far (the user's requests) — **Phase G is now fully complete.** Phase H (admin: manage facility managers) is next on the todo. The G.1.3 `Literal["coach", "member"]`, the G.1.1 senior-role 403, G.1.4's assign bound, and G.1.5's delete bound together satisfy G.1.6 — a facility manager can never assign or manage senior roles.
-- H.1 + H.2 + H.3 done on `feature/manage-facility-managers`. Remaining Phase H: H.4 (nav doc — WEB_ADMIN already sees Manage Users via hierarchical rank, so it's a documentation tick).
+- H.1–H.4 done on `feature/manage-facility-managers` — **Phase H is fully complete.** Next on the todo: Phase I (public/frontend wiring polish, branch `feature/nav-wiring`).
 - `UserRoutes` registration in `main.py` was required by G.1.1 (the endpoints must be mounted to exist/test); G.2's `src/routes/README.md` update is the piece that was still pending and is now done.
 - G.3's mask keeps the first character so rows remain distinguishable (e.g. initials) without exposing full names/emails; the domain suffix stays visible to make email lists scannable.
 - `POST /users` only creates pre-registration invites; changing an existing user's role deliberately returns 409 so the role-change path (G.1.4) stays the single mechanism for that. Existing users auto-login with their current role unchanged — the invite is only consulted when auto-registering.
