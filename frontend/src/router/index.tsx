@@ -25,6 +25,7 @@ const SchedulesPage = lazy(() => import('../pages/SchedulesPage.tsx'))
 const FormsPage = lazy(() => import('../pages/FormsPage.tsx'))
 const FormViewPage = lazy(() => import('../pages/FormViewPage.tsx'))
 const FormBuilderPage = lazy(() => import('../pages/FormBuilderPage.tsx'))
+const ManageUsersPage = lazy(() => import('../pages/ManageUsersPage.tsx'))
 
 function LazyFallback() {
   return (
@@ -68,6 +69,14 @@ export function AppRouter() {
           <Route path="/forms" element={<FormsPage />} />
           <Route path="/forms/facility/:facilityId" element={<FormViewPage />} />
           <Route path="/forms/builder/:facilityId" element={<FormBuilderPage />} />
+          <Route
+            path="/manage-users"
+            element={
+              <RouteGuard requiredRole="FACILITY_MANAGER">
+                <ManageUsersPage />
+              </RouteGuard>
+            }
+          />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

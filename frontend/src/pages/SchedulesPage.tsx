@@ -3,8 +3,9 @@ import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'
 import { events } from '../api/events.ts'
 import { schedules } from '../api/schedules.ts'
+import { listUsers } from '../api/users.ts'
 import { venues } from '../api/venues.ts'
-import type { Event, Schedule, ScheduleInput, Venue } from '../api/types.ts'
+import type { Event, ManagedUser, Schedule, ScheduleInput, Venue } from '../api/types.ts'
 import { BulkDeleteBar } from '../components/BulkDeleteBar.tsx'
 import { ConfirmDelete } from '../components/ConfirmDelete.tsx'
 import { EmptyState } from '../components/EmptyState.tsx'
@@ -29,6 +30,7 @@ export default function SchedulesPage() {
   const [rows, setRows] = useState<Schedule[]>([])
   const [venueRows, setVenueRows] = useState<Venue[]>([])
   const [eventRows, setEventRows] = useState<Event[]>([])
+  const [userRows, setUserRows] = useState<ManagedUser[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogVisible, setDialogVisible] = useState(false)
   const [editing, setEditing] = useState<Schedule | null>(null)
@@ -47,6 +49,21 @@ export default function SchedulesPage() {
     () => eventRows.map((event) => ({ label: formatDateTime(event.start_date_time), value: event.event_id ?? -1 })),
     [eventRows],
   )
+  const memberOptions = useMemo<EntityFormFieldOption[]>(
+    () =>
+      userRows.map((user) => ({
+        label: user.name ? `${user.name} — ${user.email ?? user.sub}` : user.email ?? user.sub,
+        value: user.sub,
+      })),
+    [userRows],
+  )
+  const memberLabels = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const user of userRows) {
+      map.set(user.sub, user.name ?? user.email ?? user.sub)
+    }
+    return map
+  }, [userRows])
   const venueLabels = useMemo(() => {
     const map = new Map<number, string>()
     for (const venue of venueRows) {
@@ -70,7 +87,7 @@ export default function SchedulesPage() {
 
   const columns: EntityDataTableColumn<Schedule>[] = [
     { field: 'venue_id', header: 'Venue', sortable: true, body: (row) => lookup(venueLabels, row.venue_id) },
-    { field: 'member_id', header: 'Member', sortable: true },
+    { field: 'member_id', header: 'Member', sortable: true, body: (row) => memberLabels.get(row.member_id) ?? row.member_id },
     { field: 'event_id', header: 'Event', body: (row) => lookup(eventLabels, row.event_id) },
     {
       field: 'is_active',
@@ -83,7 +100,7 @@ export default function SchedulesPage() {
 
   const fields: EntityFormField<Schedule>[] = [
     { name: 'venue_id', label: 'Venue', type: 'select', required: true, options: venueOptions },
-    { name: 'member_id', label: 'Member (Google sub ID)', type: 'text', required: true, placeholder: 'Google sub ID' },
+    { name: 'member_id', label: 'Member', type: 'select', required: true, options: memberOptions },
     { name: 'event_id', label: 'Event', type: 'select', required: true, options: eventOptions },
     { name: 'is_active', label: 'Active', type: 'checkbox' },
   ]
@@ -91,14 +108,16 @@ export default function SchedulesPage() {
   const load = async () => {
     setLoading(true)
     try {
-      const [scheduleList, venueList, eventList] = await Promise.all([
+      const [scheduleList, venueList, eventList, userList] = await Promise.all([
         schedules.list(),
         venues.list(),
         events.list(),
+        listUsers(),
       ])
       setRows(scheduleList)
       setVenueRows(venueList)
       setEventRows(eventList)
+      setUserRows(userList)
       setSelectedKeys({})
     } catch (error) {
       showToastError('Load failed', errorMessage(error))
