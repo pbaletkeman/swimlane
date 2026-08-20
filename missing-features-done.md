@@ -435,7 +435,7 @@ Branch: `feature/coach-manage-events`
 - F.2/F.4 share the own-event-or-manager+ guard via `_is_manager_or_admin(user)`; the Phase C register internals live in `_create_schedule_for_member(event_id, member_id)` (F.4 reuses them verbatim). F.3's create/update/delete guard reuses the same helper.
 - F.9.4 adds a member **by `sub`** (an `InputText`) because the Phase G user-list endpoint doesn't exist yet; the todo notes this explicitly. When Phase G lands, the add control can become a user `Select`.
 
-## Phase G — Facility Manager: manage coach accounts (G.1.1–G.1.4 complete)
+## Phase G — Facility Manager: manage coach accounts (G.1.1–G.1.5 complete)
 
 Branch: `feature/manage-coach-accounts`
 
@@ -447,6 +447,7 @@ Branch: `feature/manage-coach-accounts`
 | G.1.2 | `GET /users/{sub}` — `facility_manager_role`; returns one managed user (same shape as the list); 404 for unknown subs | `a1585bd` |
 | G.1.3 | `POST /users` — `facility_manager_role`; `{email, role}` with `role` limited to `coach`/`member` (privilege bound, 422 otherwise); records the intended role in a new `user_invite` table keyed by `email_hash` (upsert on `email_hash`); `auth_callback` resolves the invite **before** auto-registering so the user's first Google login applies the invited role, then consumes the invite; registered emails → 409 (role changes are the G.1.4 role-change endpoint's job); registered in `init_db()` | `ca7ef40` |
 | G.1.4 | `PUT /users/{sub}` — `facility_manager_role`; `{role}` body typed as `Literal["member", "coach", "facility_manager", "web_admin"]`; facility managers may only assign `coach`/`member` (403 for senior roles — the G.1.6 privilege bound, enforced here); web admins may assign any role; 404 for unknown subs; returns the updated managed user | `d855025` |
+| G.1.5 | `DELETE /users/{sub}` — `facility_manager_role`, soft via `delete_user_by_sub`; `DELETE /users/{sub}/hard` — `admin_role`, hard via `hard_delete_user_by_sub`; facility managers may not soft-delete `facility_manager`/`web_admin` users (403); 404 for unknown subs; returns a message dict | `8b6ee91` |
 
 ### Details
 
@@ -454,6 +455,7 @@ Branch: `feature/manage-coach-accounts`
 - **G.1.2** (`a1585bd`): detail handler reuses the same `_to_managed` helper, so the list and detail shapes stay identical.
 - **G.1.3** (`ca7ef40`): the email-keyed invite resolves Key decisions #3 (no raw `sub` pre-seed — the `users` PII columns are `NOT NULL`, so a placeholder row isn't possible). New `src/data/user_invite/` entity (`user_invite.py` model, `user_invite_interface.py` ABC, `sqlite.py` impl) with `CREATE TABLE IF NOT EXISTS user_invite` (`email_hash` UNIQUE, `role`, `is_active`) plus `create_invite` (upsert), `get_invite_by_email_hash`, `delete_invite_by_email_hash`. `auth_callback` looks up the invite by `oauth_user.email_hash` before `db_connect().create_user(...)`, applies `invite.role` instead of the default `MEMBER`, and deletes the invite only after the user row is created. `user_invite` was added to `main.py`'s `init_db()` so the table exists before the first request.
 - **G.1.4** (`d855025`): `PUT /users/{sub}` fetches the target user (404 if missing), swaps in the requested role, and persists via the existing `UserSQLite.update_user` (which updates `updated_at` and returns the refreshed row). A new `UserRoleInput` body model types `role` as the full `RoleChoice` Literal (422 on invalid). The G.1.6 privilege bound is enforced inline here: a facility manager assigning `facility_manager`/`web_admin` gets 403, while a web admin may assign any role. This is the single mechanism for changing an existing user's role — `POST /users` (G.1.3) rejects registered emails with 409 for exactly this reason.
+- **G.1.5** (`8b6ee91`): soft delete reuses the existing `delete_user_by_sub` (sets `is_deleted=1`/`deleted_at`), hard delete reuses `hard_delete_user_by_sub` (removes the row). Both fetch the target first (404 for unknown subs) and return a message dict, mirroring the message_routes delete convention. The `/{sub}` DELETE route registers **before** `/{sub}/hard`, but FastAPI matches on path length so there is no shadowing; the hard route carries the `admin_role` dependency, and the handler additionally blocks facility managers from soft-deleting senior-role users (403 — the same G.1.6/H.1 privilege-bound theme).
 
 ### Verification
 
@@ -463,10 +465,12 @@ Branch: `feature/manage-coach-accounts`
   - **G.1.2** (`smoke_g112.py`): member → 403; manager detail → 200 with correct `sub`/`role`; response body contains no `ciphertext`/`nonce`; unknown sub → 404.
   - **G.1.3** (`smoke_g113.py`): member → 403; manager invite → 200 `{email, role, status: "invited"}`; invite stored keyed by `hash_field(email)`; manager inviting `web_admin` → 422 (Literal bound); registered email → 409; simulated first Google login applies the invited `coach` role and consumes the invite; the new user then appears under `?role=coach`.
   - **G.1.4** (`smoke_g114.py`): member → 403; manager changes `member` → `coach` → 200 and the role persists in the DB; manager assigning `facility_manager`/`web_admin` → 403; admin assigning `web_admin` → 200; unknown sub → 404; invalid role → 422; response contains no `ciphertext`/`nonce`.
+  - **G.1.5** (`smoke_g115.py`): member → 403 on both delete routes; manager soft-deletes a coach → 200 and `is_deleted` persists; re-soft-delete → 200; manager soft-deleting a `facility_manager` → 403; unknown sub soft delete → 404; manager hard delete → 403; admin hard-deletes a member → 200 and the row is gone; unknown sub hard delete → 404.
 
 ### Notes
 
-- Only G.1.1–G.1.4 are in scope this round (the user's requests). G.1.5 (delete), G.1.6 (privilege-bounds sub-task), G.2 (README sync), G.3 (masked PII), G.4/G.5 (frontend) remain on the todo. The G.1.3 `Literal["coach", "member"]`, the G.1.1 senior-role 403, and G.1.4's assign bound are forward-looking pieces of G.1.6/H.1.1 — G.1.6's "facility managers may only assign coach/member" is effectively already enforced across every role-mutating endpoint.
+- Only G.1.1–G.1.5 are in scope so far (the user's requests). G.1.6 (privilege-bounds sub-task), G.2 (README sync), G.3 (masked PII), G.4/G.5/G.6/G.7/G.8 (frontend) remain on the todo. The G.1.3 `Literal["coach", "member"]`, the G.1.1 senior-role 403, G.1.4's assign bound, and G.1.5's delete bound are forward-looking pieces of G.1.6/H.1 — G.1.6's "facility managers may only assign coach/member" is effectively already enforced across every role-mutating endpoint.
 - `UserRoutes` is registered in `main.py` (needed so the endpoints exist and are testable); G.2's `src/routes/README.md` update is still pending.
 - `POST /users` only creates pre-registration invites; changing an existing user's role deliberately returns 409 so the role-change path (G.1.4) stays the single mechanism for that. Existing users auto-login with their current role unchanged — the invite is only consulted when auto-registering.
 - G.1.4 reuses `UserSQLite.update_user` (no new data-layer code) and applies the same no-ciphertext response shape as G.1.1/G.1.2.
+- G.1.5 reuses the existing soft/hard delete methods (no new data-layer code) and returns message dicts like the message_routes delete routes.

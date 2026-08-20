@@ -169,7 +169,7 @@ Branch: `feature/manage-coach-accounts`
   - [x] **G.1.2** — `GET /users/{sub}` — detail. Commit.
   - [x] **G.1.3** — `POST /users` — email-keyed invite (`facility_manager_role`; role `coach` or lower; body `{email, role}` → `email_hash`). No raw `sub` pre-seed — a manager can't know a Google `sub` and the `users` PII columns are NOT NULL. Record the intended role keyed by `email_hash`; `auth_callback` resolves it before auto-registering so first Google login applies the invited role (see Key decisions #3). If a lean Phase G is preferred, defer this sub-task — list/role-change/delete suffice. Commit.
   - [x] **G.1.4** — `PUT /users/{sub}` — change role (coach/member for facility managers). Commit.
-  - [ ] **G.1.5** — `DELETE /users/{sub}` / `DELETE /users/{sub}/hard` — soft/hard delete (`facility_manager_role` soft, `admin_role` hard). Commit.
+  - [x] **G.1.5** — `DELETE /users/{sub}` / `DELETE /users/{sub}/hard` — soft/hard delete (`facility_manager_role` soft, `admin_role` hard). Commit.
   - [ ] **G.1.6** — Enforce privilege bounds: a facility manager may only assign `coach`/`member`, never `facility_manager`/`web_admin`. Commit.
 - [ ] **G.2** — Register `UserRoutes` in `main.py`; update `src/routes/README.md`. Commit.
 - [ ] **G.3** — PII handling: user list returns **masked** name/email (decrypt in server then truncate, or return only sub + role) to avoid leaking encrypted fields raw. Commit.
