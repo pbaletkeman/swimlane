@@ -792,3 +792,41 @@ Final `uv run pytest --cov=src --cov-report=term-missing`: 4530 stmts, 905 misse
 ### 8.6 — Coverage note in readme.md ✅
 
 Added coverage command + percentage note ("Backend test coverage is **80%**") with a link to `tests/README.md` in the readme's Run the tests section.
+
+### 8.7 — Commit, push, PR title + description ✅
+
+Branch `chore/backend-coverage`, head commit `2bb15db`. Phase V8 complete.
+
+**PR title**: `test: backend unit test coverage to 80%` (as templated in verification.md)
+
+**PR description**:
+
+> # Summary
+>
+> Expands the backend pytest suite from 15 tests to 215, achieving **80% line coverage**
+> on `src/` (up from a 43% baseline), adding `pytest-cov` for measurement and targeting
+> the largest uncovered modules first.
+>
+> ## What's Included
+>
+> - **8.1** — Added `pytest-cov==7.1.0` dev dependency.
+> - **8.2** — Baseline coverage measurement (43%, 15 tests) and gap identification.
+> - **8.3** — +117 tests: encryption round-trips, dates/ical/configs utilities, role
+>   checker hierarchy, middleware request IDs, message/event/schedule/form route CRUD,
+>   ownership guards, bulk ops, hard deletes.
+> - **8.4** — Coverage progress log in `tests/README.md` (43% → 55% → 70% → 80%).
+> - **8.5** — Final push to 80%: public/auth routes, user management flows, event
+>   member-edit branches, direct SQLite bulk-delete coverage.
+> - **8.6** — Coverage note added to `readme.md`.
+>
+> ## Verification
+>
+> - `uv run pytest --cov=src --cov-report=term-missing`: **80%** (4530 stmts, 905 missed).
+> - All 215 tests pass; `uv run ruff check .` clean; `uv run pyright` 0 errors.
+>
+> ## Notes
+>
+> - Discovered: `DELETE /<entity>/bulk` routes are shadowed by `DELETE /<entity>/{id}`
+>   (registration order) — handlers tested directly; fix tracked as follow-up.
+> - `POST /users` invites create `user_invite` rows only; delete-endpoint tests insert
+>   real users via `UsersSQLite`.

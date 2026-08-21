@@ -437,7 +437,7 @@ Adds bidirectional links between every markdown file in the repo, using
 - [x] **8.5** — Reach 80% overall coverage on `src/`. Run final
   `uv run pytest --cov=src --cov-report=term-missing` and commit the result.
 - [x] **8.6** — Add a coverage badge or percentage note to `readme.md`.
-- [ ] **8.7** — Commit, push, and generate PR title + description.
+- [x] **8.7** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
