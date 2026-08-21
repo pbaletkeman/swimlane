@@ -321,3 +321,18 @@ Adds a copy-pasteable quickstart section to the root `readme.md` so new contribu
 Verified every claim against actual code (roles, encryption, router
 endpoints, ownership guard pattern, test setup). Links added to both
 `readme.md` and `AGENTS.md`.
+
+### 4.2 — Verify claims against code ✅
+
+| Check | Result |
+|-------|--------|
+| Commit | `2645de6` |
+| 11 routers in main.py | Verified — all 11 registered |
+| 11 SQLite entities with init() | Verified — all 11 present |
+| Role hierarchy | Verified — matches code exactly |
+| Encryption fields | Verified — nonce/ciphertext/hash columns match |
+| Test file names | Fixed — consolidated `test_capacity_register_reschedule.py` (was listed as 3 separate files) |
+
+**Finding**: All claims verified against source code. One inaccuracy
+found and fixed: test files were listed as 3 separate files but the
+actual codebase has one consolidated test file.
