@@ -419,7 +419,7 @@ Adds bidirectional links between every markdown file in the repo, using
 **Branch**: `chore/backend-coverage` (from `main`)
 
 - [x] **8.1** — Add `pytest-cov` to dev deps: `uv add --dev pytest-cov`.
-- [ ] **8.2** — Run `uv run pytest --cov=src --cov-report=term-missing` and
+- [x] **8.2** — Run `uv run pytest --cov=src --cov-report=term-missing` and
   record the baseline percentage. Identify uncovered modules/functions.
 - [ ] **8.3** — Write tests to cover the gaps. Priority order:
   1. `src/encryption.py` (encrypt/decrypt round-trip, hash, edge cases)

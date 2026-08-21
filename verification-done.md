@@ -702,3 +702,27 @@ Adds bidirectional links between every markdown file in the repo, using `readme.
 
 **Finding**: Added `pytest-cov` to dev dependencies. Coverage measurement
 now available via `uv run pytest --cov=src`.
+
+### 8.2 — Baseline coverage measurement ✅
+
+| Check | Result |
+|-------|--------|
+| Tests passing | 15/15 |
+| Baseline coverage | **43%** (4530 stmts, 2586 missed) |
+| Target | 80% |
+| Gap | 37 percentage points |
+
+**Top uncovered modules (by missed statements)**:
+
+| Module | Coverage | Missed | Priority |
+|--------|----------|--------|----------|
+| `routes/form_routes.py` | 23% | 309 | High |
+| `routes/event_routes.py` | 38% | 209 | High |
+| `routes/schedule_routes.py` | 37% | 140 | High |
+| `data/event/sqlite.py` | 43% | 137 | High |
+| `data/facility/sqlite.py` | 47% | 86 | Medium |
+| `data/schedule/sqlite.py` | 50% | 115 | Medium |
+| `data/users/sqlite.py` | 51% | 103 | Medium |
+| `routes/auth_routes.py` | 33% | 114 | Medium |
+| `routes/message_routes.py` | 28% | 80 | Medium |
+| `util/dates.py` | 30% | 16 | Quick win |
