@@ -198,7 +198,7 @@ minutes.
 
 Create a thorough backend walkthrough in `docs/README-Backend.md`.
 
-- [ ] **4.1** — Write the file with these sections:
+- [x] **4.1** — Write the file with these sections:
   1. **Overview** — FastAPI app, entry point, config, encryption, OAuth
   2. **Architecture** — `main.py` -> routers -> data layer -> SQLite; role
      hierarchy; AES-256-GCM PII encryption

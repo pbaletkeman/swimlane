@@ -99,3 +99,7 @@ Follow `src/data/facility/` as the canonical example:
 - DB access in routes: `db = Config().db()` then call methods on the instance
 - Soft deletes via `is_active` column (not `is_deleted` — except `users` which uses both)
 - Bulk operations use `executemany` + `RETURNING` or re-select after insert
+
+## Further Reading
+
+- [Backend Walkthrough](docs/README-Backend.md) — detailed architecture, data layer, all routers, roles, encryption, testing, configuration
