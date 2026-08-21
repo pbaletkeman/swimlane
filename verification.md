@@ -474,7 +474,7 @@ uncovered modules first.
 
 ---
 
-## Phase V9 — Frontend Test Coverage (target: 80%)
+## Phase V9 — Frontend Test Coverage (target: 90%)
 
 **Branch**: `chore/frontend-coverage` (from `main`)
 
