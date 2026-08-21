@@ -142,3 +142,17 @@ checked off but never shipped.
 
 **Finding**: `docs/history/` was already created during Phase V1 to store
 audit reports. Directory is ready for file consolidation in 2.2.
+
+### 2.2 — git mv completed pairs into docs/history/ ✅
+
+| File | Status |
+|------|--------|
+| `missing-features-todo.md` | moved |
+| `missing-features-done.md` | moved |
+| `frontend-todo.md` | moved |
+| `frontend-done.md` | moved |
+| `pdf-todo.md` | moved |
+| `pdf-done.md` | moved |
+
+**Finding**: All 6 plan-tracking files moved from repo root to
+`docs/history/` via `git mv`. Staged and ready to commit.
