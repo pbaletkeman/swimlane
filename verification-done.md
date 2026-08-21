@@ -435,3 +435,11 @@ Key verified details:
 | `AGENTS.md` link | Line 106 — `docs/README-Frontend.md` |
 
 **Finding**: Both links already added during 5.1. No changes needed.
+
+### 5.4 — Target length 200-350 lines ✅
+
+| Check | Result |
+|-------|--------|
+| Line count | 200 |
+| Target | 200-350 |
+| Status | **Within target** |

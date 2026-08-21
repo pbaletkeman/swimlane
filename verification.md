@@ -273,7 +273,7 @@ Create a thorough frontend walkthrough in `docs/README-Frontend.md`.
 - [x] **5.2** — Read every `frontend/src/pages/*.tsx` file and verify page
   descriptions match the actual code. Fix any discrepancies.
 - [x] **5.3** — Add a link to this file from `readme.md` and `AGENTS.md`.
-- [ ] **5.4** — Target length: 200-350 lines.
+- [x] **5.4** — Target length: 200-350 lines.
 - [ ] **5.5** — Commit, push, and generate PR title + description.
 
 ### PR Title
