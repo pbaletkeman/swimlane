@@ -32,7 +32,7 @@ One commit per logical sub-task.
 Verify every item marked complete in the todo files actually ships in
 the codebase.
 
-- [ ] **1.1** — Diff `missing-features-todo.md` (all `- [x]` items) against
+- [x] **1.1** — Diff `missing-features-todo.md` (all `- [x]` items) against
   `missing-features-done.md` table rows. Every ticked todo item must have a
   corresponding commit hash in the done file. Report any gaps.
 - [ ] **1.2** — Diff `frontend-todo.md` / `frontend-done.md` the same way.
