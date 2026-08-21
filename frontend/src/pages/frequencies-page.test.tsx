@@ -129,4 +129,39 @@ describe('FrequenciesPage', () => {
       expect(calls.some((c) => c.url === '/api/frequencies/1/hard' && c.init?.method === 'DELETE')).toBe(true),
     )
   })
+
+  it('filters rows through the table search input', async () => {
+    installFetch([
+      seedRow,
+      { frequency_id: 2, name: 'Monthly', day_interval: '30', is_active: false },
+    ])
+    renderPage(<FrequenciesPage />)
+    await screen.findAllByText('Weekly')
+
+    fireEvent.change(screen.getByPlaceholderText('Search frequencies...'), {
+      target: { value: 'month' },
+    })
+    // Weekly row filtered out, Monthly remains
+    await waitFor(() => expect(screen.queryAllByText('Weekly')).toHaveLength(0))
+    expect(screen.getAllByText('Monthly').length).toBeGreaterThan(0)
+  })
+
+  it('selects a row and bulk deletes it through the confirm bar', async () => {
+    installFetch([seedRow])
+    renderPage(<FrequenciesPage />)
+    await screen.findAllByText('Weekly')
+
+    // toggle the row checkbox
+    const checkbox = document.querySelector('input[data-scope="checkbox"]') as HTMLInputElement | null
+    expect(checkbox).not.toBeNull()
+    fireEvent.click(checkbox!)
+
+    // bulk bar appears with the selection count
+    fireEvent.click(await screen.findByLabelText('Delete 1 selected frequency'))
+    // confirm inside the (passthrough) dialog
+    fireEvent.click(await screen.findByText('Delete 1'))
+    await waitFor(() =>
+      expect(calls.some((c) => c.url === '/api/frequencies/bulk' && c.init?.method === 'DELETE')).toBe(true),
+    )
+  })
 })

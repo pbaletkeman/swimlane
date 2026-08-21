@@ -172,4 +172,37 @@ describe('ProfilePage', () => {
       expect(document.body.innerHTML.length).toBeGreaterThan(1000)
     })
   })
+
+  it('renders populated panels when data exists', async () => {
+    loginAs('MEMBER', 'profile-user')
+    installFetch({
+      '/api/schedules/me': [
+        {
+          schedule_id: 7,
+          venue_id: 1,
+          member_id: 'profile-user',
+          event_id: 21,
+          is_active: true,
+          event_description: 'Squad session',
+          start_date_time: '2027-04-01T09:00:00',
+          end_date_time: '2027-04-01T11:00:00',
+          facility_name: 'Main Pool',
+        },
+      ],
+      '/api/forms/me/submissions': [
+        { submission_id: 3, facility_id: 1, facility_name: 'Main Pool', signed_at: '2026-08-01T10:00:00Z', submitted_at: '2026-08-01T10:00:01Z', is_complete: true },
+      ],
+      '/api/messages/me': [
+        { message_id: 2, member_id: 'profile-user', sender_id: 'coach-1', subject: 'Welcome aboard', body: 'See you at practice', is_read: false, sent_at: '2026-08-02T09:00:00Z', is_active: true },
+      ],
+    })
+    renderPage(<ProfilePage />)
+
+    // submissions panel (default) shows the facility name
+    await screen.findAllByText('Main Pool')
+
+    // messages panel shows the subject once opened
+    fireEvent.click(screen.getByText('My Messages'))
+    await screen.findByText('Welcome aboard')
+  })
 })
