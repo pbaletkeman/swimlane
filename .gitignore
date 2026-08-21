@@ -50,6 +50,10 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# Frontend test artifacts
+frontend/coverage/
+node_modules/.vite/
+
 # Translations - https://docs.djangoproject.com/en/es/4.0/i18n/managing-translations/
 *.mo
 *.pot
