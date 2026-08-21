@@ -75,3 +75,15 @@ Full report: `docs/history/audit-report-pdf.md`
 **Finding**: All 101 unique commit hashes across all three done files
 resolve to real commits via `git log --oneline --all`. No orphaned
 references.
+
+### 1.5 — Spot-check three random done-file entries ✅
+
+| Hash | Done-file claim | Code present | Verdict |
+|------|----------------|-------------|---------|
+| `d855025` | G.1.4 — PUT /users/{sub} role change, privilege bound | `change_user_role` handler at line 226, privilege bound at line 234, registered as PUT | PASS |
+| `be8a81f` | B.7 — public explore pages | `ExploreHomePage.tsx`, `ExploreVenuesPage.tsx`, `VenueSchedulePage.tsx` all exist | PASS |
+| `3c0ad23` | E.1, E.2 — form submission list/detail | `list_by_member` + `get_by_id_with_responses` in sqlite.py, route endpoints in form_routes.py | PASS |
+
+**Finding**: All three spot-checks confirm the commit messages match the
+actual code on `main`. Files exist, handlers are registered, privilege
+bounds are enforced.
