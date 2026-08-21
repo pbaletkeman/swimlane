@@ -476,3 +476,19 @@ Adds `docs/README-Frontend.md`, a thorough walkthrough of the React 19 SPA cover
 ## Notes
 
 - Docs-only change; no code modified.
+
+---
+
+## Phase V6 — README Line Budget
+
+### 6.1 — Line count audit ✅
+
+| Check | Result |
+|-------|--------|
+| Line count | 201 |
+| Budget | 500 |
+| Status | **Under budget by 299 lines** |
+| Restructuring needed | No |
+
+**Finding**: `readme.md` is 201 lines — well under the 500-line budget.
+No sections need collapsing or moving.
