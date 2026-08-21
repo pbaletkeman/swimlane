@@ -45,3 +45,19 @@ explicitly mentioned in done file. The work was completed in Phase J.8
 of the main plan — documentation omission only, not a work gap.
 
 Full report: `docs/history/audit-report-frontend.md`
+
+### 1.3 — Diff pdf-todo.md vs pdf-done.md ✅
+
+| Check | Result |
+|-------|--------|
+| Checked items in todo | 37 |
+| Steps covered in done | 8/8 (all complete) |
+| Commit hashes | 0 (done file uses step-level sections, not hashes) |
+| Gaps | **0** |
+
+**Finding**: All 37 checked todo items across 8 steps have corresponding
+done-file entries. The done file uses step-level sections with file tables
+and verification details, not individual item numbers — this is a
+documentation convention difference, not a coverage gap.
+
+Full report: `docs/history/audit-report-pdf.md`
