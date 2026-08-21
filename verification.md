@@ -272,7 +272,7 @@ Create a thorough frontend walkthrough in `docs/README-Frontend.md`.
   10. **Testing** — how to run vitest, what each test file covers
 - [x] **5.2** — Read every `frontend/src/pages/*.tsx` file and verify page
   descriptions match the actual code. Fix any discrepancies.
-- [ ] **5.3** — Add a link to this file from `readme.md` and `AGENTS.md`.
+- [x] **5.3** — Add a link to this file from `readme.md` and `AGENTS.md`.
 - [ ] **5.4** — Target length: 200-350 lines.
 - [ ] **5.5** — Commit, push, and generate PR title + description.
 

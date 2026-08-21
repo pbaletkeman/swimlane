@@ -426,3 +426,12 @@ Key verified details:
 - FormBuilderPage: dual CRUD (questions + rules) on one page (matches)
 - FormViewPage: dynamic questions + consent + PDF export (matches)
 - All 4 explore pages: public, no auth (matches)
+
+### 5.3 — Add links from readme.md and AGENTS.md ✅
+
+| Check | Result |
+|-------|--------|
+| `readme.md` link | Line 268 — `docs/README-Frontend.md` |
+| `AGENTS.md` link | Line 106 — `docs/README-Frontend.md` |
+
+**Finding**: Both links already added during 5.1. No changes needed.
