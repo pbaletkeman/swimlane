@@ -267,3 +267,9 @@ npm run preview  # preview production build locally
 No test framework is currently configured in the frontend. There are no `*.test.tsx` or `*.spec.tsx` files in `frontend/src/`.
 
 Backend tests (`uv run pytest`) cover the API layer that the frontend consumes.
+
+## See Also
+
+- [Project README](../readme.md) — Getting started, quickstart, project structure
+- [Architecture](../AGENTS.md) — Commands, patterns, conventions, gotchas
+- [Backend Walkthrough](README-Backend.md) — FastAPI backend: architecture, data layer, routers, roles, encryption
