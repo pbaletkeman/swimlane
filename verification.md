@@ -102,7 +102,7 @@ stays clean for the README and AGENTS.md.
   original plan input).
 - [x] **2.5** — Move `launch-json.md` and `opencode-bots.md` into `docs/`
   (optional project notes, not todo/done — direct `docs/` not `docs/history/`).
-- [ ] **2.6** — Update `docs/update_index.py` if it references any moved
+- [x] **2.6** — Update `docs/update_index.py` if it references any moved
   filenames. Run `uv run python docs/update_index.py` and confirm
   `docs/index.md` regenerates without errors.
 - [ ] **2.7** — Commit, push, and generate PR title + description.

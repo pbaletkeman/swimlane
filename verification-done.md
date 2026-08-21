@@ -183,3 +183,16 @@ audit reports. Directory is ready for file consolidation in 2.2.
 
 **Finding**: Both optional project notes moved from root to `docs/` via
 `git mv`. Staged.
+
+### 2.6 — Update docs/update_index.py and regenerate index ✅
+
+| Check | Result |
+|-------|--------|
+| Script references moved files | No — uses `pathlib.Path(".")` dynamically |
+| Run from `docs/` | `uv run python update_index.py` — no errors |
+| Stale refs in `docs/index.md` | Removed (`plan.md`, `TODO.md` gone) |
+| New files in `docs/index.md` | Added (`launch-json.md`, `opencode-bots.md`) |
+
+**Finding**: Script is directory-agnostic (lists whatever exists). Running
+from `docs/` regenerated `index.md` correctly with 12 entries, no stale
+references.
