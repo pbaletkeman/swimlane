@@ -198,7 +198,7 @@ minutes.
 
 Create a thorough backend walkthrough in `docs/README-Backend.md`.
 
-- [ ] **4.1** — Write the file with these sections:
+- [x] **4.1** — Write the file with these sections:
   1. **Overview** — FastAPI app, entry point, config, encryption, OAuth
   2. **Architecture** — `main.py` -> routers -> data layer -> SQLite; role
      hierarchy; AES-256-GCM PII encryption
@@ -215,11 +215,11 @@ Create a thorough backend walkthrough in `docs/README-Backend.md`.
      a new test (conftest pattern)
   9. **Dev Tools** — devtools page, OAuth backend-only flow, env vars
   10. **Configuration** — `config.yaml`, `.secrets/`, env overrides
-- [ ] **4.2** — Use `AGENTS.md` as source material; verify every claim
+- [x] **4.2** — Use `AGENTS.md` as source material; verify every claim
   against the actual code.
-- [ ] **4.3** — Add a link to this file from `readme.md` and `AGENTS.md`.
-- [ ] **4.4** — Target length: 200-350 lines.
-- [ ] **4.5** — Commit, push, and generate PR title + description.
+- [x] **4.3** — Add a link to this file from `readme.md` and `AGENTS.md`.
+- [x] **4.4** — Target length: 200-350 lines.
+- [x] **4.5** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
