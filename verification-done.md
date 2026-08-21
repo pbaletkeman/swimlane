@@ -476,3 +476,70 @@ Adds `docs/README-Frontend.md`, a thorough walkthrough of the React 19 SPA cover
 ## Notes
 
 - Docs-only change; no code modified.
+
+---
+
+## Phase V6 — README Line Budget
+
+### 6.1 — Line count audit ✅
+
+| Check | Result |
+|-------|--------|
+| Line count | 201 |
+| Budget | 500 |
+| Status | **Under budget by 299 lines** |
+| Restructuring needed | No |
+
+**Finding**: `readme.md` is 201 lines — well under the 500-line budget.
+No sections need collapsing or moving.
+
+### 6.2 — Restructure as needed ✅
+
+| Check | Result |
+|-------|--------|
+| Action | None required |
+| Reason | 201 lines is under 500-line budget |
+
+**Finding**: No restructuring needed. All content fits comfortably.
+
+### 6.3 — Final readme.md committed ✅
+
+| Check | Result |
+|-------|--------|
+| Changes to readme.md | None |
+| Line count | 201 (verified) |
+| Status | **Committed** |
+
+**Finding**: No changes needed — readme.md was already under budget at 201 lines.
+
+### 6.4 — PR for Phase V6 ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/readme-budget` |
+| Commits | `496efac`, `093a118`, `582b325` |
+
+### PR Title
+
+`docs: enforce readme.md under 500 lines`
+
+### PR Description
+
+# Summary
+
+Audits `readme.md` line count after Phases V2-V5. At 201 lines, it is well under the 500-line budget — no restructuring needed.
+
+## What's Included
+
+- **6.1** — Line count audit: 201 lines (under 500 budget by 299 lines).
+- **6.2** — No restructuring needed — all content fits comfortably.
+- **6.3** — Final line count verified and committed.
+
+## Verification
+
+- `readme.md` is 201 lines (well under 500).
+- No content was moved or collapsed.
+
+## Notes
+
+- This phase was a pass-through — no changes to readme.md were required.

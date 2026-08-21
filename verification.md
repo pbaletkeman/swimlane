@@ -314,13 +314,13 @@ nav filtering, theming, build/lint, and testing.
 
 Ensure `readme.md` stays under 500 lines.
 
-- [ ] **6.1** — After completing Phases V2-V5, count lines in `readme.md`.
+- [x] **6.1** — After completing Phases V2-V5, count lines in `readme.md`.
   If over 500, identify sections that can be collapsed (e.g., move the full
   endpoint table into `docs/README-Backend.md` and keep only a summary).
-- [ ] **6.2** — Restructure as needed: use collapsible `<details>` sections
+- [x] **6.2** — Restructure as needed: use collapsible `<details>` sections
   or move verbose tables into linked docs.
-- [ ] **6.3** — Commit the final `readme.md` with line count verified.
-- [ ] **6.4** — Push and generate PR title + description.
+- [x] **6.3** — Commit the final `readme.md` with line count verified.
+- [x] **6.4** — Push and generate PR title + description.
 
 ### PR Title
 
