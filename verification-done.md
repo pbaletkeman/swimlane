@@ -226,3 +226,21 @@ Moves all todo/done/plan files out of the repo root into `docs/` so the root sta
 ## Notes
 
 - Root directory now contains only: `main.py`, `readme.md`, `AGENTS.md`, `config.yaml`, `pyproject.toml`, `verification.md`, `verification-done.md`, and standard project files.
+
+---
+
+## Phase V3 — Root README Quickstart
+
+### 3.1 — Draft quickstart section ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/readme-quickstart` |
+| Commit | `c0730e0` |
+| Subsections added | Prerequisites, Clone+Install, Configure, Run, Verify, Run the Tests |
+| Inserted after | Getting Started (before Development) |
+| Broken links fixed | `docs/plan.md` → `docs/history/legacy-plan.md`, `docs/TODO.md` → `docs/history/legacy-todo.md` |
+
+**Finding**: Quickstart section drafted with 6 copy-pasteable subsections.
+Also fixed 2 broken doc links in the Documentation section that referenced
+files moved in Phase V2.
