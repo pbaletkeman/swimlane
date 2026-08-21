@@ -421,7 +421,7 @@ Adds bidirectional links between every markdown file in the repo, using
 - [x] **8.1** — Add `pytest-cov` to dev deps: `uv add --dev pytest-cov`.
 - [x] **8.2** — Run `uv run pytest --cov=src --cov-report=term-missing` and
   record the baseline percentage. Identify uncovered modules/functions.
-- [ ] **8.3** — Write tests to cover the gaps. Priority order:
+- [x] **8.3** — Write tests to cover the gaps. Priority order:
   1. `src/encryption.py` (encrypt/decrypt round-trip, hash, edge cases)
   2. `src/util/configs.py` (Config loading, env overrides)
   3. `src/util/ical.py` (iCal builder: events, escaping, CRLF)

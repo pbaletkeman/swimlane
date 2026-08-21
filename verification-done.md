@@ -726,3 +726,33 @@ now available via `uv run pytest --cov=src`.
 | `routes/auth_routes.py` | 33% | 114 | Medium |
 | `routes/message_routes.py` | 28% | 80 | Medium |
 | `util/dates.py` | 30% | 16 | Quick win |
+
+### 8.3 — Write tests to cover gaps ✅
+
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| Tests | 15 | 132 | +117 |
+| Coverage | 43% | 55% | +12pp |
+| Stmts missed | 2586 | 2057 | -529 |
+
+**New test files created** (10 files):
+
+| File | Tests | Covers |
+|------|-------|--------|
+| `tests/test_encryption.py` | 12 | encrypt/decrypt round-trip, unicode, edge cases, hash determinism |
+| `tests/test_dates.py` | 17 | parse_date, start_of_week, week/month ranges, ISO output |
+| `tests/test_ical.py` | 10 | VCALENDAR generation, CRLF, escaping, multiple events, empty items |
+| `tests/test_configs.py` | 9 | YAML loading, caching, sqlite_file, google_config, error paths |
+| `tests/test_role_checker.py` | 10 | JWT decode, role enforcement, hierarchy, missing claims |
+| `tests/test_middleware.py` | 3 | Request ID generation, uniqueness, noisy path suppression |
+| `tests/test_messages.py` | 11 | Send, inbox, mark read, soft/hard delete, authorization guards |
+| `tests/test_event_routes.py` | 18 | CRUD, ownership guard, bulk ops, hard delete, capacity, member mgmt |
+| `tests/test_schedule_routes.py` | 14 | List/get, cancel, CRUD, hard delete, bulk, authorization guards |
+| `tests/test_form_routes.py` | 13 | Question/rule CRUD, bulk create, hard delete, form display, submissions |
+
+**Remaining uncovered areas** (for 8.4+):
+- `routes/facility_routes.py` (23%), `routes/venue_routes.py` (23%), `routes/frequency_routes.py` (21%) — CRUD patterns similar to what's tested
+- `routes/auth_routes.py` (33%) — Google OAuth flow, token refresh
+- `routes/public_routes.py` (33%) — public browsing endpoints
+- `routes/user_routes.py` (54%) — user management
+- `data/*/sqlite.py` (41-64%) — deeper CRUD edge cases
