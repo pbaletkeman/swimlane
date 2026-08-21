@@ -386,3 +386,23 @@ Adds `docs/README-Backend.md`, a thorough walkthrough of the FastAPI backend cov
 ## Notes
 
 - Docs-only change; no code modified.
+
+---
+
+## Phase V5 — README-Frontend.md
+
+### 5.1 — Write frontend walkthrough ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/readme-frontend` |
+| Commit | `dd7ce80` |
+| File | `docs/README-Frontend.md` |
+| Line count | 200 (target: 200-350) |
+| Sections | 10 (Overview, Provider Stack, Routing, Auth, API Layer, Pages, Nav, Theming, Build & Lint, Testing) |
+| Links added | `readme.md` Documentation section, `AGENTS.md` Further Reading section |
+
+**Finding**: Frontend walkthrough written with all 10 required sections.
+Covered 20 page components, 10 nav items, 4 role tiers, 3-file theming
+system, API client with 401 retry, and lazy-loaded routing. Links added
+to both `readme.md` and `AGENTS.md`.
