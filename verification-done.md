@@ -353,3 +353,36 @@ actual codebase has one consolidated test file.
 | Line count | 263 |
 | Target | 200-350 |
 | Status | **Within target** |
+
+### 4.5 — PR for Phase V4 ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/readme-backend` |
+| Commits | `664dd66`, `cb85d77`, `2645de6`, `c54d5f6`, `97ccf24`, `5c100b8` |
+
+### PR Title
+
+`docs: add comprehensive backend README walkthrough`
+
+### PR Description
+
+# Summary
+
+Adds `docs/README-Backend.md`, a thorough walkthrough of the FastAPI backend covering architecture, data layer patterns, all 12 routers, role guards, encryption, testing, and configuration.
+
+## What's Included
+
+- **4.1** — 10-section backend walkthrough (263 lines): Overview, Architecture, Data Layer, Routers, Self-Service, Public, Roles, Testing, Dev Tools, Configuration.
+- **4.2** — Verified every claim against actual source code. Fixed test file names (consolidated `test_capacity_register_reschedule.py`).
+- **4.3** — Added links from `readme.md` and `AGENTS.md` to the new file.
+- **4.4** — Line count 263, within 200-350 target.
+
+## Verification
+
+- All 11 routers, 11 SQLite entities, role hierarchy, and encryption fields verified against code.
+- Links confirmed in both `readme.md` (Documentation section) and `AGENTS.md` (Further Reading section).
+
+## Notes
+
+- Docs-only change; no code modified.

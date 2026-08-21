@@ -219,7 +219,7 @@ Create a thorough backend walkthrough in `docs/README-Backend.md`.
   against the actual code.
 - [x] **4.3** — Add a link to this file from `readme.md` and `AGENTS.md`.
 - [x] **4.4** — Target length: 200-350 lines.
-- [ ] **4.5** — Commit, push, and generate PR title + description.
+- [x] **4.5** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
