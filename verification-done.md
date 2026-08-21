@@ -914,3 +914,25 @@ order for writing tests follows the plan's 9.6 list:
 3. Page smoke tests — all `src/pages/**` (wrap in MemoryRouter + mock auth)
 4. Form components — `EntityFormDialog`, `ThemeSwitch`, `EmptyState`
 5. API wrappers — `src/api/{events,schedules,forms,messages,users,public}.ts`
+
+### 9.6 — Write tests (in progress)
+
+| Batch | Commit | Tests | Coverage after | Files covered |
+|-------|--------|-------|----------------|---------------|
+| 1 — pure logic | `22ae013` | 28 | 5.4% | tokens.ts, types.ts, nav.ts, client.ts |
+| 2 — page smoke tests + toast fix | `a1a15ef`/`bd693f5` | 16 | **41.8%** | all pages incl. explore, LoginPage, ErrorPage |
+
+Batch 2 details:
+- `src/test-utils.tsx` — makeJwt/loginAs/renderPage/renderAtRoute/stubListApi helpers.
+- `src/pages/pages.smoke.test.tsx` — 16 smoke tests: every page renders inside
+  PrimeReactProvider -> AuthProvider -> MemoryRouter without crashing; param
+  routes via renderAtRoute.
+- **App fix discovered by testing**: `useToast()` returned a fresh object per
+  render; explore pages list `toast` in useEffect deps -> infinite refetch loop
+  (worker OOM under instant mocked fetch). Now returns a stable module-level
+  constant. Suite runtime dropped 96s -> ~2.6s.
+- Housekeeping: generated `frontend/coverage/` HTML report untracked +
+  gitignored (`bd693f5`).
+
+Verification: `npm run test` 44 passed; `npm run lint` clean;
+`npm run build` passes; coverage statements 41.78% (822/1967).
