@@ -291,9 +291,7 @@ Before `main` is imported, `conftest.py` redirects the SQLite database to a temp
 
 | Test File | Coverage |
 |-----------|----------|
-| `test_public.py` | Public venue/event browsing, capacity |
-| `test_register.py` | Member event registration |
-| `test_reschedule.py` | Member schedule reschedule/cancel |
+| `test_capacity_register_reschedule.py` | Public capacity, member registration, reschedule/cancel |
 | `test_coach_scoping.py` | Coach ownership guard |
 | `test_user_role_bounds.py` | Role assignment limits |
 
