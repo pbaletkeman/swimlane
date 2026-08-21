@@ -319,7 +319,7 @@ Ensure `readme.md` stays under 500 lines.
   endpoint table into `docs/README-Backend.md` and keep only a summary).
 - [x] **6.2** — Restructure as needed: use collapsible `<details>` sections
   or move verbose tables into linked docs.
-- [ ] **6.3** — Commit the final `readme.md` with line count verified.
+- [x] **6.3** — Commit the final `readme.md` with line count verified.
 - [ ] **6.4** — Push and generate PR title + description.
 
 ### PR Title
