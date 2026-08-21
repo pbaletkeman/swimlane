@@ -386,3 +386,93 @@ Adds `docs/README-Backend.md`, a thorough walkthrough of the FastAPI backend cov
 ## Notes
 
 - Docs-only change; no code modified.
+
+---
+
+## Phase V5 — README-Frontend.md
+
+### 5.1 — Write frontend walkthrough ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/readme-frontend` |
+| Commit | `dd7ce80` |
+| File | `docs/README-Frontend.md` |
+| Line count | 200 (target: 200-350) |
+| Sections | 10 (Overview, Provider Stack, Routing, Auth, API Layer, Pages, Nav, Theming, Build & Lint, Testing) |
+| Links added | `readme.md` Documentation section, `AGENTS.md` Further Reading section |
+
+**Finding**: Frontend walkthrough written with all 10 required sections.
+Covered 20 page components, 10 nav items, 4 role tiers, 3-file theming
+system, API client with 401 retry, and lazy-loaded routing. Links added
+to both `readme.md` and `AGENTS.md`.
+
+### 5.2 — Verify page descriptions against code ✅
+
+| Check | Result |
+|-------|--------|
+| Pages read | 20/20 |
+| Discrepancies found | **0** |
+| Fixes needed | None |
+
+**Finding**: All 20 page descriptions in the README match the actual code.
+Key verified details:
+- DashboardPage: welcome card + role tag + quick links (matches)
+- ProfilePage: 3 tabs (Forms, Events, Messages) + modals (matches)
+- MySchedulePage: iCal export + reschedule + cancel (matches)
+- CoachEventsPage: scope switcher + member management (matches)
+- ManageUsersPage: double-guarded + role-based filtering (matches)
+- All 5 CRUD pages: EntityDataTable + BulkDeleteBar + EntityFormDialog (matches)
+- FormBuilderPage: dual CRUD (questions + rules) on one page (matches)
+- FormViewPage: dynamic questions + consent + PDF export (matches)
+- All 4 explore pages: public, no auth (matches)
+
+### 5.3 — Add links from readme.md and AGENTS.md ✅
+
+| Check | Result |
+|-------|--------|
+| `readme.md` link | Line 268 — `docs/README-Frontend.md` |
+| `AGENTS.md` link | Line 106 — `docs/README-Frontend.md` |
+
+**Finding**: Both links already added during 5.1. No changes needed.
+
+### 5.4 — Target length 200-350 lines ✅
+
+| Check | Result |
+|-------|--------|
+| Line count | 200 |
+| Target | 200-350 |
+| Status | **Within target** |
+
+### 5.5 — PR for Phase V5 ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/readme-frontend` |
+| Commits | `dd7ce80`, `8f6d216`, `25e82f1`, `716da9c`, `9a07770` |
+
+### PR Title
+
+`docs: add comprehensive frontend README walkthrough`
+
+### PR Description
+
+# Summary
+
+Adds `docs/README-Frontend.md`, a thorough walkthrough of the React 19 SPA covering provider stack, routing, auth flow, API layer, all page components, nav filtering, theming, build/lint, and testing.
+
+## What's Included
+
+- **5.1** — 10-section frontend walkthrough (200 lines): Overview, Provider Stack, Routing, Auth, API Layer, Pages, Nav, Theming, Build & Lint, Testing.
+- **5.2** — Verified all 20 page descriptions against actual code. Zero discrepancies.
+- **5.3** — Added links from `readme.md` and `AGENTS.md` to the new file.
+- **5.4** — Line count 200, within 200-350 target.
+
+## Verification
+
+- All 20 page components read and descriptions confirmed accurate.
+- Links confirmed in both `readme.md` (Documentation section) and `AGENTS.md` (Further Reading section).
+
+## Notes
+
+- Docs-only change; no code modified.

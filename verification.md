@@ -259,7 +259,7 @@ encryption, testing, and configuration.
 
 Create a thorough frontend walkthrough in `docs/README-Frontend.md`.
 
-- [ ] **5.1** — Write the file with these sections:
+- [x] **5.1** — Write the file with these sections:
   1. **Overview** — React 19 + TypeScript + Vite SPA, PrimeReact 11 + Aura
   2. **Provider Stack** — PrimeReactProvider -> ThemeProvider -> AuthProvider
   3. **Routing** — public routes vs authenticated routes, RouteGuard, AppLayout
@@ -270,11 +270,11 @@ Create a thorough frontend walkthrough in `docs/README-Frontend.md`.
   8. **Theming** — Aura preset, `ThemeSwitch`, `@primeuix/themes`
   9. **Build & Lint** — `npm run build`, `npm run lint` (oxlint), lazy chunks
   10. **Testing** — how to run vitest, what each test file covers
-- [ ] **5.2** — Read every `frontend/src/pages/*.tsx` file and verify page
+- [x] **5.2** — Read every `frontend/src/pages/*.tsx` file and verify page
   descriptions match the actual code. Fix any discrepancies.
-- [ ] **5.3** — Add a link to this file from `readme.md` and `AGENTS.md`.
-- [ ] **5.4** — Target length: 200-350 lines.
-- [ ] **5.5** — Commit, push, and generate PR title + description.
+- [x] **5.3** — Add a link to this file from `readme.md` and `AGENTS.md`.
+- [x] **5.4** — Target length: 200-350 lines.
+- [x] **5.5** — Commit, push, and generate PR title + description.
 
 ### PR Title
 

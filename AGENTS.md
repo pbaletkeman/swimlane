@@ -103,3 +103,4 @@ Follow `src/data/facility/` as the canonical example:
 ## Further Reading
 
 - [Backend Walkthrough](docs/README-Backend.md) — detailed architecture, data layer, all routers, roles, encryption, testing, configuration
+- [Frontend Walkthrough](docs/README-Frontend.md) — React SPA: providers, routing, auth, pages, theming, build
