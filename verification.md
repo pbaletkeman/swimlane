@@ -485,7 +485,7 @@ uncovered modules first.
 - [x] **9.3** — Add `"test"` and `"coverage"` scripts to `frontend/package.json`.
 - [x] **9.4** — Create `frontend/src/test-setup.ts` with global test setup
   (mock `window.matchMedia`, mock `fetch`, etc.).
-- [ ] **9.5** — Run baseline coverage: `npm run coverage`. Record the starting
+- [x] **9.5** — Run baseline coverage: `npm run coverage`. Record the starting
   percentage. Identify uncovered files.
 - [ ] **9.6** — Write tests in priority order:
   1. **Pure logic**: `src/auth/tokens.ts`, `src/auth/types.ts` (ROLE_RANK),

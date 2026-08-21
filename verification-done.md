@@ -892,3 +892,25 @@ Verification: `npm run test` executes vitest 4.1.11 and correctly reports
 
 Verification: `npm run build` passes (file typechecked under tsconfig.app),
 `npm run lint` clean.
+
+### 9.5 — Baseline coverage measurement ?
+
+Run: `npx vitest run --coverage --passWithNoTests` (`--passWithNoTests` required
+while zero test files exist; plain `npm run coverage` exits 1 until 9.6).
+
+| Metric | Baseline |
+|--------|----------|
+| Statements | **0%** (0/1951) |
+| Branches | 0% (0/1100) |
+| Functions | 0% (0/582) |
+| Lines | 0% (0/1852) |
+
+Every file in `frontend/src` is uncovered (57 ts/tsx files across api, auth,
+components, layout, pages (+explore), router, theme, toast, util). Priority
+order for writing tests follows the plan's 9.6 list:
+
+1. Pure logic — `src/auth/tokens.ts`, `src/auth/types.ts`, `src/api/client.ts`
+2. Nav filtering — `src/layout/nav.ts`
+3. Page smoke tests — all `src/pages/**` (wrap in MemoryRouter + mock auth)
+4. Form components — `EntityFormDialog`, `ThemeSwitch`, `EmptyState`
+5. API wrappers — `src/api/{events,schedules,forms,messages,users,public}.ts`
