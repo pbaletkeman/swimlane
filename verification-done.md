@@ -443,3 +443,36 @@ Key verified details:
 | Line count | 200 |
 | Target | 200-350 |
 | Status | **Within target** |
+
+### 5.5 — PR for Phase V5 ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/readme-frontend` |
+| Commits | `dd7ce80`, `8f6d216`, `25e82f1`, `716da9c`, `9a07770` |
+
+### PR Title
+
+`docs: add comprehensive frontend README walkthrough`
+
+### PR Description
+
+# Summary
+
+Adds `docs/README-Frontend.md`, a thorough walkthrough of the React 19 SPA covering provider stack, routing, auth flow, API layer, all page components, nav filtering, theming, build/lint, and testing.
+
+## What's Included
+
+- **5.1** — 10-section frontend walkthrough (200 lines): Overview, Provider Stack, Routing, Auth, API Layer, Pages, Nav, Theming, Build & Lint, Testing.
+- **5.2** — Verified all 20 page descriptions against actual code. Zero discrepancies.
+- **5.3** — Added links from `readme.md` and `AGENTS.md` to the new file.
+- **5.4** — Line count 200, within 200-350 target.
+
+## Verification
+
+- All 20 page components read and descriptions confirmed accurate.
+- Links confirmed in both `readme.md` (Documentation section) and `AGENTS.md` (Further Reading section).
+
+## Notes
+
+- Docs-only change; no code modified.
