@@ -156,7 +156,7 @@ Add a "How To Get Started In Under Ten Minutes" section to `readme.md`.
   - **Run the tests** (`uv run pytest` + `npm run test`)
 - [x] **3.2** — Ensure the section uses copy-pasteable code blocks and avoids
   jargon. Time a fresh clone on a clean machine to validate "under ten minutes."
-- [ ] **3.3** — Insert the section after the "Getting Started" heading (item 5
+- [x] **3.3** — Insert the section after the "Getting Started" heading (item 5
   of the existing structure), before "Development."
 - [ ] **3.4** — Commit, push, and generate PR title + description.
 

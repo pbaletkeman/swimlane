@@ -258,3 +258,13 @@ files moved in Phase V2.
 **Finding**: Two issues found and fixed:
 1. `mkdir -p` fails on Windows PowerShell — replaced with cross-platform alternative.
 2. `npm run test` doesn't exist in frontend — removed, backend `uv run pytest` only.
+
+### 3.3 — Insert at correct position ✅
+
+| Check | Result |
+|-------|--------|
+| Position | Line 77 — after Getting Started (line 11), before Development (line 138) |
+| All Getting Started content before | Yes (items 1-5 + backend-only testing) |
+
+**Finding**: Section already inserted at the correct position during 3.1.
+No changes needed.
