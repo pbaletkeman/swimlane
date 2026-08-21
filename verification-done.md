@@ -648,3 +648,41 @@ sequence/, and history/ directories.
 up new files in `docs/` root but doesn't traverse subdirectories (flow/,
 sequence/, history/). The curated hub index from 7.7 is more useful and
 was restored after verifying the script works.
+
+### 7.9 — PR for Phase V7 ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/cross-linking` |
+| Commits | `9c6797e`, `ae31969`, `5379b3b`, `ee2bf49`, `c0b6432`, `8bc19b4`, `13cb217`, `8d673a7`, `877134b`, `9169e30`, `94d6cc6`, `cd579e4`, `b156a97`, `b3eb8b3` |
+
+### PR Title
+
+`docs: cross-link all markdown files to root README`
+
+### PR Description
+
+# Summary
+
+Adds bidirectional links between every markdown file in the repo, using `readme.md` as the hub. Ensures no orphaned documentation pages.
+
+## What's Included
+
+- **7.1** — Full audit of outgoing links in every `.md` file.
+- **7.2** — `readme.md` links to all major doc files (added docs/readme.md, flow/, sequence/).
+- **7.3** — `AGENTS.md` links to `readme.md` (added).
+- **7.4** — `docs/README-Backend.md` — added See Also section (readme.md, AGENTS.md, frontend).
+- **7.5** — `docs/README-Frontend.md` — added See Also section (readme.md, AGENTS.md, backend).
+- **7.6** — `docs/flow/README.md` and `docs/sequence/README.md` — added See Also links.
+- **7.7** — Rewrote `docs/index.md` as a curated documentation hub (6 sections, 30+ links).
+- **7.8** — Verified `update_index.py` works; preserved curated hub over flat-list output.
+
+## Verification
+
+- Every `.md` file has at least one link to `readme.md` (except archived history files).
+- No broken links (manual verification).
+- `docs/index.md` links to all docs/ files organized by category.
+
+## Notes
+
+- `update_index.py` only generates flat file lists — the curated hub is more useful.

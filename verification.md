@@ -378,7 +378,7 @@ Ensure every markdown file links to related files and the root README.
   docs/ files. Update it.
 - [x] **7.8** — Run `uv run python docs/update_index.py` to regenerate
   `docs/index.md` after all moves. Verify it picks up the new files.
-- [ ] **7.9** — Commit, push, and generate PR title + description.
+- [x] **7.9** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
