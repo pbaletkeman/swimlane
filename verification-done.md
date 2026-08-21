@@ -301,3 +301,23 @@ Adds a copy-pasteable quickstart section to the root `readme.md` so new contribu
 ## Notes
 
 - Also fixed 2 broken doc links in the Documentation section (`docs/plan.md` → `docs/history/legacy-plan.md`, `docs/TODO.md` → `docs/history/legacy-todo.md`).
+
+---
+
+## Phase V4 — README-Backend.md
+
+### 4.1 — Write backend walkthrough ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/readme-backend` |
+| Commit | `664dd66` |
+| File | `docs/README-Backend.md` |
+| Line count | 265 (target: 200-350) |
+| Sections | 10 (Overview, Architecture, Data Layer, Routers, Self-Service, Public, Roles, Testing, Dev Tools, Configuration) |
+| Links added | `readme.md` Documentation section, `AGENTS.md` Further Reading section |
+
+**Finding**: Backend walkthrough written with all 10 required sections.
+Verified every claim against actual code (roles, encryption, router
+endpoints, ownership guard pattern, test setup). Links added to both
+`readme.md` and `AGENTS.md`.
