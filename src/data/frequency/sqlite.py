@@ -10,6 +10,7 @@ import logging
 import sqlite3
 from typing import Any, LiteralString, Optional
 
+from src.data.connection import ClosingConnection
 from src.data.frequency.frequency import Frequency
 from src.data.frequency.frequency_interface import FrequencyInterface as FrequencyInterfaceBase
 from src.util.configs import Config
@@ -27,7 +28,7 @@ class SQLite(FrequencyInterfaceBase):
 
     def _connect(self) -> sqlite3.Connection:
         try:
-            conn = sqlite3.connect(self._sqlite_file)
+            conn = sqlite3.connect(self._sqlite_file, factory=ClosingConnection)
             conn.row_factory = sqlite3.Row
             conn.execute("PRAGMA foreign_keys = ON;")
             return conn

@@ -23,6 +23,7 @@ import sqlite3
 from datetime import datetime, timezone
 from typing import Any, LiteralString, Optional
 
+from src.data.connection import ClosingConnection
 from src.data.users.user import User
 from src.data.users.user_interface import UserInterface as UserInterfaceBase
 from src.encryption import hash_field
@@ -42,7 +43,7 @@ class SQLite(UserInterfaceBase):
 
     def _connect(self) -> sqlite3.Connection:
         try:
-            conn = sqlite3.connect(self._sqlite_file)
+            conn = sqlite3.connect(self._sqlite_file, factory=ClosingConnection)
             conn.row_factory = sqlite3.Row
             conn.execute("PRAGMA foreign_keys = ON;")
             return conn

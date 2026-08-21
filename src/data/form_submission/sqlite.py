@@ -13,6 +13,7 @@ import sqlite3
 from datetime import datetime, timezone
 from typing import Any, LiteralString, Optional
 
+from src.data.connection import ClosingConnection
 from src.data.facility_rule.facility_rule import FacilityRule
 from src.data.form_question.form_question import FormQuestion
 from src.data.form_submission.form_response import FormResponse
@@ -33,7 +34,7 @@ class SQLite(FormSubmissionInterfaceBase):
 
     def _connect(self) -> sqlite3.Connection:
         try:
-            conn = sqlite3.connect(self._sqlite_file)
+            conn = sqlite3.connect(self._sqlite_file, factory=ClosingConnection)
             conn.row_factory = sqlite3.Row
             conn.execute("PRAGMA foreign_keys = ON;")
             return conn

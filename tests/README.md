@@ -23,6 +23,7 @@ Target: **80% overall on `src/`**.
 | Public/auth + CRUD batch | 2026-08-21 | 180 | **70%** | 4530 | 1357 | +48 tests: CRUD trio, public routes, auth basics, form submissions/PDF, coach scopes |
 | Final push to target (8.5) | 2026-08-21 | 215 | **80%** ✅ | 4530 | 905 | +35 tests: user mgmt, member edit branches, message/submission/user bulk deletes, event bulk handlers, logging setup |
 | Buffer above threshold | 2026-08-21 | 229 | **81%** | 4530 | 854 | +14 tests: auth JWT helpers, `_local_frontend_origin`, `oauth2user`, devtools/profile routes, encryption key-env errors, config provider branches |
+| 86%+ guarantee | 2026-08-21 | 243 | **90%** | 4548 | 477 | +14 tests: full handler error-path sweep (exploding-DB fault injection), stubbed OAuth login/callback (origin capture, existing/new-user invite flow, OAuth failure), `ClosingConnection` fix eliminating all ResourceWarnings |
 
 ### Module coverage after 8.5 (final)
 
@@ -31,9 +32,9 @@ Target: **80% overall on `src/`**.
 | Utilities (`dates`, `ical`, `logging`, `middleware`) | 100% |
 | Roles (`roles`, `roles_checker`, `user_role`) | 100% |
 | Encryption / Config | 92% / 92% (remaining lines are error branches) |
-| Routes | `public` 83%, `message` 75%, remaining CRUD routes 64–78% (mostly `except → 500` guards) |
-| Data layer SQLite | 66–90% per entity |
-| **Overall** | **81% (229 tests)** — comfortably above the 80% gate |
+| Routes | all CRUD/message/user/public/auth routes swept for 500-guards via fault injection |
+| Data layer SQLite | connections now close deterministically (`ClosingConnection`) |
+| **Overall** | **90% (243 tests)** — comfortably above the 80% gate and the 86% guarantee |
 
 ## Test File Map
 
@@ -58,6 +59,7 @@ Target: **80% overall on `src/`**.
 | `test_coverage_gaps.py` | User management (list/invite/role/delete), event member-edit branches, message 404s, form/schedule bulk handlers, logging setup |
 | `test_data_layer.py` | Direct SQLite ops: user/message/submission bulk deletes, admin helpers, event bulk handlers |
 | `test_auth_helpers.py` | JWT create/verify/refresh helpers, localhost-origin validation, `oauth2user`, devtools page, encryption/config error branches |
+| `test_error_paths.py` | Every route handler's `except → 500` guard via exploding-DB fault injection; stubbed OAuth login/callback (origin capture, invite application, failure paths) |
 
 ## Conventions
 
