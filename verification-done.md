@@ -856,3 +856,14 @@ npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom @vi
 Result: 107 packages added, 0 vulnerabilities; all five recorded under
 `frontend/package.json` `devDependencies`. No config or scripts changed yet
 (9.2–9.4 pending).
+
+### 9.2 — Create vitest.config.ts ?
+
+| Item | Result |
+|------|--------|
+| `frontend/vitest.config.ts` | Created — mirrors `vite.config.ts` (react plugin, `@` alias) |
+| Environment | `jsdom` |
+| Globals | `true` |
+| Coverage | provider `v8`, reporters `['text', 'html']`, include `src/**/*.{ts,tsx}` |
+| tsconfig wiring | Added to `tsconfig.node.json` `include` so `tsc -b` typechecks it |
+| Verification | `npm run build` passes (339ms); `npm run lint` clean |

@@ -480,7 +480,7 @@ uncovered modules first.
 
 - [x] **9.1** — Add vitest + testing-library to dev deps:
   `cd frontend && npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom @vitest/coverage-v8`.
-- [ ] **9.2** — Create `frontend/vitest.config.ts` with jsdom environment and
+- [x] **9.2** — Create `frontend/vitest.config.ts` with jsdom environment and
   coverage provider configuration.
 - [ ] **9.3** — Add `"test"` and `"coverage"` scripts to `frontend/package.json`.
 - [ ] **9.4** — Create `frontend/src/test-setup.ts` with global test setup
