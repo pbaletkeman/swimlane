@@ -38,7 +38,7 @@ the codebase.
 - [x] **1.2** — Diff `frontend-todo.md` / `frontend-done.md` the same way.
   Report gaps.
 - [x] **1.3** — Diff `pdf-todo.md` / `pdf-done.md` the same way. Report gaps.
-- [ ] **1.4** — For each done-file commit hash, verify the commit exists on
+- [x] **1.4** — For each done-file commit hash, verify the commit exists on
   `main` (`git log --oneline | findstr <hash>`). Flag any orphaned references.
 - [ ] **1.5** — Spot-check three random done-file entries by reading the
   actual file/endpoint the commit claims to deliver and confirming the code is

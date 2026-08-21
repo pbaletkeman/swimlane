@@ -61,3 +61,17 @@ and verification details, not individual item numbers — this is a
 documentation convention difference, not a coverage gap.
 
 Full report: `docs/history/audit-report-pdf.md`
+
+### 1.4 — Verify all done-file commit hashes exist on main ✅
+
+| Check | Result |
+|-------|--------|
+| Total unique hashes | 101 |
+| missing-features-done.md | 93 |
+| frontend-done.md | 8 |
+| pdf-done.md | 0 |
+| Hashes missing from git | **0** |
+
+**Finding**: All 101 unique commit hashes across all three done files
+resolve to real commits via `git log --oneline --all`. No orphaned
+references.
