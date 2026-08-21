@@ -97,7 +97,7 @@ cd frontend && npm install && cd ..
 ### Configure
 
 ```bash
-mkdir -p .secrets
+mkdir .secrets 2>/dev/null || true
 cp client_secret.sample.txt .secrets/client_secret.json
 ```
 
@@ -130,8 +130,7 @@ npm run dev
 ### Run the tests
 
 ```bash
-uv run pytest          # backend
-cd frontend && npm run test  # frontend (if configured)
+uv run pytest
 ```
 
 That's it — you're up and running.
