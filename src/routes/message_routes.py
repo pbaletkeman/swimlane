@@ -155,9 +155,7 @@ class MessageRoutes:
             raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     # ------------------------------------------------------------------
-    async def mark_message_read(
-        self, message_id: int, current_user: User = Depends(member_role)
-    ) -> MessageItem:
+    async def mark_message_read(self, message_id: int, current_user: User = Depends(member_role)) -> MessageItem:
         """Mark a message as read (own inbox only)."""
         try:
             db = self._get_db()

@@ -101,6 +101,7 @@ import sys
 import os
 from logging.handlers import RotatingFileHandler
 
+
 def setup_logging():
     level = os.environ.get("LOG_LEVEL", "INFO").upper()
     fmt = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
@@ -111,7 +112,9 @@ def setup_logging():
     if log_file:
         os.makedirs(os.path.dirname(log_file) or ".", exist_ok=True)
         file_handler = RotatingFileHandler(
-            log_file, maxBytes=5_000_000, backupCount=5  # 5MB, keep 5 backups
+            log_file,
+            maxBytes=5_000_000,
+            backupCount=5,  # 5MB, keep 5 backups
         )
         handlers.append(file_handler)
 
@@ -130,6 +133,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
+
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -218,6 +222,7 @@ from contextvars import ContextVar
 
 request_id_var: ContextVar[str] = ContextVar("request_id", default="-")
 
+
 def get_request_id() -> str:
     return request_id_var.get()
 ```
@@ -235,6 +240,7 @@ For production deployments with log aggregators (Datadog, Splunk, ELK):
 ```python
 import json
 import logging
+
 
 class JSONFormatter(logging.Formatter):
     def format(self, record):
@@ -331,6 +337,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 
 logger = logging.getLogger(__name__)
+
 
 class FacilityRoutes:
     def __init__(self):
