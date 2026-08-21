@@ -130,8 +130,11 @@ npm run dev
 ### Run the tests
 
 ```bash
-uv run pytest
+uv run pytest                                  # 215 tests
+uv run pytest --cov=src --cov-report=term-missing   # coverage: 80% on src/
 ```
+
+Backend test coverage is **80%** (target from Phase V8; see [`tests/README.md`](tests/README.md) for the progress log and per-module breakdown).
 
 That's it — you're up and running.
 

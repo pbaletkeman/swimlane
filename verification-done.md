@@ -762,5 +762,33 @@ now available via `uv run pytest --cov=src`.
 | Check | Result |
 |-------|--------|
 | `tests/README.md` created | Yes — run instructions, coverage table, test file map, conventions |
-| Coverage checkpoints logged | Baseline 43% (8.2) → 55% (8.3), target 80% |
-| Test file map accuracy | Verified against `glob tests/test_*.py` — all 13 files listed |
+| Coverage checkpoints logged | Baseline 43% (8.2) → 55% (8.3) → 70% (public/auth+CRUD batch) → **80% (8.5)**, target met |
+| Test file map accuracy | Verified against `glob tests/test_*.py` — all files listed |
+
+### 8.5 — Reach 80% overall coverage ✅
+
+| Metric | Baseline (8.2) | Final (8.5) | Delta |
+|--------|----------------|-------------|-------|
+| Tests | 15 | **215** | +200 |
+| Coverage | 43% | **80%** ✅ | +37pp |
+| Stmts missed | 2586 | 905 | -1681 |
+
+Final `uv run pytest --cov=src --cov-report=term-missing`: 4530 stmts, 905 missed = **80%**. All 215 tests pass; `ruff` clean; `pyright` 0 errors.
+
+**Batches added after 8.3:**
+
+| Batch | Tests | Covers |
+|-------|-------|--------|
+| `test_crud_routes.py` | 18 | Frequency/facility/venue full CRUD lifecycles + bulk handlers (direct-call — see routing note below) |
+| `test_public_and_auth.py` | 17 | Public browse routes (venues/events/search/views), `/me`, `/refresh`, `/logout`, `/devtools-adjacent` auth basics |
+| `test_forms_and_coach.py` | 14 | Submission flow (sign guard, list, detail isolation, PDF own/manager/forbidden), coach scoping (upcoming/all/past/auth) |
+| `test_coverage_gaps.py` | 25 | User management (list/filter/detail/invite/conflict/role/delete/hard-delete), event member-edit branches, message 404s, form+schedule bulk handlers, `setup_logging` text/json/file |
+| `test_data_layer.py` | 10 | Direct SQLite ops: user bulk deletes, admin helpers, message update/list/bulk, submission delete/bulk, event bulk handlers |
+
+**Discovered issues (not fixed — out of scope for V8):**
+1. `DELETE /<entity>/bulk` and `DELETE /<entity>/bulk/hard` are unreachable over HTTP for frequencies, facilities, venues, events, and schedules: the `DELETE /<entity>/{id}` route registers first and captures `bulk` as the id (422 int-parsing). Bulk-delete handlers are exercised directly in tests. Fix = register `/bulk` routes before `/{id}` routes.
+2. `POST /users` creates a `user_invite` row only — no `users` row exists until first Google login (tests create real users via `UsersSQLite` to exercise delete endpoints).
+
+### 8.6 — Coverage note in readme.md ✅
+
+Added coverage command + percentage note ("Backend test coverage is **80%**") with a link to `tests/README.md` in the readme's Run the tests section.

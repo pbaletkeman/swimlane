@@ -20,17 +20,19 @@ Target: **80% overall on `src/`**.
 |------------|------|-------|----------|-------|--------|-------|
 | Baseline (8.2) | 2026-08-21 | 15 | **43%** | 4530 | 2586 | pytest-cov added; gap analysis done |
 | After route/util batch (8.3) | 2026-08-21 | 132 | **55%** | 4530 | 2057 | +117 tests across 10 new files |
+| Public/auth + CRUD batch | 2026-08-21 | 180 | **70%** | 4530 | 1357 | +48 tests: CRUD trio, public routes, auth basics, form submissions/PDF, coach scopes |
+| Final push to target (8.5) | 2026-08-21 | 215 | **80%** ✅ | 4530 | 905 | +35 tests: user mgmt, member edit branches, message/submission/user bulk deletes, event bulk handlers, logging setup |
 
-### Module coverage after 8.3
+### Module coverage after 8.5 (final)
 
-| Area | Modules at 100% | Remaining gaps |
-|------|-----------------|----------------|
-| Utilities | `dates.py`, `ical.py`, `middleware/logging.py` | `util/logging.py` 73% |
-| Encryption | — | `encryption.py` 87% (error branches) |
-| Config | — | `configs.py` 85% (unknown-driver branch) |
-| Roles | `roles.py`, `roles_checker.py`, `user_role.py` | — |
-| Routes | `devtools.py` | `frequency_routes` 21%, `facility_routes` 23%, `venue_routes` 23%, `public_routes` 33%, `auth_routes` 33%, `form_routes` 42%, `user_routes` 54% |
-| Data layer | models/interfaces | SQLite implementations 41–64% |
+| Area | Status |
+|------|--------|
+| Utilities (`dates`, `ical`, `logging`, `middleware`) | 100% |
+| Roles (`roles`, `roles_checker`, `user_role`) | 100% |
+| Encryption / Config | 87% / 85% (remaining lines are error branches) |
+| Routes | `public` 83%, `message` 75%, remaining CRUD routes 64–78% (mostly `except → 500` guards) |
+| Data layer SQLite | 66–90% per entity |
+| **Overall** | **80% (215 tests)** |
 
 ## Test File Map
 
@@ -50,6 +52,10 @@ Target: **80% overall on `src/`**.
 | `test_event_routes.py` | Event CRUD, coach ownership guard, bulk ops, hard delete, member management |
 | `test_schedule_routes.py` | Schedule list/get, cancel ownership guard, CRUD, hard delete, bulk |
 | `test_form_routes.py` | Question/rule CRUD + bulk, form display, submissions |
+| `test_public_and_auth.py` | Public browse routes (venues/events/schedules views), `/me`, `/refresh`, `/logout` |
+| `test_forms_and_coach.py` | Submission flow (sign, list, detail, PDF export guards), coach event scoping |
+| `test_coverage_gaps.py` | User management (list/invite/role/delete), event member-edit branches, message 404s, form/schedule bulk handlers, logging setup |
+| `test_data_layer.py` | Direct SQLite ops: user/message/submission bulk deletes, admin helpers, event bulk handlers |
 
 ## Conventions
 
