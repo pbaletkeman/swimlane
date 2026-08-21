@@ -8,7 +8,8 @@ import { describe, expect, it } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 
 import { AppRouter } from './router/index.tsx'
-import { loginAs, renderPage, stubListApi, type UserRole } from './test-utils.tsx'
+import { loginAs, renderPage, stubListApi } from './test-utils.tsx'
+import type { UserRole } from './auth/types.ts'
 
 function open(path: string, role: UserRole | null): ReturnType<typeof renderPage> {
   if (role) loginAs(role)
