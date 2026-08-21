@@ -43,7 +43,7 @@ the codebase.
 - [x] **1.5** — Spot-check three random done-file entries by reading the
   actual file/endpoint the commit claims to deliver and confirming the code is
   present on `main`.
-- [ ] **1.6** — Commit audit findings to `chore/verify-audit`, push, and open PR.
+- [x] **1.6** — Commit audit findings to `chore/verify-audit`, push, and open PR.
 
 ### PR Title
 
