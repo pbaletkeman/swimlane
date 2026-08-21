@@ -482,7 +482,7 @@ uncovered modules first.
   `cd frontend && npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom @vitest/coverage-v8`.
 - [x] **9.2** — Create `frontend/vitest.config.ts` with jsdom environment and
   coverage provider configuration.
-- [ ] **9.3** — Add `"test"` and `"coverage"` scripts to `frontend/package.json`.
+- [x] **9.3** — Add `"test"` and `"coverage"` scripts to `frontend/package.json`.
 - [ ] **9.4** — Create `frontend/src/test-setup.ts` with global test setup
   (mock `window.matchMedia`, mock `fetch`, etc.).
 - [ ] **9.5** — Run baseline coverage: `npm run coverage`. Record the starting

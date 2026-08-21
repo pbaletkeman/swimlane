@@ -867,3 +867,13 @@ Result: 107 packages added, 0 vulnerabilities; all five recorded under
 | Coverage | provider `v8`, reporters `['text', 'html']`, include `src/**/*.{ts,tsx}` |
 | tsconfig wiring | Added to `tsconfig.node.json` `include` so `tsc -b` typechecks it |
 | Verification | `npm run build` passes (339ms); `npm run lint` clean |
+
+### 9.3 — Add test + coverage scripts ?
+
+| Script | Command | Purpose |
+|--------|---------|---------|
+| `npm run test` | `vitest run` | one-shot test run (CI-friendly) |
+| `npm run coverage` | `vitest run --coverage` | same run with v8 coverage report |
+
+Verification: `npm run test` executes vitest 4.1.11 and correctly reports
+"No test files found" (exit 1) — expected, since test files arrive in 9.6.
