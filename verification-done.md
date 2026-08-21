@@ -336,3 +336,12 @@ endpoints, ownership guard pattern, test setup). Links added to both
 **Finding**: All claims verified against source code. One inaccuracy
 found and fixed: test files were listed as 3 separate files but the
 actual codebase has one consolidated test file.
+
+### 4.3 — Add links from readme.md and AGENTS.md ✅
+
+| Check | Result |
+|-------|--------|
+| `readme.md` link | Line 267 — `docs/README-Backend.md` |
+| `AGENTS.md` link | Line 105 — `docs/README-Backend.md` |
+
+**Finding**: Both links already added during 4.1. No changes needed.
