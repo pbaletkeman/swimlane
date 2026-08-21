@@ -8,6 +8,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api, AUTH_UNAUTHORIZED_EVENT, ApiError } from './client.ts'
 import { clearTokens, setAccessToken, setRefreshToken } from '../auth/tokens.ts'
 
+
+/** Await a promise expected to reject, returning the rejection as ApiError. */
+function captureApiError(promise: Promise<unknown>): Promise<ApiError> {
+  return promise.then(
+    () => {
+      throw new Error('expected the request to reject with ApiError')
+    },
+    (e: unknown) => e as ApiError,
+  )
+}
+
 const jsonResponse = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), {
     status,
@@ -98,7 +109,7 @@ describe('request basics', () => {
 describe('error normalization', () => {
   it('maps JSON error bodies into ApiError with the backend detail', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ detail: 'Event not found' }, 404)))
-    const err = await api.get('/events/999').catch((e: ApiError) => e)
+    const err = await captureApiError(api.get('/events/999'))
     expect(err).toBeInstanceOf(ApiError)
     expect(err.status).toBe(404)
     expect(err.message).toBe('Event not found')
@@ -109,14 +120,14 @@ describe('error normalization', () => {
       'fetch',
       vi.fn().mockResolvedValue(new Response('<html/>', { status: 502, statusText: 'Bad Gateway' })),
     )
-    const err = await api.get('/x').catch((e: ApiError) => e)
+    const err = await captureApiError(api.get('/x'))
     expect(err.status).toBe(502)
     expect(err.message).toBe('Bad Gateway')
   })
 
   it('converts network failures into ApiError(0)', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('down')))
-    const err = await api.get('/x').catch((e: ApiError) => e)
+    const err = await captureApiError(api.get('/x'))
     expect(err).toBeInstanceOf(ApiError)
     expect(err.status).toBe(0)
   })
@@ -151,7 +162,7 @@ describe('401 refresh-and-retry', () => {
 
     try {
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ detail: 'expired' }, 401)))
-      const err = await api.get('/me').catch((e: ApiError) => e)
+      const err = await captureApiError(api.get('/me'))
       expect(err.status).toBe(401)
       expect(handler).toHaveBeenCalledTimes(1)
       expect(getAccessTokenAfterSignout()).toBeNull()
@@ -170,7 +181,7 @@ describe('401 refresh-and-retry', () => {
       vi.stubGlobal('fetch', vi.fn().mockImplementation(async (path: string) =>
         path === '/api/refresh' ? jsonResponse({}, 500) : jsonResponse({ detail: 'expired' }, 401),
       ))
-      const err = await api.get('/me').catch((e: ApiError) => e)
+      const err = await captureApiError(api.get('/me'))
       expect(err.status).toBe(401)
       expect(handler).toHaveBeenCalledTimes(1)
       expect(getAccessTokenAfterSignout()).toBeNull()

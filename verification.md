@@ -503,14 +503,14 @@ uncovered modules first.
 
 ### PR Title
 
-`test: frontend unit test coverage to 80%`
+`test: frontend unit test coverage to 90%`
 
 ### PR Description
 
 # Summary
 
 Adds vitest + @testing-library/react to the frontend, scaffolds the test
-infrastructure, and writes unit tests to achieve 80%+ line coverage on
+infrastructure, and writes unit tests to achieve 90%+ line coverage on
 `frontend/src/`.
 
 ## What's Included
@@ -522,11 +522,11 @@ infrastructure, and writes unit tests to achieve 80%+ line coverage on
 - **9.5** — Baseline coverage measurement.
 - **9.6** — Tests for pure logic (tokens, types, client), nav filtering,
   page component smoke tests, form components, and API wrappers.
-- **9.7** — Final 80%+ coverage verified.
+- **9.7** — Final 90%+ coverage verified.
 
 ## Verification
 
-- `cd frontend && npm run coverage` shows 80%+ overall.
+- `cd frontend && npm run coverage` shows 90%+ overall.
 - All tests pass (`npm run test`).
 - `npm run lint` clean.
 - `npm run build` passes (lazy chunks still work).
