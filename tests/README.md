@@ -22,6 +22,7 @@ Target: **80% overall on `src/`**.
 | After route/util batch (8.3) | 2026-08-21 | 132 | **55%** | 4530 | 2057 | +117 tests across 10 new files |
 | Public/auth + CRUD batch | 2026-08-21 | 180 | **70%** | 4530 | 1357 | +48 tests: CRUD trio, public routes, auth basics, form submissions/PDF, coach scopes |
 | Final push to target (8.5) | 2026-08-21 | 215 | **80%** ✅ | 4530 | 905 | +35 tests: user mgmt, member edit branches, message/submission/user bulk deletes, event bulk handlers, logging setup |
+| Buffer above threshold | 2026-08-21 | 229 | **81%** | 4530 | 854 | +14 tests: auth JWT helpers, `_local_frontend_origin`, `oauth2user`, devtools/profile routes, encryption key-env errors, config provider branches |
 
 ### Module coverage after 8.5 (final)
 
@@ -29,10 +30,10 @@ Target: **80% overall on `src/`**.
 |------|--------|
 | Utilities (`dates`, `ical`, `logging`, `middleware`) | 100% |
 | Roles (`roles`, `roles_checker`, `user_role`) | 100% |
-| Encryption / Config | 87% / 85% (remaining lines are error branches) |
+| Encryption / Config | 92% / 92% (remaining lines are error branches) |
 | Routes | `public` 83%, `message` 75%, remaining CRUD routes 64–78% (mostly `except → 500` guards) |
 | Data layer SQLite | 66–90% per entity |
-| **Overall** | **80% (215 tests)** |
+| **Overall** | **81% (229 tests)** — comfortably above the 80% gate |
 
 ## Test File Map
 
@@ -56,6 +57,7 @@ Target: **80% overall on `src/`**.
 | `test_forms_and_coach.py` | Submission flow (sign, list, detail, PDF export guards), coach event scoping |
 | `test_coverage_gaps.py` | User management (list/invite/role/delete), event member-edit branches, message 404s, form/schedule bulk handlers, logging setup |
 | `test_data_layer.py` | Direct SQLite ops: user/message/submission bulk deletes, admin helpers, event bulk handlers |
+| `test_auth_helpers.py` | JWT create/verify/refresh helpers, localhost-origin validation, `oauth2user`, devtools page, encryption/config error branches |
 
 ## Conventions
 
