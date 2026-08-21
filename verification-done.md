@@ -592,3 +592,14 @@ links added in 7.2-7.8: `AGENTS.md`, `docs/README-Backend.md`,
 | `docs/README-Frontend.md` | Already existed |
 
 **Finding**: Added `readme.md` link to the Further Reading section.
+
+### 7.4 — docs/README-Backend.md links ✅
+
+| Link | Status |
+|------|--------|
+| `readme.md` | **Added** |
+| `AGENTS.md` | **Added** |
+| `docs/README-Frontend.md` | **Added** |
+
+**Finding**: Added "See Also" section at the end of the file with links to
+project README, architecture docs, and frontend walkthrough.
