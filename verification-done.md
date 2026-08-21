@@ -128,3 +128,17 @@ checked off but never shipped.
   documentation convention, not a coverage gap.
 - Phase V1 is fully complete (1.1–1.6). Phase V2 (file consolidation)
   is next.
+
+---
+
+## Phase V2 — Consolidate ToDo/Done/Plan Files into docs/
+
+### 2.1 — Create docs/history/ subdirectory ✅
+
+| Check | Result |
+|-------|--------|
+| Directory exists | `docs/history/` — yes |
+| Contents | 3 audit reports from Phase V1 |
+
+**Finding**: `docs/history/` was already created during Phase V1 to store
+audit reports. Directory is ready for file consolidation in 2.2.

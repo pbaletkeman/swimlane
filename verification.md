@@ -91,7 +91,7 @@ checked off but never shipped.
 Move all plan-tracking files out of the repo root into `docs/` so the root
 stays clean for the README and AGENTS.md.
 
-- [ ] **2.1** — Create `docs/history/` subdirectory for completed plan pairs.
+- [x] **2.1** — Create `docs/history/` subdirectory for completed plan pairs.
 - [ ] **2.2** — `git mv` completed pairs into `docs/history/`:
   - `missing-features-todo.md` + `missing-features-done.md`
   - `frontend-todo.md` + `frontend-done.md`
