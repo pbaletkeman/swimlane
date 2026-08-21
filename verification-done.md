@@ -156,3 +156,12 @@ audit reports. Directory is ready for file consolidation in 2.2.
 
 **Finding**: All 6 plan-tracking files moved from repo root to
 `docs/history/` via `git mv`. Staged and ready to commit.
+
+### 2.3 — git mv legacy docs files ✅
+
+| File | Status |
+|------|--------|
+| `docs/TODO.md` | moved to `docs/history/legacy-todo.md` |
+| `docs/plan.md` | moved to `docs/history/legacy-plan.md` |
+
+**Finding**: Both legacy docs files moved via `git mv`. Staged.

@@ -96,7 +96,7 @@ stays clean for the README and AGENTS.md.
   - `missing-features-todo.md` + `missing-features-done.md`
   - `frontend-todo.md` + `frontend-done.md`
   - `pdf-todo.md` + `pdf-done.md`
-- [ ] **2.3** — `git mv docs/TODO.md docs/history/legacy-todo.md` and
+- [x] **2.3** — `git mv docs/TODO.md docs/history/legacy-todo.md` and
   `git mv docs/plan.md docs/history/legacy-plan.md`.
 - [ ] **2.4** — `git mv docs/layout.txt docs/history/layout.txt` (the
   original plan input).
