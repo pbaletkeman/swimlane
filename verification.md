@@ -147,18 +147,18 @@ clean for `readme.md` and `AGENTS.md`.
 
 Add a "How To Get Started In Under Ten Minutes" section to `readme.md`.
 
-- [ ] **3.1** — Draft the section with these subsections:
+- [x] **3.1** — Draft the section with these subsections:
   - **Prerequisites** (Python 3.14+, uv, Node 18+, Google OAuth credentials)
   - **Clone + Install** (`uv sync --dev` + `cd frontend && npm install`)
   - **Configure** (copy `client_secret.sample.txt`, edit `config.yaml`)
   - **Run** (`uv run python main.py` + `npm run dev` — two terminals)
   - **Verify** (open `http://localhost:5173`, click Explore venues / Sign in)
   - **Run the tests** (`uv run pytest` + `npm run test`)
-- [ ] **3.2** — Ensure the section uses copy-pasteable code blocks and avoids
+- [x] **3.2** — Ensure the section uses copy-pasteable code blocks and avoids
   jargon. Time a fresh clone on a clean machine to validate "under ten minutes."
-- [ ] **3.3** — Insert the section after the "Getting Started" heading (item 5
+- [x] **3.3** — Insert the section after the "Getting Started" heading (item 5
   of the existing structure), before "Development."
-- [ ] **3.4** — Commit, push, and generate PR title + description.
+- [x] **3.4** — Commit, push, and generate PR title + description.
 
 ### PR Title
 

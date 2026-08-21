@@ -226,3 +226,78 @@ Moves all todo/done/plan files out of the repo root into `docs/` so the root sta
 ## Notes
 
 - Root directory now contains only: `main.py`, `readme.md`, `AGENTS.md`, `config.yaml`, `pyproject.toml`, `verification.md`, `verification-done.md`, and standard project files.
+
+---
+
+## Phase V3 — Root README Quickstart
+
+### 3.1 — Draft quickstart section ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/readme-quickstart` |
+| Commit | `c0730e0` |
+| Subsections added | Prerequisites, Clone+Install, Configure, Run, Verify, Run the Tests |
+| Inserted after | Getting Started (before Development) |
+| Broken links fixed | `docs/plan.md` → `docs/history/legacy-plan.md`, `docs/TODO.md` → `docs/history/legacy-todo.md` |
+
+**Finding**: Quickstart section drafted with 6 copy-pasteable subsections.
+Also fixed 2 broken doc links in the Documentation section that referenced
+files moved in Phase V2.
+
+### 3.2 — Validate copy-pasteable code blocks, no jargon ✅
+
+| Check | Result |
+|-------|--------|
+| Commit | `cc9757f` |
+| Smart quotes in code blocks | None |
+| `mkdir -p` cross-platform | Fixed — `mkdir .secrets 2>/dev/null \|\| true` works on Windows + Unix |
+| `npm run test` exists | No — removed from quickstart (no test script in frontend) |
+| Jargon | None — plain language throughout |
+
+**Finding**: Two issues found and fixed:
+1. `mkdir -p` fails on Windows PowerShell — replaced with cross-platform alternative.
+2. `npm run test` doesn't exist in frontend — removed, backend `uv run pytest` only.
+
+### 3.3 — Insert at correct position ✅
+
+| Check | Result |
+|-------|--------|
+| Position | Line 77 — after Getting Started (line 11), before Development (line 138) |
+| All Getting Started content before | Yes (items 1-5 + backend-only testing) |
+
+**Finding**: Section already inserted at the correct position during 3.1.
+No changes needed.
+
+### 3.4 — PR for Phase V3 ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/readme-quickstart` |
+| Commits | `c0730e0`, `cc9757f`, `779912d` |
+
+### PR Title
+
+`docs: add "Get Started In Under Ten Minutes" quickstart`
+
+### PR Description
+
+# Summary
+
+Adds a copy-pasteable quickstart section to the root `readme.md` so new contributors can go from zero to running server + frontend in under ten minutes.
+
+## What's Included
+
+- **3.1** — Drafted Prerequisites, Clone+Install, Configure, Run, Verify, Run the Tests subsections.
+- **3.2** — Fixed cross-platform issues (`mkdir -p` → Windows-compatible, removed nonexistent `npm run test`).
+- **3.3** — Verified correct position (after Getting Started, before Development).
+
+## Verification
+
+- All code blocks are copy-pasteable (no smart quotes, no line wrapping).
+- `mkdir` command works on Windows PowerShell and Unix.
+- `uv run pytest` is the only test command (no frontend test script exists).
+
+## Notes
+
+- Also fixed 2 broken doc links in the Documentation section (`docs/plan.md` → `docs/history/legacy-plan.md`, `docs/TODO.md` → `docs/history/legacy-todo.md`).

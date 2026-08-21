@@ -74,6 +74,67 @@ With `security.frontend_url` (or `FRONTEND_URL`) pointing at the backend origin 
 2. The browser lands on `http://localhost:8000/auth/callback?...` which renders the **API Devtools** page (`GET /devtools` also serves it) and auto-captures the JWTs from the URL.
 3. Use the quick-endpoint buttons (`/me`, `/frequencies`, `/facilities`, `/events`, `/venues`, `/schedules`, `/forms`), `POST /refresh`, `GET /logout`, or the custom method/path/body form to call the API from the browser (same origin — no CORS, no curl).
 
+## Get Started In Under Ten Minutes
+
+Go from zero to running server + frontend in under ten minutes.
+
+### Prerequisites
+
+- Python 3.14+
+- [uv](https://docs.astral.sh/uv/) package manager
+- Node.js 18+
+- Google OAuth2 credentials (a `client_secret.json` file from the [Google Cloud Console](https://console.cloud.google.com/apis/credentials))
+
+### Clone and install
+
+```bash
+git clone https://github.com/pbaletkeman/swimlane.git
+cd swimlane
+uv sync --dev
+cd frontend && npm install && cd ..
+```
+
+### Configure
+
+```bash
+mkdir .secrets 2>/dev/null || true
+cp client_secret.sample.txt .secrets/client_secret.json
+```
+
+Edit `.secrets/client_secret.json` and paste your Google OAuth2 client credentials.
+
+### Run
+
+Open two terminals:
+
+**Terminal 1 — backend:**
+
+```bash
+uv run python main.py
+```
+
+**Terminal 2 — frontend:**
+
+```bash
+cd frontend
+npm run dev
+```
+
+### Verify
+
+1. Open `http://localhost:5173` in your browser.
+2. Click **Explore venues** to browse without signing in.
+3. Click **Sign in** to authenticate with Google.
+4. You should land on the dashboard at `/dashboard`.
+
+### Run the tests
+
+```bash
+uv run pytest
+```
+
+That's it — you're up and running.
+
 ## Development
 
 ### Running the frontend
@@ -204,10 +265,10 @@ See [`src/data/`](src/data/README.md) for details.
 
 - [Architecture](AGENTS.md) — Commands, patterns, conventions, gotchas
 - [Frontend](frontend/README.md) — Run instructions, config, structure
-- [Development Plan](docs/plan.md)
+- [Development Plan](docs/history/legacy-plan.md)
 - [Entity Relationships](docs/relationships.md)
 - [ERD](docs/erd.mmd)
-- [TODO](docs/TODO.md) — Task tracking
+- [TODO](docs/history/legacy-todo.md) — Task tracking
 
 ## License
 
