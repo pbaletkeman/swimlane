@@ -8,10 +8,9 @@ One commit per logical sub-task.
 1. Create branch `chore/<phase-slug>` from `main`
 2. Commit changes to that branch only
 3. Push the branch
-4. Open a PR targeting `main`
-5. Merge via PR (never push directly to `main`)
+4. Generate PR title + description (do NOT actually create the PR)
 
-Do NOT commit directly to `main`. The agent must create a branch first for every phase.
+Do NOT commit directly to `main`. Do NOT open actual PRs — only generate the title and description.
 
 **Branch naming convention**: `chore/<phase-slug>` — e.g. `chore/verify-audit`.
 
@@ -52,7 +51,7 @@ the codebase.
 - [x] **1.5** — Spot-check three random done-file entries by reading the
   actual file/endpoint the commit claims to deliver and confirming the code is
   present on `main`.
-- [x] **1.6** — Commit audit findings to `chore/verify-audit`, push, and open PR.
+- [x] **1.6** — Commit audit findings to `chore/verify-audit`, push, and generate PR title + description.
 
 ### PR Title
 
@@ -106,7 +105,7 @@ stays clean for the README and AGENTS.md.
 - [ ] **2.6** — Update `docs/update_index.py` if it references any moved
   filenames. Run `uv run python docs/update_index.py` and confirm
   `docs/index.md` regenerates without errors.
-- [ ] **2.7** — Commit, push, and open PR.
+- [ ] **2.7** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
@@ -159,7 +158,7 @@ Add a "How To Get Started In Under Ten Minutes" section to `readme.md`.
   jargon. Time a fresh clone on a clean machine to validate "under ten minutes."
 - [ ] **3.3** — Insert the section after the "Getting Started" heading (item 5
   of the existing structure), before "Development."
-- [ ] **3.4** — Commit, push, and open PR.
+- [ ] **3.4** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
@@ -220,7 +219,7 @@ Create a thorough backend walkthrough in `docs/README-Backend.md`.
   against the actual code.
 - [ ] **4.3** — Add a link to this file from `readme.md` and `AGENTS.md`.
 - [ ] **4.4** — Target length: 200-350 lines.
-- [ ] **4.5** — Commit, push, and open PR.
+- [ ] **4.5** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
@@ -275,7 +274,7 @@ Create a thorough frontend walkthrough in `docs/README-Frontend.md`.
   descriptions match the actual code. Fix any discrepancies.
 - [ ] **5.3** — Add a link to this file from `readme.md` and `AGENTS.md`.
 - [ ] **5.4** — Target length: 200-350 lines.
-- [ ] **5.5** — Commit, push, and open PR.
+- [ ] **5.5** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
@@ -321,7 +320,7 @@ Ensure `readme.md` stays under 500 lines.
 - [ ] **6.2** — Restructure as needed: use collapsible `<details>` sections
   or move verbose tables into linked docs.
 - [ ] **6.3** — Commit the final `readme.md` with line count verified.
-- [ ] **6.4** — Push and open PR.
+- [ ] **6.4** — Push and generate PR title + description.
 
 ### PR Title
 
@@ -379,7 +378,7 @@ Ensure every markdown file links to related files and the root README.
   docs/ files. Update it.
 - [ ] **7.8** — Run `uv run python docs/update_index.py` to regenerate
   `docs/index.md` after all moves. Verify it picks up the new files.
-- [ ] **7.9** — Commit, push, and open PR.
+- [ ] **7.9** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
@@ -438,7 +437,7 @@ Adds bidirectional links between every markdown file in the repo, using
 - [ ] **8.5** — Reach 80% overall coverage on `src/`. Run final
   `uv run pytest --cov=src --cov-report=term-missing` and commit the result.
 - [ ] **8.6** — Add a coverage badge or percentage note to `readme.md`.
-- [ ] **8.7** — Commit, push, and open PR.
+- [ ] **8.7** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
@@ -500,7 +499,7 @@ uncovered modules first.
      `src/api/public.ts` (mock fetch, verify call shapes)
 - [ ] **9.7** — Reach 80% overall coverage on `frontend/src/`. Run final
   coverage report and commit the result.
-- [ ] **9.8** — Commit, push, and open PR.
+- [ ] **9.8** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
@@ -568,7 +567,7 @@ Ensure all methods have valid docstrings or function comments.
   ignore-private = true
   fail-under = 80
   ```
-- [ ] **10.6** — Commit, push, and open PR.
+- [ ] **10.6** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
@@ -621,7 +620,7 @@ Every source file must have a top-of-file comment explaining its contents.
   any component-specific CSS files.
 - [ ] **11.4** — Verify no generated or vendored files were accidentally
   annotated (skip `dist/`, `node_modules/`, `__pycache__/`).
-- [ ] **11.5** — Commit, push, and open PR.
+- [ ] **11.5** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
@@ -673,7 +672,7 @@ Run a final sweep to confirm everything is in order.
 - [ ] **12.9** — Every `.md` file links to `readme.md` and at least one
   other doc file (no orphaned pages).
 - [ ] **12.10** — `git status` clean (no uncommitted changes).
-- [ ] **12.11** — Commit, push, and open PR.
+- [ ] **12.11** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
