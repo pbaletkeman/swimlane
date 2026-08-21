@@ -270,7 +270,7 @@ Create a thorough frontend walkthrough in `docs/README-Frontend.md`.
   8. **Theming** — Aura preset, `ThemeSwitch`, `@primeuix/themes`
   9. **Build & Lint** — `npm run build`, `npm run lint` (oxlint), lazy chunks
   10. **Testing** — how to run vitest, what each test file covers
-- [ ] **5.2** — Read every `frontend/src/pages/*.tsx` file and verify page
+- [x] **5.2** — Read every `frontend/src/pages/*.tsx` file and verify page
   descriptions match the actual code. Fix any discrepancies.
 - [ ] **5.3** — Add a link to this file from `readme.md` and `AGENTS.md`.
 - [ ] **5.4** — Target length: 200-350 lines.

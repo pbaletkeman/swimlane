@@ -406,3 +406,23 @@ Adds `docs/README-Backend.md`, a thorough walkthrough of the FastAPI backend cov
 Covered 20 page components, 10 nav items, 4 role tiers, 3-file theming
 system, API client with 401 retry, and lazy-loaded routing. Links added
 to both `readme.md` and `AGENTS.md`.
+
+### 5.2 — Verify page descriptions against code ✅
+
+| Check | Result |
+|-------|--------|
+| Pages read | 20/20 |
+| Discrepancies found | **0** |
+| Fixes needed | None |
+
+**Finding**: All 20 page descriptions in the README match the actual code.
+Key verified details:
+- DashboardPage: welcome card + role tag + quick links (matches)
+- ProfilePage: 3 tabs (Forms, Events, Messages) + modals (matches)
+- MySchedulePage: iCal export + reschedule + cancel (matches)
+- CoachEventsPage: scope switcher + member management (matches)
+- ManageUsersPage: double-guarded + role-based filtering (matches)
+- All 5 CRUD pages: EntityDataTable + BulkDeleteBar + EntityFormDialog (matches)
+- FormBuilderPage: dual CRUD (questions + rules) on one page (matches)
+- FormViewPage: dynamic questions + consent + PDF export (matches)
+- All 4 explore pages: public, no auth (matches)
