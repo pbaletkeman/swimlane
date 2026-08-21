@@ -372,7 +372,7 @@ Ensure every markdown file links to related files and the root README.
   `docs/README-Frontend.md`.
 - [x] **7.5** — `docs/README-Frontend.md` must link to `readme.md`, `AGENTS.md`,
   `docs/README-Backend.md`.
-- [ ] **7.6** — `docs/flow/README.md` and `docs/sequence/README.md` must each
+- [x] **7.6** — `docs/flow/README.md` and `docs/sequence/README.md` must each
   link to the root README and `docs/index.md`.
 - [x] **7.7** — `docs/index.md` should serve as a docs hub linking to all
   docs/ files. Update it.
