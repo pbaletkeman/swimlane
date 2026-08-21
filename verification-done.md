@@ -268,3 +268,36 @@ files moved in Phase V2.
 
 **Finding**: Section already inserted at the correct position during 3.1.
 No changes needed.
+
+### 3.4 — PR for Phase V3 ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/readme-quickstart` |
+| Commits | `c0730e0`, `cc9757f`, `779912d` |
+
+### PR Title
+
+`docs: add "Get Started In Under Ten Minutes" quickstart`
+
+### PR Description
+
+# Summary
+
+Adds a copy-pasteable quickstart section to the root `readme.md` so new contributors can go from zero to running server + frontend in under ten minutes.
+
+## What's Included
+
+- **3.1** — Drafted Prerequisites, Clone+Install, Configure, Run, Verify, Run the Tests subsections.
+- **3.2** — Fixed cross-platform issues (`mkdir -p` → Windows-compatible, removed nonexistent `npm run test`).
+- **3.3** — Verified correct position (after Getting Started, before Development).
+
+## Verification
+
+- All code blocks are copy-pasteable (no smart quotes, no line wrapping).
+- `mkdir` command works on Windows PowerShell and Unix.
+- `uv run pytest` is the only test command (no frontend test script exists).
+
+## Notes
+
+- Also fixed 2 broken doc links in the Documentation section (`docs/plan.md` → `docs/history/legacy-plan.md`, `docs/TODO.md` → `docs/history/legacy-todo.md`).
