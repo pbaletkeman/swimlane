@@ -936,3 +936,5 @@ Batch 2 details:
 
 Verification: `npm run test` 44 passed; `npm run lint` clean;
 `npm run build` passes; coverage statements 41.78% (822/1967).
+
+| 3 — router + deep CRUD pattern | `f462a13` | 14 | **52.7%** | router/index, RouteGuard, AppLayout, ErrorPage via `<AppRouter/>`; FrequenciesPage deep flows (load/create/edit/soft+hard delete); ConfirmDelete internals |
