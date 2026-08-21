@@ -267,6 +267,9 @@ See [`src/data/`](src/data/README.md) for details.
 - [Backend Walkthrough](docs/README-Backend.md) — Deep-dive: architecture, data layer, routers, roles, encryption, testing
 - [Frontend Walkthrough](docs/README-Frontend.md) — React SPA: providers, routing, auth, pages, theming, build
 - [Frontend](frontend/README.md) — Run instructions, config, structure
+- [Docs Index](docs/readme.md) — Documentation hub
+- [Workflow Diagrams](docs/flow/README.md) — Process flowcharts
+- [Sequence Diagrams](docs/sequence/README.md) — API sequence diagrams
 - [Development Plan](docs/history/legacy-plan.md)
 - [Entity Relationships](docs/relationships.md)
 - [ERD](docs/erd.mmd)

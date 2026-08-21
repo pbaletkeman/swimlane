@@ -357,28 +357,28 @@ sections and moving detailed tables into the backend/frontend README docs.
 
 Ensure every markdown file links to related files and the root README.
 
-- [ ] **7.1** — Audit every `.md` file in the repo root and `docs/` for
+- [x] **7.1** — Audit every `.md` file in the repo root and `docs/` for
   outgoing links. Each should link to `readme.md` at least once.
-- [ ] **7.2** — `readme.md` must link to:
+- [x] **7.2** — `readme.md` must link to:
   - `AGENTS.md` (already there)
   - `docs/README-Backend.md` (from Phase V4)
   - `docs/README-Frontend.md` (from Phase V5)
   - `docs/readme.md` (docs index)
   - `docs/history/` (completed plans)
   - `docs/flow/README.md` and `docs/sequence/README.md`
-- [ ] **7.3** — `AGENTS.md` must link to `readme.md`, `docs/README-Backend.md`,
+- [x] **7.3** — `AGENTS.md` must link to `readme.md`, `docs/README-Backend.md`,
   `docs/README-Frontend.md`.
-- [ ] **7.4** — `docs/README-Backend.md` must link to `readme.md`, `AGENTS.md`,
+- [x] **7.4** — `docs/README-Backend.md` must link to `readme.md`, `AGENTS.md`,
   `docs/README-Frontend.md`.
-- [ ] **7.5** — `docs/README-Frontend.md` must link to `readme.md`, `AGENTS.md`,
+- [x] **7.5** — `docs/README-Frontend.md` must link to `readme.md`, `AGENTS.md`,
   `docs/README-Backend.md`.
-- [ ] **7.6** — `docs/flow/README.md` and `docs/sequence/README.md` must each
+- [x] **7.6** — `docs/flow/README.md` and `docs/sequence/README.md` must each
   link to the root README and `docs/index.md`.
-- [ ] **7.7** — `docs/index.md` should serve as a docs hub linking to all
+- [x] **7.7** — `docs/index.md` should serve as a docs hub linking to all
   docs/ files. Update it.
-- [ ] **7.8** — Run `uv run python docs/update_index.py` to regenerate
+- [x] **7.8** — Run `uv run python docs/update_index.py` to regenerate
   `docs/index.md` after all moves. Verify it picks up the new files.
-- [ ] **7.9** — Commit, push, and generate PR title + description.
+- [x] **7.9** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
