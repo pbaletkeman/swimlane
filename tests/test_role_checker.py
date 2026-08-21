@@ -7,7 +7,6 @@ from jose import jwt
 
 from src.env import TOKEN_SECRET_KEY
 from src.roles.roles_checker import RoleChecker
-from src.roles.user_role import UserRole
 
 
 def _make_token(sub: str, role: str) -> str:
@@ -18,7 +17,9 @@ app = FastAPI()
 app.add_api_route("/admin", lambda: {"ok": True}, dependencies=[Depends(RoleChecker(["web_admin"]))])
 app.add_api_route("/coach", lambda: {"ok": True}, dependencies=[Depends(RoleChecker(["coach", "web_admin"]))])
 app.add_api_route("/member", lambda: {"ok": True}, dependencies=[Depends(RoleChecker(["member"]))])
-app.add_api_route("/multi", lambda: {"ok": True}, dependencies=[Depends(RoleChecker(["member", "coach", "facility_manager"]))])
+app.add_api_route(
+    "/multi", lambda: {"ok": True}, dependencies=[Depends(RoleChecker(["member", "coach", "facility_manager"]))]
+)
 
 
 @pytest.fixture(scope="module")

@@ -1,6 +1,6 @@
 """Tests for src/util/dates.py — parse_date, start_of_week, week/month ranges."""
 
-from datetime import date, timedelta
+from datetime import date
 
 from src.util.dates import (
     day_end_iso,
