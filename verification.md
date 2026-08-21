@@ -359,7 +359,7 @@ Ensure every markdown file links to related files and the root README.
 
 - [x] **7.1** — Audit every `.md` file in the repo root and `docs/` for
   outgoing links. Each should link to `readme.md` at least once.
-- [ ] **7.2** — `readme.md` must link to:
+- [x] **7.2** — `readme.md` must link to:
   - `AGENTS.md` (already there)
   - `docs/README-Backend.md` (from Phase V4)
   - `docs/README-Frontend.md` (from Phase V5)
