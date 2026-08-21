@@ -147,7 +147,7 @@ clean for `readme.md` and `AGENTS.md`.
 
 Add a "How To Get Started In Under Ten Minutes" section to `readme.md`.
 
-- [ ] **3.1** — Draft the section with these subsections:
+- [x] **3.1** — Draft the section with these subsections:
   - **Prerequisites** (Python 3.14+, uv, Node 18+, Google OAuth credentials)
   - **Clone + Install** (`uv sync --dev` + `cd frontend && npm install`)
   - **Configure** (copy `client_secret.sample.txt`, edit `config.yaml`)
