@@ -4,6 +4,15 @@ Cross-cutting quality sweep after Phases A-J complete. Each numbered task is
 a separate **phase** with its own Git branch and PR. Tick checkboxes as you go.
 One commit per logical sub-task.
 
+**RULE: NEVER bypass git branch protection.** Every phase MUST follow this flow:
+1. Create branch `chore/<phase-slug>` from `main`
+2. Commit changes to that branch only
+3. Push the branch
+4. Open a PR targeting `main`
+5. Merge via PR (never push directly to `main`)
+
+Do NOT commit directly to `main`. The agent must create a branch first for every phase.
+
 **Branch naming convention**: `chore/<phase-slug>` — e.g. `chore/verify-audit`.
 
 **PR template**: every phase ends with a PR title + description (template below).
