@@ -376,7 +376,7 @@ Ensure every markdown file links to related files and the root README.
   link to the root README and `docs/index.md`.
 - [x] **7.7** — `docs/index.md` should serve as a docs hub linking to all
   docs/ files. Update it.
-- [ ] **7.8** — Run `uv run python docs/update_index.py` to regenerate
+- [x] **7.8** — Run `uv run python docs/update_index.py` to regenerate
   `docs/index.md` after all moves. Verify it picks up the new files.
 - [ ] **7.9** — Commit, push, and generate PR title + description.
 
