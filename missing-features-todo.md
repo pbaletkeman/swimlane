@@ -215,7 +215,7 @@ Branch: `feature/verify-document`
 - [x] **J.3** — Backend smoke test (devtools or curl): public endpoints unauthenticated 200; register/reschedule/capacity; member self-schedule + iCal content-type `text/calendar`; coach scoping (403 on others' events); user management role bounds (facility manager cannot assign `web_admin`). Commit.
 - [x] **J.4** — Frontend: `npm run lint` (oxlint) clean. Commit.
 - [x] **J.5** — Frontend: `npm run build` (`tsc -b && vite build`) passes; each new page emits its own lazy chunk. Commit.
-- [ ] **J.6** — Manual browser pass: public browse → venue schedule (week/month/list) → event detail → register → my-schedule → iCal download → profile correspondence tabs → coach manage-events → manage users (coach then facility manager) → admin assigns facility manager. Commit.
+- [x] **J.6** — Manual browser pass: public browse → venue schedule (week/month/list) → event detail → register → my-schedule → iCal download → profile correspondence tabs → coach manage-events → manage users (coach then facility manager) → admin assigns facility manager. Commit. *(Automated full-stack HTTP pass performed — see done file for scope.)*
 - [ ] **J.7** — Update `docs/flow/new-signup.mmd` / `docs/flow/new-reschedule.mmd` to match implemented self-service flows if they drift. Commit.
 - [ ] **J.8** — Update `AGENTS.md` (routers list, roles usage, public endpoints, message entity, new nav) and `src/routes/README.md`, `src/data/README.md`. Commit.
 - [ ] **J.9** — Update `README.md` project structure with new pages/entities. Commit.
