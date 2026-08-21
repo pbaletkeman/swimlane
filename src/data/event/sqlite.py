@@ -11,6 +11,7 @@ import sqlite3
 from datetime import datetime
 from typing import Any, LiteralString, Optional
 
+from src.data.connection import ClosingConnection
 from src.data.event.event import Event
 from src.data.event.event_interface import EventInterface as EventInterfaceBase
 from src.util.configs import Config
@@ -28,7 +29,7 @@ class SQLite(EventInterfaceBase):
 
     def _connect(self) -> sqlite3.Connection:
         try:
-            conn = sqlite3.connect(self._sqlite_file)
+            conn = sqlite3.connect(self._sqlite_file, factory=ClosingConnection)
             conn.row_factory = sqlite3.Row
             conn.execute("PRAGMA foreign_keys = ON;")
             return conn

@@ -418,10 +418,10 @@ Adds bidirectional links between every markdown file in the repo, using
 
 **Branch**: `chore/backend-coverage` (from `main`)
 
-- [ ] **8.1** — Add `pytest-cov` to dev deps: `uv add --dev pytest-cov`.
-- [ ] **8.2** — Run `uv run pytest --cov=src --cov-report=term-missing` and
+- [x] **8.1** — Add `pytest-cov` to dev deps: `uv add --dev pytest-cov`.
+- [x] **8.2** — Run `uv run pytest --cov=src --cov-report=term-missing` and
   record the baseline percentage. Identify uncovered modules/functions.
-- [ ] **8.3** — Write tests to cover the gaps. Priority order:
+- [x] **8.3** — Write tests to cover the gaps. Priority order:
   1. `src/encryption.py` (encrypt/decrypt round-trip, hash, edge cases)
   2. `src/util/configs.py` (Config loading, env overrides)
   3. `src/util/ical.py` (iCal builder: events, escaping, CRLF)
@@ -432,12 +432,12 @@ Adds bidirectional links between every markdown file in the repo, using
   8. `src/routes/message_routes.py` (inbox, mark read, send, hard delete)
   9. `src/middleware/logging.py` (request logging, correlation IDs)
   10. `src/roles/role_checker.py` (hierarchy enforcement)
-- [ ] **8.4** — After each batch of new tests, re-run coverage. Log progress
+- [x] **8.4** — After each batch of new tests, re-run coverage. Log progress
   in a coverage report comment in `tests/README.md`.
-- [ ] **8.5** — Reach 80% overall coverage on `src/`. Run final
+- [x] **8.5** — Reach 80% overall coverage on `src/`. Run final
   `uv run pytest --cov=src --cov-report=term-missing` and commit the result.
-- [ ] **8.6** — Add a coverage badge or percentage note to `readme.md`.
-- [ ] **8.7** — Commit, push, and generate PR title + description.
+- [x] **8.6** — Add a coverage badge or percentage note to `readme.md`.
+- [x] **8.7** — Commit, push, and generate PR title + description.
 
 ### PR Title
 

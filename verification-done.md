@@ -686,3 +686,147 @@ Adds bidirectional links between every markdown file in the repo, using `readme.
 ## Notes
 
 - `update_index.py` only generates flat file lists — the curated hub is more useful.
+
+---
+
+## Phase V8 — Backend Test Coverage (target: 80%)
+
+### 8.1 — Add pytest-cov ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/backend-coverage` |
+| Commit | `b1b8730` |
+| Package | `pytest-cov==7.1.0` |
+| Dep added to | `pyproject.toml` `[dependency-groups] dev` |
+
+**Finding**: Added `pytest-cov` to dev dependencies. Coverage measurement
+now available via `uv run pytest --cov=src`.
+
+### 8.2 — Baseline coverage measurement ✅
+
+| Check | Result |
+|-------|--------|
+| Tests passing | 15/15 |
+| Baseline coverage | **43%** (4530 stmts, 2586 missed) |
+| Target | 80% |
+| Gap | 37 percentage points |
+
+**Top uncovered modules (by missed statements)**:
+
+| Module | Coverage | Missed | Priority |
+|--------|----------|--------|----------|
+| `routes/form_routes.py` | 23% | 309 | High |
+| `routes/event_routes.py` | 38% | 209 | High |
+| `routes/schedule_routes.py` | 37% | 140 | High |
+| `data/event/sqlite.py` | 43% | 137 | High |
+| `data/facility/sqlite.py` | 47% | 86 | Medium |
+| `data/schedule/sqlite.py` | 50% | 115 | Medium |
+| `data/users/sqlite.py` | 51% | 103 | Medium |
+| `routes/auth_routes.py` | 33% | 114 | Medium |
+| `routes/message_routes.py` | 28% | 80 | Medium |
+| `util/dates.py` | 30% | 16 | Quick win |
+
+### 8.3 — Write tests to cover gaps ✅
+
+| Metric | Before | After | Delta |
+|--------|--------|-------|-------|
+| Tests | 15 | 132 | +117 |
+| Coverage | 43% | 55% | +12pp |
+| Stmts missed | 2586 | 2057 | -529 |
+
+**New test files created** (10 files):
+
+| File | Tests | Covers |
+|------|-------|--------|
+| `tests/test_encryption.py` | 12 | encrypt/decrypt round-trip, unicode, edge cases, hash determinism |
+| `tests/test_dates.py` | 17 | parse_date, start_of_week, week/month ranges, ISO output |
+| `tests/test_ical.py` | 10 | VCALENDAR generation, CRLF, escaping, multiple events, empty items |
+| `tests/test_configs.py` | 9 | YAML loading, caching, sqlite_file, google_config, error paths |
+| `tests/test_role_checker.py` | 10 | JWT decode, role enforcement, hierarchy, missing claims |
+| `tests/test_middleware.py` | 3 | Request ID generation, uniqueness, noisy path suppression |
+| `tests/test_messages.py` | 11 | Send, inbox, mark read, soft/hard delete, authorization guards |
+| `tests/test_event_routes.py` | 18 | CRUD, ownership guard, bulk ops, hard delete, capacity, member mgmt |
+| `tests/test_schedule_routes.py` | 14 | List/get, cancel, CRUD, hard delete, bulk, authorization guards |
+| `tests/test_form_routes.py` | 13 | Question/rule CRUD, bulk create, hard delete, form display, submissions |
+
+**Remaining uncovered areas** (for 8.4+):
+- `routes/facility_routes.py` (23%), `routes/venue_routes.py` (23%), `routes/frequency_routes.py` (21%) — CRUD patterns similar to what's tested
+- `routes/auth_routes.py` (33%) — Google OAuth flow, token refresh
+- `routes/public_routes.py` (33%) — public browsing endpoints
+- `routes/user_routes.py` (54%) — user management
+- `data/*/sqlite.py` (41-64%) — deeper CRUD edge cases
+
+### 8.4 — Coverage progress report in tests/README.md ✅
+
+| Check | Result |
+|-------|--------|
+| `tests/README.md` created | Yes — run instructions, coverage table, test file map, conventions |
+| Coverage checkpoints logged | Baseline 43% (8.2) → 55% (8.3) → 70% (public/auth+CRUD batch) → **80% (8.5)**, target met |
+| Test file map accuracy | Verified against `glob tests/test_*.py` — all files listed |
+
+### 8.5 — Reach 80% overall coverage ✅
+
+| Metric | Baseline (8.2) | Final (8.5) | Delta |
+|--------|----------------|-------------|-------|
+| Tests | 15 | **215** | +200 |
+| Coverage | 43% | **80%** ✅ | +37pp |
+| Stmts missed | 2586 | 905 | -1681 |
+
+Final `uv run pytest --cov=src --cov-report=term-missing`: 4530 stmts, 905 missed = **80%**. All 215 tests pass; `ruff` clean; `pyright` 0 errors.
+
+**Batches added after 8.3:**
+
+| Batch | Tests | Covers |
+|-------|-------|--------|
+| `test_crud_routes.py` | 18 | Frequency/facility/venue full CRUD lifecycles + bulk handlers (direct-call — see routing note below) |
+| `test_public_and_auth.py` | 17 | Public browse routes (venues/events/search/views), `/me`, `/refresh`, `/logout`, `/devtools-adjacent` auth basics |
+| `test_forms_and_coach.py` | 14 | Submission flow (sign guard, list, detail isolation, PDF own/manager/forbidden), coach scoping (upcoming/all/past/auth) |
+| `test_coverage_gaps.py` | 25 | User management (list/filter/detail/invite/conflict/role/delete/hard-delete), event member-edit branches, message 404s, form+schedule bulk handlers, `setup_logging` text/json/file |
+| `test_data_layer.py` | 10 | Direct SQLite ops: user bulk deletes, admin helpers, message update/list/bulk, submission delete/bulk, event bulk handlers |
+
+**Discovered issues (not fixed — out of scope for V8):**
+1. `DELETE /<entity>/bulk` and `DELETE /<entity>/bulk/hard` are unreachable over HTTP for frequencies, facilities, venues, events, and schedules: the `DELETE /<entity>/{id}` route registers first and captures `bulk` as the id (422 int-parsing). Bulk-delete handlers are exercised directly in tests. Fix = register `/bulk` routes before `/{id}` routes.
+2. `POST /users` creates a `user_invite` row only — no `users` row exists until first Google login (tests create real users via `UsersSQLite` to exercise delete endpoints).
+
+### 8.6 — Coverage note in readme.md ✅
+
+Added coverage command + percentage note ("Backend test coverage is **80%**") with a link to `tests/README.md` in the readme's Run the tests section.
+
+### 8.7 — Commit, push, PR title + description ✅
+
+Branch `chore/backend-coverage`, head commit `2bb15db`. Phase V8 complete.
+
+**PR title**: `test: backend unit test coverage to 80%` (as templated in verification.md)
+
+**PR description**:
+
+> # Summary
+>
+> Expands the backend pytest suite from 15 tests to 215, achieving **80% line coverage**
+> on `src/` (up from a 43% baseline), adding `pytest-cov` for measurement and targeting
+> the largest uncovered modules first.
+>
+> ## What's Included
+>
+> - **8.1** — Added `pytest-cov==7.1.0` dev dependency.
+> - **8.2** — Baseline coverage measurement (43%, 15 tests) and gap identification.
+> - **8.3** — +117 tests: encryption round-trips, dates/ical/configs utilities, role
+>   checker hierarchy, middleware request IDs, message/event/schedule/form route CRUD,
+>   ownership guards, bulk ops, hard deletes.
+> - **8.4** — Coverage progress log in `tests/README.md` (43% → 55% → 70% → 80%).
+> - **8.5** — Final push to 80%: public/auth routes, user management flows, event
+>   member-edit branches, direct SQLite bulk-delete coverage.
+> - **8.6** — Coverage note added to `readme.md`.
+>
+> ## Verification
+>
+> - `uv run pytest --cov=src --cov-report=term-missing`: **80%** (4530 stmts, 905 missed).
+> - All 215 tests pass; `uv run ruff check .` clean; `uv run pyright` 0 errors.
+>
+> ## Notes
+>
+> - Discovered: `DELETE /<entity>/bulk` routes are shadowed by `DELETE /<entity>/{id}`
+>   (registration order) — handlers tested directly; fix tracked as follow-up.
+> - `POST /users` invites create `user_invite` rows only; delete-endpoint tests insert
+>   real users via `UsersSQLite`.
