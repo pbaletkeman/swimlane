@@ -432,7 +432,7 @@ Adds bidirectional links between every markdown file in the repo, using
   8. `src/routes/message_routes.py` (inbox, mark read, send, hard delete)
   9. `src/middleware/logging.py` (request logging, correlation IDs)
   10. `src/roles/role_checker.py` (hierarchy enforcement)
-- [ ] **8.4** — After each batch of new tests, re-run coverage. Log progress
+- [x] **8.4** — After each batch of new tests, re-run coverage. Log progress
   in a coverage report comment in `tests/README.md`.
 - [ ] **8.5** — Reach 80% overall coverage on `src/`. Run final
   `uv run pytest --cov=src --cov-report=term-missing` and commit the result.

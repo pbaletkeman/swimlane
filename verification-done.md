@@ -756,3 +756,11 @@ now available via `uv run pytest --cov=src`.
 - `routes/public_routes.py` (33%) — public browsing endpoints
 - `routes/user_routes.py` (54%) — user management
 - `data/*/sqlite.py` (41-64%) — deeper CRUD edge cases
+
+### 8.4 — Coverage progress report in tests/README.md ✅
+
+| Check | Result |
+|-------|--------|
+| `tests/README.md` created | Yes — run instructions, coverage table, test file map, conventions |
+| Coverage checkpoints logged | Baseline 43% (8.2) → 55% (8.3), target 80% |
+| Test file map accuracy | Verified against `glob tests/test_*.py` — all 13 files listed |
