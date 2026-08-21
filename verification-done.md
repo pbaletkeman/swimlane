@@ -686,3 +686,19 @@ Adds bidirectional links between every markdown file in the repo, using `readme.
 ## Notes
 
 - `update_index.py` only generates flat file lists — the curated hub is more useful.
+
+---
+
+## Phase V8 — Backend Test Coverage (target: 80%)
+
+### 8.1 — Add pytest-cov ✅
+
+| Check | Result |
+|-------|--------|
+| Branch | `chore/backend-coverage` |
+| Commit | `b1b8730` |
+| Package | `pytest-cov==7.1.0` |
+| Dep added to | `pyproject.toml` `[dependency-groups] dev` |
+
+**Finding**: Added `pytest-cov` to dev dependencies. Coverage measurement
+now available via `uv run pytest --cov=src`.
