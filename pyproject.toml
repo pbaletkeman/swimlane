@@ -41,6 +41,12 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 pythonpath = ["."]
+filterwarnings = [
+    # FastAPI's own `from starlette.testclient import TestClient` import emits this;
+    # not actionable in our code until FastAPI/starlette switch to httpx2.
+    # (StarletteDeprecationWarning subclasses UserWarning, not DeprecationWarning.)
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated:UserWarning",
+]
 
 [tool.pyright]
 include = ["src"]

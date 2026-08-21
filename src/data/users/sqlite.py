@@ -242,7 +242,9 @@ class SQLite(UserInterfaceBase):
                     user.email_nonce,
                     user.email_hash,
                     user.is_active,
-                    user.updated_at,
+                    # stored as TEXT (matches the CURRENT_TIMESTAMP column default);
+                    # avoids the deprecated Python 3.12+ default datetime adapter
+                    user.updated_at.strftime("%Y-%m-%d %H:%M:%S") if user.updated_at else None,
                     user.sub,
                 ),
             )
