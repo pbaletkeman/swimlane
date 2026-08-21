@@ -14,6 +14,7 @@ import { Suspense } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { render } from '@testing-library/react'
 import { PrimeReactProvider } from '@primereact/core/config'
+import { ThemeProvider } from './theme/ThemeContext.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
 import { setAccessToken, setStoredUser } from './auth/tokens.ts'
 import type { User, UserRole } from './auth/types.ts'
@@ -35,14 +36,16 @@ export function loginAs(role: UserRole = 'MEMBER', sub = 'test-user'): void {
   setStoredUser({ sub } satisfies User)
 }
 
-export function renderPage(node: ReactNode): ReturnType<typeof render> {
+export function renderPage(node: ReactNode, path?: string): ReturnType<typeof render> {
   return render(
     <PrimeReactProvider>
-      <AuthProvider>
-        <Suspense fallback="loading">
-          <MemoryRouter>{node}</MemoryRouter>
-        </Suspense>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <Suspense fallback="loading">
+            <MemoryRouter initialEntries={path ? [path] : undefined}>{node}</MemoryRouter>
+          </Suspense>
+        </AuthProvider>
+      </ThemeProvider>
     </PrimeReactProvider>,
   )
 }
