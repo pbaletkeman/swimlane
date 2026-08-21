@@ -830,3 +830,29 @@ Branch `chore/backend-coverage`, head commit `2bb15db`. Phase V8 complete.
 >   (registration order) â€” handlers tested directly; fix tracked as follow-up.
 > - `POST /users` invites create `user_invite` rows only; delete-endpoint tests insert
 >   real users via `UsersSQLite`.
+
+---
+
+## Phase V9 — Frontend Test Coverage (target: 80%)
+
+**Branch**: `chore/frontend-coverage` (from `main` at `676d5e7`)
+
+### 9.1 — Install vitest + testing-library dev deps ?
+
+Command run in `frontend/`:
+
+```bash
+npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom @vitest/coverage-v8
+```
+
+| Package | Version installed |
+|---------|-------------------|
+| `vitest` | ^4.1.11 |
+| `@vitest/coverage-v8` | ^4.1.11 |
+| `@testing-library/react` | ^16.3.2 |
+| `@testing-library/jest-dom` | ^7.0.1 |
+| `jsdom` | ^30.0.1 |
+
+Result: 107 packages added, 0 vulnerabilities; all five recorded under
+`frontend/package.json` `devDependencies`. No config or scripts changed yet
+(9.2–9.4 pending).
