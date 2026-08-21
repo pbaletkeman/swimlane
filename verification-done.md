@@ -543,3 +543,26 @@ Audits `readme.md` line count after Phases V2-V5. At 201 lines, it is well under
 ## Notes
 
 - This phase was a pass-through — no changes to readme.md were required.
+
+---
+
+## Phase V7 — Cross-Linking
+
+### 7.1 — Audit outgoing links ✅
+
+| File | Links to readme.md | Other links |
+|------|-------------------|-------------|
+| `AGENTS.md` | **NO** | `docs/README-Backend.md`, `docs/README-Frontend.md` |
+| `readme.md` | N/A (self) | Multiple |
+| `docs/README-Backend.md` | **NO** | None |
+| `docs/README-Frontend.md` | **NO** | None |
+| `docs/flow/README.md` | **NO** | None |
+| `docs/sequence/README.md` | **NO** | None |
+| `docs/readme.md` | **NO** | None |
+| `docs/index.md` | Yes | Multiple |
+| `docs/history/*.md` | No (archived) | N/A |
+
+**Finding**: Most docs files lack links to `readme.md`. Key files needing
+links added in 7.2-7.8: `AGENTS.md`, `docs/README-Backend.md`,
+`docs/README-Frontend.md`, `docs/flow/README.md`, `docs/sequence/README.md`,
+`docs/readme.md`.

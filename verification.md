@@ -357,7 +357,7 @@ sections and moving detailed tables into the backend/frontend README docs.
 
 Ensure every markdown file links to related files and the root README.
 
-- [ ] **7.1** — Audit every `.md` file in the repo root and `docs/` for
+- [x] **7.1** — Audit every `.md` file in the repo root and `docs/` for
   outgoing links. Each should link to `readme.md` at least once.
 - [ ] **7.2** — `readme.md` must link to:
   - `AGENTS.md` (already there)
