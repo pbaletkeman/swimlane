@@ -1,43 +1,42 @@
 flowchart TD
 
-    %% PROGRAM DISCOVERY
-    A[Site: List active programs and allow calendar selection]
-    B[User: Search programs by location, season, price, description]
-    C[Record DB: Return filtered programs]
-    D[User: Select program]
+    %% PUBLIC DISCOVERY (Phase A/B — no sign-in required)
+    A[Visitor: Browse public venues and events on /explore]
+    B{Find by address or find by event}
+    C[Record DB: Return active venues / upcoming events with facility names]
+    D[Visitor: Open event detail page - description, times, venue, live capacity]
 
     A --> B --> C --> D
 
-    %% SESSION FILTERING
-    E[User: Filter sessions by time, coach, description]
-    F[Record DB: Return sessions with available capacity]
+    %% SIGN-IN GATE (Google OAuth2 - first login auto-registers the member)
+    E{Signed in?}
+    F[Site: Redirect through Google OAuth - invited role applied on first login]
+    G[Member: Signed in with local role]
 
-    D --> E --> F
+    D --> E
+    E -->|No| F --> G
+    E -->|Yes| G
 
-    %% REGISTRATION FLOW
-    G[User: Request to join session]
-    H{Has the member swum before}
+    %% REGISTRATION FLOW (Phase C)
+    H[Member: Request to join event]
+    I{Guards}
+    J[409: already registered]
+    K[409: event at capacity - derived from venue's facility max_capacity]
 
-    F --> G --> H
+    G --> H --> I
+    I -->|pass| L[Record DB: Create active schedule row at the event's venue]
+    I -->|fail| J
+    I -->|fail| K
 
-    %% YES PATH
-    H -->|Yes| I[Proceed to invoice]
-
-    %% NO PATH
-    H -->|No| J[Fill and sign PDF forms]
-    J --> K[User: Completed forms]
-
-    %% MERGE
-    I --> L[User: Pay invoice online]
-    K --> L
-
-    %% FINAL OUTPUT
-    M[Site: Send welcome email, rules email, rescheduling info]
+    %% POST-SIGNUP SELF SERVICE (Phases C/D/E)
+    M[Member: See registration in My Schedule and download iCal]
+    N[Member: Fill and submit facility signup form - view answers or export PDF]
+    O[Staff: Send one-way message - member reads it in Profile > My Messages]
 
     L --> M
+    M --> N
+    M --> O
 
-    %% SYSTEM UPDATES
-    N[Record DB: Register user]
-    O[Admin: Notify of new signup]
+    P[Site: Toast confirmation - counts refresh publicly]
 
-    M --> N --> O
+    L --> P

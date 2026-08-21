@@ -88,7 +88,7 @@ npm run dev
 
 Vite serves the app on `http://localhost:5173` (it picks another port if 5173 is busy). In dev, API calls are proxied to the backend (`/api` → `http://127.0.0.1:8000`), and the login flow returns to whichever port the frontend is actually served on.
 
-`/` is a **public** home page (placeholder content — TBD); signing in lands on the authenticated dashboard at `/dashboard`. All entity pages, signup forms, and the dashboard sit behind the route guard.
+Public, no sign-in needed: `/` (explore + login), `/login`, and the `/explore/*` browse pages (`/explore`, `/explore/venues`, `/explore/venues/:venueId`, `/explore/events/:eventId`). Signing in lands on the authenticated dashboard at `/dashboard`; the dashboard, profile, my-schedule, manage pages, signup forms, and all entity CRUD pages sit behind the route guard.
 
 Frontend checks:
 
@@ -140,10 +140,19 @@ uv run pyright
 |--------|--------|-----------|------|
 | `/frequencies` | Frequency | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
 | `/facilities` | Facility | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
-| `/events` | Event | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
+| `/events` | Event | list, get, create, update, soft/hard delete, bulk; capacity (public); register (member); member list/add/edit/remove per event | All users / Coach+ (ownership guard) / Member self-service |
 | `/venues` | Venue | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
-| `/schedules` | Schedule | list, get, create, update, soft/hard delete, bulk | All users / Facility manager |
-| `/forms` | Form | question/rule CRUD, get facility form, submit, PDF export | All users / Facility manager / Member |
+| `/schedules` | Schedule | list, get, create, update, soft/hard delete, bulk; my schedule + iCal, reschedule/cancel (member) | All users / Facility manager / Member self-service |
+| `/forms` | Form | question/rule CRUD, get facility form, submit, PDF export, own submissions | All users / Facility manager / Member |
+
+### Public and staff messaging
+
+| Prefix | Endpoints | Auth |
+|--------|-----------|------|
+| `/public` | venue search/list/detail, venue schedules (week/month/list), event search/list/detail with live capacity | No |
+| `/messages` | member inbox (list/mark read/soft delete), coach+ send, admin hard delete | Member / Coach+ / Admin |
+| `/coach` | `GET /coach/events?scope=upcoming\|past\|all` — the caller's own events | Coach+ |
+| `/users` | list by role, detail, email-keyed invite, role change, soft/hard delete (senior roles admin-only) | Facility manager+ / Admin |
 
 ## Project Structure
 
@@ -161,14 +170,16 @@ swimlane/
 │   │   ├── users/           # User entity with encrypted PII
 │   │   ├── frequency/       # Event frequency types
 │   │   ├── facility/        # Physical facilities
-│   │   ├── event/           # Swim sessions
+│   │   ├── event/           # Swim sessions (description, coach, venue)
 │   │   ├── venue/           # Locations with facilities
 │   │   ├── schedule/        # Member-event-venue junction
 │   │   ├── form_question/   # Facility signup-form questions
 │   │   ├── facility_rule/   # Facility signup-form rules
-│   │   └── form_submission/ # Member signup submissions + responses
+│   │   ├── form_submission/ # Member signup submissions + responses
+│   │   ├── message/         # Staff→member inbox messages
+│   │   └── user_invite/     # Email-keyed pre-registration invites
 │   ├── roles/               # RBAC (UserRole, RoleChecker)
-│   ├── routes/              # API routers (auth, entity CRUD, devtools)
+│   ├── routes/              # API routers (auth, public browse, entity CRUD, self-service, messaging, user management, devtools)
 │   └── util/                # Config management (YAML, DB provider)
 ├── frontend/                # React + TypeScript + Vite SPA (see frontend/README.md)
 ├── docs/                    # Documentation

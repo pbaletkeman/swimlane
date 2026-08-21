@@ -549,3 +549,37 @@ Branch: `feature/manage-coach-accounts`
 - G.1.4 reuses `UserSQLite.update_user` (no new data-layer code) and applies the same no-ciphertext response shape as G.1.1/G.1.2.
 - G.1.5 reuses the existing soft/hard delete methods (no new data-layer code) and returns message dicts like the message_routes delete routes.
 - G.1.6 adds no code — it documents and verifies the bounds already spread across G.1.1/G.1.3/G.1.4/G.1.5; H.1 (admin-only senior-role assignment) builds on these guards.
+- J.1–J.10 done on `feature/verify-document` (cut from `main` after PR #37 merged Phase I) — **Phase J is fully complete**, closing out the whole implementation plan. Every gate (lint, types, tests, build, docs) now runs green from a single `uv run pytest` / `uv run ruff check .` / `uv run pyright` / `npm run build` pass.
+
+## Phase J — Verification, docs, build (complete) ✅
+
+Branch: `feature/verify-document` (cut from `main` at `95f40fb`, the PR #37 squash of Phase I)
+
+| Sub-task | Deliverable | Commit |
+|----------|-------------|--------|
+| J.1 | `uv run ruff check .` clean; `uv run ruff format .` applied to two pre-existing stragglers (`docs/logging-info.md`, `src/routes/message_routes.py`) — 130 files otherwise unchanged | `29e23e4` |
+| J.2 | `uv run pyright` — 0 errors, 0 warnings (no code change needed) | tick in `969e627` |
+| J.3 | Consolidated backend smoke test **PASSED** (throwaway temp DB + `TestClient`, real HS256 JWTs): all four `/public` surfaces 200 unauthenticated; capacity/register/reschedule guards; `/schedules/me` + iCal `text/calendar`; coach scoping; user-management role bounds (script kept in temp dir, not the repo — its assertions became J.10's suite) | tick in `451f155` |
+| J.4 | `npm run lint` (oxlint) clean | tick in `2ed09cf` |
+| J.5 | `npm run build` (`tsc -b` + Vite) passes — every page emits its own lazy chunk (FormsPage, CoachEventsPage, ProfilePage, EventDetailPage, ManageUsersPage, MySchedulePage, explore pages, CRUD pages…) | tick in `f7f6806` |
+| J.6 | Automated full-stack HTTP pass in lieu of manual browsing (see Details for scope): production build served by `vite preview` + live `uvicorn`; all 11 SPA routes return 200 with the app shell; `/public/*` 200 over real HTTP; `/auth/callback` without `code` renders the devtools page; OpenAPI confirms every router mounted | tick in `146c9af` |
+| J.7 | `docs/flow/new-signup.mmd` + `docs/flow/new-reschedule.mmd` rewritten to mirror the implemented self-service flows (they still described the aspirational pre-build funnel) | `797f9c8` |
+| J.8 | `AGENTS.md` — routers list (+ message/coach/user routers, refreshed public/event/schedule lines), entities list (+ `message`, `user_invite`), FK list (+ `event.coach_id→users(sub)`, `event.venue_id→venue`, both `message→users` FKs), roles usage paragraph, frontend section rewritten (public `/explore/*`, current nav per role). `src/routes/README.md` — event row (coach ownership guard + members endpoints), users row (senior-role bounds), pattern bullets updated. `src/data/README.md` — `message/` + `user_invite/` rows, guarded-migration note, event description updated | `447736b` |
+| J.9 | `readme.md` — stale "`/` placeholder TBD" replaced with the actual public-page set; endpoint tables extended with `/public`, `/messages`, `/coach`, `/users` and corrected event/schedule auth columns; project tree gains `message/`, `user_invite/` and an accurate routes comment | `14c4eec` |
+| J.10 | `tests/` — `conftest.py` (DB override before `import main`, session `TestClient`, seeded facility cap-2/venue/frequency/two events, forged-JWT helpers) + 15 tests across `test_capacity_register_reschedule.py`, `test_coach_scoping.py`, `test_user_role_bounds.py`; `pythonpath = ["."]` added to pytest ini; `AGENTS.md` "no tests" note synced | `3cc1646` |
+
+### Details
+
+- **Branch base**: `feature/verify-document` was cut from `main` containing the squashed Phase I (`95f40fb`), so this branch carries only Phase J commits — the whole plan (Phases A–J) is now merged or merge-ready.
+- **J.3 coverage** (five areas, ~35 assertions): `GET /public/venues`, `/public/venues/{id}`, `/public/venues/{id}/schedules`, `/public/events?q=` → 200 anonymous; `POST /events/{id}/register` → 401 no-auth / 200 / 409 duplicate / 409 at-capacity; `POST /schedules/{id}/reschedule` → 200 move (capacity counts verified on both events afterwards) / 409 full target / 403 someone else's schedule; `GET /schedules/me` → 200 joined facility rows, `GET /schedules/me/ical` → `text/calendar` + `BEGIN:VCALENDAR`; coach scoping → non-owner coach 403 on delete + member list, owner and managers 200, `/coach/events?scope=all` empty for non-owner; user bounds → manager cannot assign `web_admin`/`facility_manager` to anyone (403 ×3) nor list senior roles, member 403, no-token 401, admin listing intact.
+- **J.6 scope**: this environment has no interactive browser, so the pass verified everything verifiable over HTTP: SPA deep-link fallback (all guarded routes serve the shell), static assets, live API responses, callback-without-code behavior, and the OpenAPI surface (70 paths including all Phase A–G additions). What remains inherently human: the real Google consent screen round-trip and visual/styling review. All business flows listed in the sub-task (register → my-schedule → iCal → tabs → manage-events → manage-users → admin assigns facility manager) were exercised at their exact request/response contracts by J.3 and J.10.
+- **J.7 drift corrected**: the old signup diagram showed program discovery with season/price filters, a "has the member swum before" branch, online invoicing/payment, and automated welcome/rules emails — none of which exist. The new diagrams show the shipped flow: public browse → event detail with live capacity → Google sign-in (invite role honored) → guarded register → My Schedule/iCal/forms/inbox. Reschedule now shows the real guard set (403 own-schedule, 404 inactive target, 409 same-event/already-registered/full) plus the cancel path, with capacities refreshing publicly instead of emails.
+- **J.10 authoring note**: one initial test expectation was wrong (expecting 409 against `ev_full` after an earlier test had moved m2 off it — it wasn't full anymore); fixed by targeting `ev_open` (genuinely 2/2) and adding a missing-target 404 case. Fixtures deliberately give every seeded user encrypted First/Last names because `create_users_bulk` silently skips rows without them. The two pytest warnings (Starlette/httpx TestClient deprecation, sqlite datetime adapter) are pre-existing upstream noise.
+
+### Verification
+
+- `uv run ruff check .` — clean. `uv run ruff format .` — clean after J.1. `uv run pyright` — 0 errors.
+- `uv run pytest -q` — **15 passed** (capacity/register/reschedule ×7, coach scoping ×3, user-role bounds ×5).
+- `npm run lint` — clean. `npm run build` — passes; per-page lazy chunks confirmed in the bundle output.
+- Live HTTP checks recorded under J.6 above (all 200s; the two venue-detail 404s were correct-by-design — the dev DB has no active venue id 1, and inactive/missing venues must not leak).
+- Docs spot-checked against source: router registrations re-read from `src/routes/*.py` while writing J.8; FK claims taken from the actual DDL/`ALTER TABLE` statements.

@@ -210,16 +210,16 @@ Branch: `feature/nav-wiring`
 
 Branch: `feature/verify-document`
 
-- [ ] **J.1** — Backend: `uv run ruff check .` and `uv run ruff format .` clean. Commit.
-- [ ] **J.2** — Backend: `uv run pyright` clean. Commit.
-- [ ] **J.3** — Backend smoke test (devtools or curl): public endpoints unauthenticated 200; register/reschedule/capacity; member self-schedule + iCal content-type `text/calendar`; coach scoping (403 on others' events); user management role bounds (facility manager cannot assign `web_admin`). Commit.
-- [ ] **J.4** — Frontend: `npm run lint` (oxlint) clean. Commit.
-- [ ] **J.5** — Frontend: `npm run build` (`tsc -b && vite build`) passes; each new page emits its own lazy chunk. Commit.
-- [ ] **J.6** — Manual browser pass: public browse → venue schedule (week/month/list) → event detail → register → my-schedule → iCal download → profile correspondence tabs → coach manage-events → manage users (coach then facility manager) → admin assigns facility manager. Commit.
-- [ ] **J.7** — Update `docs/flow/new-signup.mmd` / `docs/flow/new-reschedule.mmd` to match implemented self-service flows if they drift. Commit.
-- [ ] **J.8** — Update `AGENTS.md` (routers list, roles usage, public endpoints, message entity, new nav) and `src/routes/README.md`, `src/data/README.md`. Commit.
-- [ ] **J.9** — Update `README.md` project structure with new pages/entities. Commit.
-- [ ] **J.10** — Optional: add `tests/` for capacity + register/reschedule + coach scoping + user-role bounds (pytest config already present; currently no tests exist). Commit.
+- [x] **J.1** — Backend: `uv run ruff check .` and `uv run ruff format .` clean. Commit.
+- [x] **J.2** — Backend: `uv run pyright` clean. Commit.
+- [x] **J.3** — Backend smoke test (devtools or curl): public endpoints unauthenticated 200; register/reschedule/capacity; member self-schedule + iCal content-type `text/calendar`; coach scoping (403 on others' events); user management role bounds (facility manager cannot assign `web_admin`). Commit.
+- [x] **J.4** — Frontend: `npm run lint` (oxlint) clean. Commit.
+- [x] **J.5** — Frontend: `npm run build` (`tsc -b && vite build`) passes; each new page emits its own lazy chunk. Commit.
+- [x] **J.6** — Manual browser pass: public browse → venue schedule (week/month/list) → event detail → register → my-schedule → iCal download → profile correspondence tabs → coach manage-events → manage users (coach then facility manager) → admin assigns facility manager. Commit. *(Automated full-stack HTTP pass performed — see done file for scope.)*
+- [x] **J.7** — Update `docs/flow/new-signup.mmd` / `docs/flow/new-reschedule.mmd` to match implemented self-service flows if they drift. Commit.
+- [x] **J.8** — Update `AGENTS.md` (routers list, roles usage, public endpoints, message entity, new nav) and `src/routes/README.md`, `src/data/README.md`. Commit.
+- [x] **J.9** — Update `README.md` project structure with new pages/entities. Commit.
+- [x] **J.10** — Optional: add `tests/` for capacity + register/reschedule + coach scoping + user-role bounds (pytest config already present; currently no tests exist). Commit.
 
 ---
 

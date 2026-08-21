@@ -1,19 +1,36 @@
 flowchart TD
 
-    %% MEMBER ACTIONS
-    A[Member Cancel session]
-    B[Schedule make up swim]
-    C[Member Select available makeup session only options with capacity shown]
-    H[No action taken]
+    %% ENTRY POINTS (Phases C/D)
+    A[Member: Open My Schedule or the event detail page]
+    B[Member: Select alternate upcoming event from picker - capacity visible]
 
-    %% DATABASE UPDATES
-    D[Record DB Update attendance status and save changes]
-    E[Admin Receive notification of changes optional by configuration]
-    F[Site Update member schedule]
+    A --> B
 
-    %% FINAL OUTPUT
-    G[Site Send final confirmation with details]
+    %% RESCHEDULE GUARDS (Phase C.7)
+    C{Guards}
+    D[403: schedule belongs to another member]
+    E[404: target event missing or inactive]
+    F[409: same event / already registered on target / target full]
 
-    %% FLOW
-    A --> B --> C --> D --> E --> F --> G
-    C -->|No| H
+    B --> C
+    C -->|pass| G[Record DB: Update schedule - event_id and venue_id move to target event]
+    C -->|fail| D
+    C -->|fail| E
+    C -->|fail| F
+
+    %% ALTERNATIVE: CANCEL (Phase D)
+    H[Member: Cancel registration instead]
+    I[Record DB: Soft-delete schedule row - slot freed for others]
+
+    A --> H --> I
+
+    %% OUTPUT
+    J[Site: My Schedule list and public capacity counts refresh]
+    K[Member: Download updated iCal]
+
+    G --> J
+    I --> J
+    J --> K
+
+    L[No action taken]
+    B -->|No| L
