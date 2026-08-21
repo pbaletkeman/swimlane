@@ -265,6 +265,7 @@ See [`src/data/`](src/data/README.md) for details.
 
 - [Architecture](AGENTS.md) — Commands, patterns, conventions, gotchas
 - [Backend Walkthrough](docs/README-Backend.md) — Deep-dive: architecture, data layer, routers, roles, encryption, testing
+- [Frontend Walkthrough](docs/README-Frontend.md) — React SPA: providers, routing, auth, pages, theming, build
 - [Frontend](frontend/README.md) — Run instructions, config, structure
 - [Development Plan](docs/history/legacy-plan.md)
 - [Entity Relationships](docs/relationships.md)

@@ -259,7 +259,7 @@ encryption, testing, and configuration.
 
 Create a thorough frontend walkthrough in `docs/README-Frontend.md`.
 
-- [ ] **5.1** — Write the file with these sections:
+- [x] **5.1** — Write the file with these sections:
   1. **Overview** — React 19 + TypeScript + Vite SPA, PrimeReact 11 + Aura
   2. **Provider Stack** — PrimeReactProvider -> ThemeProvider -> AuthProvider
   3. **Routing** — public routes vs authenticated routes, RouteGuard, AppLayout
