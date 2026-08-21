@@ -196,3 +196,33 @@ audit reports. Directory is ready for file consolidation in 2.2.
 **Finding**: Script is directory-agnostic (lists whatever exists). Running
 from `docs/` regenerated `index.md` correctly with 12 entries, no stale
 references.
+
+### 2.7 — PR for Phase V2 ✅
+
+### PR Title
+
+`chore: consolidate plan-tracking files into docs/`
+
+### PR Description
+
+# Summary
+
+Moves all todo/done/plan files out of the repo root into `docs/` so the root stays clean for README and AGENTS.md.
+
+## What's Included
+
+- **2.1** — Created `docs/history/` (already existed from V1 audit reports).
+- **2.2** — Moved 6 plan-tracking pairs to `docs/history/`: `missing-features-todo.md`, `missing-features-done.md`, `frontend-todo.md`, `frontend-done.md`, `pdf-todo.md`, `pdf-done.md`.
+- **2.3** — Moved `docs/TODO.md` → `docs/history/legacy-todo.md`, `docs/plan.md` → `docs/history/legacy-plan.md`.
+- **2.4** — Moved `docs/layout.txt` → `docs/history/layout.txt`.
+- **2.5** — Moved `launch-json.md` and `opencode-bots.md` into `docs/`.
+- **2.6** — Regenerated `docs/index.md` (removed stale refs, added new files).
+
+## Verification
+
+- `docs/index.md` lists 12 files, no stale `plan.md`/`TODO.md` references.
+- All moved files confirmed present in new locations via `git status`.
+
+## Notes
+
+- Root directory now contains only: `main.py`, `readme.md`, `AGENTS.md`, `config.yaml`, `pyproject.toml`, `verification.md`, `verification-done.md`, and standard project files.
