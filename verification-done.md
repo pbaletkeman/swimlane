@@ -173,3 +173,13 @@ audit reports. Directory is ready for file consolidation in 2.2.
 | `docs/layout.txt` | moved to `docs/history/layout.txt` |
 
 **Finding**: Original plan input file moved via `git mv`. Staged.
+
+### 2.5 — Move optional project notes into docs/ ✅
+
+| File | Status |
+|------|--------|
+| `launch-json.md` | moved to `docs/launch-json.md` |
+| `opencode-bots.md` | moved to `docs/opencode-bots.md` |
+
+**Finding**: Both optional project notes moved from root to `docs/` via
+`git mv`. Staged.
