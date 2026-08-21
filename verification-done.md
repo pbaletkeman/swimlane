@@ -244,3 +244,17 @@ Moves all todo/done/plan files out of the repo root into `docs/` so the root sta
 **Finding**: Quickstart section drafted with 6 copy-pasteable subsections.
 Also fixed 2 broken doc links in the Documentation section that referenced
 files moved in Phase V2.
+
+### 3.2 — Validate copy-pasteable code blocks, no jargon ✅
+
+| Check | Result |
+|-------|--------|
+| Commit | `cc9757f` |
+| Smart quotes in code blocks | None |
+| `mkdir -p` cross-platform | Fixed — `mkdir .secrets 2>/dev/null \|\| true` works on Windows + Unix |
+| `npm run test` exists | No — removed from quickstart (no test script in frontend) |
+| Jargon | None — plain language throughout |
+
+**Finding**: Two issues found and fixed:
+1. `mkdir -p` fails on Windows PowerShell — replaced with cross-platform alternative.
+2. `npm run test` doesn't exist in frontend — removed, backend `uv run pytest` only.
