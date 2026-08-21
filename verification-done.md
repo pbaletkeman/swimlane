@@ -614,3 +614,23 @@ project README, architecture docs, and frontend walkthrough.
 
 **Finding**: Added "See Also" section at the end of the file with links to
 project README, architecture docs, and backend walkthrough.
+
+### 7.6 — docs/flow/README.md and docs/sequence/README.md links ✅
+
+| Check | Result |
+|-------|--------|
+| `docs/flow/README.md` | Updated with links to root README and docs/index.md |
+| `docs/sequence/README.md` | Updated with links to root README and docs/index.md |
+
+### 7.7 — docs/index.md as docs hub ✅
+
+| Check | Result |
+|-------|--------|
+| Previous state | Auto-generated file list (12 entries, missing new files) |
+| New state | Curated hub with 6 sections, 30+ links |
+| Sections | Getting Started, Walkthroughs, Diagrams, Reference, Artifacts, History |
+
+**Finding**: Rewrote `docs/index.md` from a flat file list to a proper
+documentation hub with categorized sections linking to all docs/ files
+including the new README-Backend.md, README-Frontend.md, flow/,
+sequence/, and history/ directories.
