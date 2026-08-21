@@ -634,3 +634,17 @@ project README, architecture docs, and backend walkthrough.
 documentation hub with categorized sections linking to all docs/ files
 including the new README-Backend.md, README-Frontend.md, flow/,
 sequence/, and history/ directories.
+
+### 7.8 — Regenerate docs/index.md via update_index.py ✅
+
+| Check | Result |
+|-------|--------|
+| Script runs | Yes, no errors |
+| Picks up new files | Yes (README-Backend.md, README-Frontend.md) |
+| Handles subdirectories | **No** — flat file list only |
+| Curated hub preserved | Yes — restored after script test |
+
+**Finding**: `update_index.py` is a simple flat-list generator. It picks
+up new files in `docs/` root but doesn't traverse subdirectories (flow/,
+sequence/, history/). The curated hub index from 7.7 is more useful and
+was restored after verifying the script works.
