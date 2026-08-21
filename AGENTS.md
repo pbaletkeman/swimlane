@@ -30,13 +30,16 @@ No test files exist yet. `pytest` config is in `pyproject.toml` (`tests/` dir).
 **Routers** (registered in `main.py`):
 
 - `src/routes/auth_routes.py` — Google OAuth login/callback, JWT issuance, `/me`, `/profile`, `/logout`
-- `src/routes/public_routes.py` — **unauthenticated** read-only browsing (`/public/venues`, `/public/venues/{id}`, `/public/venues/{id}/schedules`, `/public/events`) — no `Depends(...)` on these routes
+- `src/routes/public_routes.py` — **unauthenticated** read-only browsing (`/public/venues`, `/public/venues/{id}`, `/public/venues/{id}/schedules` with `view=week|month|list`, `/public/events?q=&venue_id=`, `/public/events/{id}` with live capacity) — no `Depends(...)` on these routes; inactive/missing rows 404
 - `src/routes/frequency_routes.py` — Frequency CRUD (`/frequencies`)
 - `src/routes/facility_routes.py` — Facility CRUD (`/facilities`)
-- `src/routes/event_routes.py` — Event CRUD (`/events`)
+- `src/routes/event_routes.py` — Event CRUD (`/events`) — create/update/delete are `coach_role` with an inline ownership guard (managers+ any event, coaches only their own; bulk ops stay `facility_manager_role`); public capacity, member register, and coach-managed member list/add/edit/remove under `/events/{id}/members`
 - `src/routes/venue_routes.py` — Venue CRUD (`/venues`)
-- `src/routes/schedule_routes.py` — Schedule CRUD (`/schedules`)
-- `src/routes/form_routes.py` — Form question/rule CRUD, GET facility form, POST submit, PDF export (`/forms`)
+- `src/routes/schedule_routes.py` — Schedule CRUD + member self-service (`/schedules/me`, `/schedules/me/ical`, `/schedules/me/events`, `POST /{id}/reschedule`, `POST /{id}/cancel`)
+- `src/routes/form_routes.py` — Form question/rule CRUD, GET facility form, POST submit, member submission list/detail, PDF export (`/forms`)
+- `src/routes/message_routes.py` — One-way staff→member inbox (`/messages`): member GET own inbox / mark read / soft delete; coach+ send; admin hard delete
+- `src/routes/coach_routes.py` — Coach-scoped endpoints (`/coach/events?scope=upcoming|past|all` — the caller's own events)
+- `src/routes/user_routes.py` — User management (facility manager+): list by role, detail, email-keyed invite (role applied on first Google login), role change, soft/hard delete. Senior roles (`facility_manager`, `web_admin`) are listable/assignable/removable by `web_admin` only
 - `src/routes/devtools.py` — `DEVTOOLS_HTML`, a self-contained API test page. Served at `GET /devtools` and by `auth_callback` when no OAuth `code` is present, so the post-login redirect can land here (set `FRONTEND_URL`/`security.frontend_url` to the backend origin) and auto-capture the tokens for backend-only testing.
 
 **Data layer** (`src/data/<entity>/`): each entity has 3 files following the same pattern:
@@ -45,13 +48,13 @@ No test files exist yet. `pytest` config is in `pyproject.toml` (`tests/` dir).
 - `<entity>_interface.py` — Abstract base class (ABC)
 - `sqlite.py` — SQLite implementation (raw `sqlite3`, no ORM)
 
-Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `schedule`, `form_question`, `facility_rule`, `form_submission`.
+Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `schedule`, `form_question`, `facility_rule`, `form_submission`, `message`, `user_invite`.
 
 **Config**: `config.yaml` (root) — YAML loaded by `src/util/configs.py:Config`. Controls DB driver (`sql.active: sqlite|postgresql`) and security settings. `security.frontend_url` is where the OAuth callback redirects the browser with the JWTs appended (override with `FRONTEND_URL` env). `.secrets/client_secret.json` for Google OAuth credentials (gitignored).
 
 **OAuth callback redirect**: after Google auth, `/auth/callback` redirects the browser to the SPA origin that started the login, preferring the `frontend_url` query param passed by the frontend at `/login` (validated to `localhost`/`127.0.0.1`/`::1` only), then the `Origin`/`Referer` headers, then `security.frontend_url`/`FRONTEND_URL`. The chosen origin is stored in the session cookie so it survives the Google round-trip. For backend-only development, point `frontend_url` at the backend origin — the callback then lands on the devtools page (see `src/routes/devtools.py`), which captures the tokens.
 
-**Roles**: `src/roles/` — `UserRole` StrEnum (`WEB_ADMIN`, `FACILITY_MANAGER`, `COACH`, `MEMBER`). `RoleChecker` is a FastAPI dependency that decodes JWT and enforces role. Roles are hierarchical.
+**Roles**: `src/roles/` — `UserRole` StrEnum (`WEB_ADMIN`, `FACILITY_MANAGER`, `COACH`, `MEMBER`). `RoleChecker` is a FastAPI dependency that decodes JWT and enforces role. Roles are hierarchical. Usage: `member_role` guards member self-service (register, reschedule, cancel, own schedule/iCal, form submit, own submissions/inbox); `coach_role` guards event create/update/delete (with the inline ownership guard) plus message send and coach event-member management; `facility_manager_role` guards entity CRUD/bulk; senior-role user management (`facility_manager`/`web_admin`) is `web_admin`-only.
 
 **Encryption**: `src/encryption.py` — AES-256-GCM for PII fields. Key from env var (`APP_AES_KEY`). User model stores nonce + ciphertext columns, never plaintext.
 
@@ -59,11 +62,11 @@ Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `sched
 
 **DB init**: Each SQLite implementation's `init()` runs `CREATE TABLE IF NOT EXISTS` — no separate migration files. `main.py` calls `init_db()` at startup, which runs every entity SQLite's `init()` so all tables exist before the first request (`Config().db` is only the users SQLite — its `init()` creates just the `users` table). All connections enable `PRAGMA foreign_keys = ON` for FK enforcement.
 
-**Foreign Keys**: FK constraints with `ON DELETE CASCADE ON UPDATE CASCADE` are defined in `CREATE TABLE` DDL for: `venue→facility`, `event→frequency`, `schedule→venue`, `schedule→users`, `schedule→event`, `form_question→facility`, `facility_rule→facility`, `form_submission→facility`, `form_submission→users`, `form_response→form_submission`, `form_response→form_question`.
+**Foreign Keys**: FK constraints with `ON DELETE CASCADE ON UPDATE CASCADE` are defined in `CREATE TABLE` DDL for: `venue→facility`, `event→frequency`, `schedule→venue`, `schedule→users`, `schedule→event`, `form_question→facility`, `facility_rule→facility`, `form_submission→facility`, `form_submission→users`, `form_response→form_submission`, `form_response→form_question`, `message→users` (`member_id`, `sender_id`). `event.coach_id→users(sub)` and `event.venue_id→venue(venue_id)` are added by the guarded `ALTER TABLE ADD COLUMN ... REFERENCES ...` migration in `EventSQLite.init()` (SQLite allows the REFERENCES clause on a NULL-default column).
 
 **PDF export**: `GET /forms/submissions/{id}/pdf` renders a member's submission with reportlab (facility, member name, answers, facility rules). Members may export only their own submission; managers/coaches/admins may export any. `itsdangerous` is a declared dep (SessionMiddleware needs it).
 
-**Frontend** (`frontend/`): React 19 + TypeScript + Vite SPA styled with PrimeReact 11 (compound components + `@primeuix/themes` Aura preset). Provider stack in `src/main.tsx`: `PrimeReactProvider` (from `@primereact/core/config`) → `ThemeProvider` (from `@primereact/core/theme`) → `AuthProvider` → `ToastProvider` + `App`. Routes live in `src/router/`: `/` is a **public** HomePage (placeholder content — TBD), `/login` and `/auth/callback` are public; the dashboard and all entity pages sit behind `RouteGuard` + `AppLayout`. The authenticated dashboard is at `/dashboard`, **not** `/`. The sidebar nav (`src/layout/nav.ts`) is role-filtered: MEMBER sees Dashboard + Signup Forms; FACILITY_MANAGER and above also see the five CRUD pages. API calls go through `src/api/client.ts` (Bearer header, single 401 → refresh → retry, then a `swimlane:auth-unauthorized` event that signs the user out). The login flow passes the SPA's own origin via `?frontend_url=` so the OAuth callback always returns to the correct port.
+**Frontend** (`frontend/`): React 19 + TypeScript + Vite SPA styled with PrimeReact 11 (compound components + `@primeuix/themes` Aura preset). Provider stack in `src/main.tsx`: `PrimeReactProvider` (from `@primereact/core/config`) → `ThemeProvider` (from `@primereact/core/theme`) → `AuthProvider` → `ToastProvider` + `App`. Routes live in `src/router/`: public (outside `RouteGuard`) are `/` (HomePage: explore + login/dashboard), `/login`, `/auth/callback`, and the `/explore/*` browse pages (`/explore`, `/explore/venues`, `/explore/venues/:venueId`, `/explore/events/:eventId`). Authenticated routes sit behind `RouteGuard` + `AppLayout`: `/dashboard`, `/profile`, `/my-schedule`, `/manage-events`, `/manage-users`, the five CRUD pages, `/forms/builder/:facilityId`. The sidebar nav (`src/layout/nav.ts`) is role-filtered via rank-based `hasRole`: MEMBER sees Dashboard, Signup Forms, My Schedule (+ Profile in the sidebar footer); COACH adds Manage Events; FACILITY_MANAGER adds Frequencies/Facilities/Events/Venues/Schedules/Manage Users; WEB_ADMIN sees everything. API calls go through `src/api/client.ts` (Bearer header, single 401 → refresh → retry, then a `swimlane:auth-unauthorized` event that signs the user out). The login flow passes the SPA's own origin via `?frontend_url=` so the OAuth callback always returns to the correct port.
 
 ## Gotchas
 
