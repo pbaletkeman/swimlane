@@ -25,3 +25,23 @@ F.9.1–F.9.4 are bundled into the F.9 row in the done file (4 commit
 hashes in one table row) — documentation convention, not a gap.
 
 Full report: `docs/history/audit-report.md`
+
+### 1.2 — Diff frontend-todo.md vs frontend-done.md ✅
+
+| Check | Result |
+|-------|--------|
+| Checked items in todo | 91 |
+| Phases covered in done | 1–10 (10 "in progress") |
+| Unique commit hashes | 8 |
+| Hashes missing from git | **0** |
+| Gaps | **0** |
+
+**Finding**: All 91 checked todo items have corresponding done-file
+entries. All 8 commit hashes resolve to real commits on `main`. Phase 10
+is correctly marked "in progress" with 3 unchecked items (10.8–10.10).
+
+Minor note: 10.7 ("AGENTS.md up to date") is checked in todo but not
+explicitly mentioned in done file. The work was completed in Phase J.8
+of the main plan — documentation omission only, not a work gap.
+
+Full report: `docs/history/audit-report-frontend.md`
