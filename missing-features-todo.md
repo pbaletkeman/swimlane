@@ -212,7 +212,7 @@ Branch: `feature/verify-document`
 
 - [x] **J.1** — Backend: `uv run ruff check .` and `uv run ruff format .` clean. Commit.
 - [x] **J.2** — Backend: `uv run pyright` clean. Commit.
-- [ ] **J.3** — Backend smoke test (devtools or curl): public endpoints unauthenticated 200; register/reschedule/capacity; member self-schedule + iCal content-type `text/calendar`; coach scoping (403 on others' events); user management role bounds (facility manager cannot assign `web_admin`). Commit.
+- [x] **J.3** — Backend smoke test (devtools or curl): public endpoints unauthenticated 200; register/reschedule/capacity; member self-schedule + iCal content-type `text/calendar`; coach scoping (403 on others' events); user management role bounds (facility manager cannot assign `web_admin`). Commit.
 - [ ] **J.4** — Frontend: `npm run lint` (oxlint) clean. Commit.
 - [ ] **J.5** — Frontend: `npm run build` (`tsc -b && vite build`) passes; each new page emits its own lazy chunk. Commit.
 - [ ] **J.6** — Manual browser pass: public browse → venue schedule (week/month/list) → event detail → register → my-schedule → iCal download → profile correspondence tabs → coach manage-events → manage users (coach then facility manager) → admin assigns facility manager. Commit.
