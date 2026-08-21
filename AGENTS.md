@@ -12,7 +12,7 @@ uv run uvicorn main:app --reload
 uv run ruff check .            # lint
 uv run ruff format .           # format
 uv run pyright                 # typecheck
-uv run pytest                  # test (currently no tests exist)
+uv run pytest                  # test
 
 cd frontend
 npm install                    # install frontend deps
@@ -21,7 +21,7 @@ npm run lint                   # oxlint
 npm run build                  # tsc -b + vite build
 ```
 
-No test files exist yet. `pytest` config is in `pyproject.toml` (`tests/` dir).
+Tests live in `tests/` (pytest, throwaway SQLite DB — never the dev `swimlane.db`). They cover public capacity/register/reschedule, coach scoping, and user-role bounds; conftest overrides the DB before `main` is imported.
 
 ## Architecture
 

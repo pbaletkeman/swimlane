@@ -39,6 +39,7 @@ select = ["E", "F", "W", "I"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
+pythonpath = ["."]
 
 [tool.pyright]
 include = ["src"]

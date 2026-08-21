@@ -219,7 +219,7 @@ Branch: `feature/verify-document`
 - [x] **J.7** — Update `docs/flow/new-signup.mmd` / `docs/flow/new-reschedule.mmd` to match implemented self-service flows if they drift. Commit.
 - [x] **J.8** — Update `AGENTS.md` (routers list, roles usage, public endpoints, message entity, new nav) and `src/routes/README.md`, `src/data/README.md`. Commit.
 - [x] **J.9** — Update `README.md` project structure with new pages/entities. Commit.
-- [ ] **J.10** — Optional: add `tests/` for capacity + register/reschedule + coach scoping + user-role bounds (pytest config already present; currently no tests exist). Commit.
+- [x] **J.10** — Optional: add `tests/` for capacity + register/reschedule + coach scoping + user-role bounds (pytest config already present; currently no tests exist). Commit.
 
 ---
 
