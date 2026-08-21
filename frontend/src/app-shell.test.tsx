@@ -56,11 +56,7 @@ describe('AppLayout sign-out', () => {
             <Routes>
               <Route
                 path="/dashboard"
-                element={
-                  <AppLayout>
-                    <div />
-                  </AppLayout>
-                }
+                element={<AppLayout />}
               />
             </Routes>
           </Suspense>
