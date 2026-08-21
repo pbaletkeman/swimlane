@@ -582,3 +582,13 @@ links added in 7.2-7.8: `AGENTS.md`, `docs/README-Backend.md`,
 **Finding**: Added 3 missing links to the Documentation section:
 `docs/readme.md` (docs index), `docs/flow/README.md` (workflow diagrams),
 `docs/sequence/README.md` (sequence diagrams).
+
+### 7.3 — AGENTS.md links ✅
+
+| Link | Status |
+|------|--------|
+| `readme.md` | **Added** |
+| `docs/README-Backend.md` | Already existed |
+| `docs/README-Frontend.md` | Already existed |
+
+**Finding**: Added `readme.md` link to the Further Reading section.
