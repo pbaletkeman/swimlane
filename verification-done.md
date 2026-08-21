@@ -165,3 +165,11 @@ audit reports. Directory is ready for file consolidation in 2.2.
 | `docs/plan.md` | moved to `docs/history/legacy-plan.md` |
 
 **Finding**: Both legacy docs files moved via `git mv`. Staged.
+
+### 2.4 — git mv layout.txt ✅
+
+| File | Status |
+|------|--------|
+| `docs/layout.txt` | moved to `docs/history/layout.txt` |
+
+**Finding**: Original plan input file moved via `git mv`. Staged.

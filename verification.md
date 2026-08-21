@@ -98,7 +98,7 @@ stays clean for the README and AGENTS.md.
   - `pdf-todo.md` + `pdf-done.md`
 - [x] **2.3** — `git mv docs/TODO.md docs/history/legacy-todo.md` and
   `git mv docs/plan.md docs/history/legacy-plan.md`.
-- [ ] **2.4** — `git mv docs/layout.txt docs/history/layout.txt` (the
+- [x] **2.4** — `git mv docs/layout.txt docs/history/layout.txt` (the
   original plan input).
 - [ ] **2.5** — Move `launch-json.md` and `opencode-bots.md` into `docs/`
   (optional project notes, not todo/done — direct `docs/` not `docs/history/`).
