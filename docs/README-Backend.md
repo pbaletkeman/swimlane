@@ -349,3 +349,9 @@ sql:
 - The OAuth session secret is `os.urandom(24)` at startup — regenerated every restart, so interrupted login flows lose their session.
 - `src/env.py` has hardcoded fallback keys — override with env vars in production.
 - Ruff line-length is 120 (not default 88).
+
+## See Also
+
+- [Project README](../readme.md) — Getting started, quickstart, project structure
+- [Architecture](../AGENTS.md) — Commands, patterns, conventions, gotchas
+- [Frontend Walkthrough](README-Frontend.md) — React SPA: providers, routing, auth, pages, theming, build
