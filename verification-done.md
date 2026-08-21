@@ -566,3 +566,19 @@ Audits `readme.md` line count after Phases V2-V5. At 201 lines, it is well under
 links added in 7.2-7.8: `AGENTS.md`, `docs/README-Backend.md`,
 `docs/README-Frontend.md`, `docs/flow/README.md`, `docs/sequence/README.md`,
 `docs/readme.md`.
+
+### 7.2 — readme.md links ✅
+
+| Link | Status |
+|------|--------|
+| `AGENTS.md` | Already existed |
+| `docs/README-Backend.md` | Already existed |
+| `docs/README-Frontend.md` | Already existed |
+| `docs/readme.md` | **Added** |
+| `docs/history/` | Already had `legacy-plan.md`, `legacy-todo.md` |
+| `docs/flow/README.md` | **Added** |
+| `docs/sequence/README.md` | **Added** |
+
+**Finding**: Added 3 missing links to the Documentation section:
+`docs/readme.md` (docs index), `docs/flow/README.md` (workflow diagrams),
+`docs/sequence/README.md` (sequence diagrams).
