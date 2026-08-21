@@ -483,7 +483,7 @@ uncovered modules first.
 - [x] **9.2** — Create `frontend/vitest.config.ts` with jsdom environment and
   coverage provider configuration.
 - [x] **9.3** — Add `"test"` and `"coverage"` scripts to `frontend/package.json`.
-- [ ] **9.4** — Create `frontend/src/test-setup.ts` with global test setup
+- [x] **9.4** — Create `frontend/src/test-setup.ts` with global test setup
   (mock `window.matchMedia`, mock `fetch`, etc.).
 - [ ] **9.5** — Run baseline coverage: `npm run coverage`. Record the starting
   percentage. Identify uncovered files.
@@ -497,7 +497,7 @@ uncovered modules first.
   5. **API wrappers**: `src/api/events.ts`, `src/api/schedules.ts`,
      `src/api/forms.ts`, `src/api/messages.ts`, `src/api/users.ts`,
      `src/api/public.ts` (mock fetch, verify call shapes)
-- [ ] **9.7** — Reach 80% overall coverage on `frontend/src/`. Run final
+- [ ] **9.7** — Reach 90% overall coverage on `frontend/src/`. Run final
   coverage report and commit the result.
 - [ ] **9.8** — Commit, push, and generate PR title + description.
 
@@ -708,4 +708,3 @@ coverage passing, all markdown files cross-linked, README under 500 lines.
 
 - This PR merges last — it is the confirmation that all prior phases landed
   correctly and the repo is in its final state.
-

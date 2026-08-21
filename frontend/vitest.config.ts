@@ -15,6 +15,7 @@ export default defineConfig({
     // jsdom powers React Testing Library's DOM environment
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['./src/test-setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],

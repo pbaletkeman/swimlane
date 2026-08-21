@@ -877,3 +877,18 @@ Result: 107 packages added, 0 vulnerabilities; all five recorded under
 
 Verification: `npm run test` executes vitest 4.1.11 and correctly reports
 "No test files found" (exit 1) — expected, since test files arrive in 9.6.
+
+### 9.4 — Create test-setup.ts ?
+
+`frontend/src/test-setup.ts` (wired via `setupFiles` in `vitest.config.ts`):
+
+| Concern | Handling |
+|---------|----------|
+| jest-dom matchers | `import '@testing-library/jest-dom/vitest'` |
+| `window.matchMedia` | Stubbed (jsdom lacks it) — ThemeContext + media-query.ts depend on it |
+| `ResizeObserver` | Stubbed for PrimeReact container measuring |
+| `fetch` | Soft-fail stub resolving `{}` 200; tests override with `vi.spyOn`/`vi.stubGlobal` |
+| localStorage | `afterEach(clear)` — tokens.ts / ThemeContext isolation |
+
+Verification: `npm run build` passes (file typechecked under tsconfig.app),
+`npm run lint` clean.
