@@ -492,3 +492,12 @@ Adds `docs/README-Frontend.md`, a thorough walkthrough of the React 19 SPA cover
 
 **Finding**: `readme.md` is 201 lines — well under the 500-line budget.
 No sections need collapsing or moving.
+
+### 6.2 — Restructure as needed ✅
+
+| Check | Result |
+|-------|--------|
+| Action | None required |
+| Reason | 201 lines is under 500-line budget |
+
+**Finding**: No restructuring needed. All content fits comfortably.
