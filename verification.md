@@ -474,20 +474,20 @@ uncovered modules first.
 
 ---
 
-## Phase V9 — Frontend Test Coverage (target: 80%)
+## Phase V9 — Frontend Test Coverage (target: 90%)
 
 **Branch**: `chore/frontend-coverage` (from `main`)
 
-- [ ] **9.1** — Add vitest + testing-library to dev deps:
+- [x] **9.1** — Add vitest + testing-library to dev deps:
   `cd frontend && npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom @vitest/coverage-v8`.
-- [ ] **9.2** — Create `frontend/vitest.config.ts` with jsdom environment and
+- [x] **9.2** — Create `frontend/vitest.config.ts` with jsdom environment and
   coverage provider configuration.
-- [ ] **9.3** — Add `"test"` and `"coverage"` scripts to `frontend/package.json`.
-- [ ] **9.4** — Create `frontend/src/test-setup.ts` with global test setup
+- [x] **9.3** — Add `"test"` and `"coverage"` scripts to `frontend/package.json`.
+- [x] **9.4** — Create `frontend/src/test-setup.ts` with global test setup
   (mock `window.matchMedia`, mock `fetch`, etc.).
-- [ ] **9.5** — Run baseline coverage: `npm run coverage`. Record the starting
+- [x] **9.5** — Run baseline coverage: `npm run coverage`. Record the starting
   percentage. Identify uncovered files.
-- [ ] **9.6** — Write tests in priority order:
+- [x] **9.6** — Write tests in priority order:
   1. **Pure logic**: `src/auth/tokens.ts`, `src/auth/types.ts` (ROLE_RANK),
      `src/api/client.ts` (fetch wrapper, 401 handling)
   2. **Nav filtering**: `src/layout/nav.ts` (item filtering by role)
@@ -497,20 +497,20 @@ uncovered modules first.
   5. **API wrappers**: `src/api/events.ts`, `src/api/schedules.ts`,
      `src/api/forms.ts`, `src/api/messages.ts`, `src/api/users.ts`,
      `src/api/public.ts` (mock fetch, verify call shapes)
-- [ ] **9.7** — Reach 80% overall coverage on `frontend/src/`. Run final
+- [x] **9.7** — Reach 90% overall coverage on `frontend/src/`. Run final
   coverage report and commit the result.
-- [ ] **9.8** — Commit, push, and generate PR title + description.
+- [x] **9.8** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
-`test: frontend unit test coverage to 80%`
+`test: frontend unit test coverage to 90%`
 
 ### PR Description
 
 # Summary
 
 Adds vitest + @testing-library/react to the frontend, scaffolds the test
-infrastructure, and writes unit tests to achieve 80%+ line coverage on
+infrastructure, and writes unit tests to achieve 90%+ line coverage on
 `frontend/src/`.
 
 ## What's Included
@@ -522,11 +522,11 @@ infrastructure, and writes unit tests to achieve 80%+ line coverage on
 - **9.5** — Baseline coverage measurement.
 - **9.6** — Tests for pure logic (tokens, types, client), nav filtering,
   page component smoke tests, form components, and API wrappers.
-- **9.7** — Final 80%+ coverage verified.
+- **9.7** — Final 90%+ coverage verified.
 
 ## Verification
 
-- `cd frontend && npm run coverage` shows 80%+ overall.
+- `cd frontend && npm run coverage` shows 90%+ overall.
 - All tests pass (`npm run test`).
 - `npm run lint` clean.
 - `npm run build` passes (lazy chunks still work).
@@ -708,4 +708,3 @@ coverage passing, all markdown files cross-linked, README under 500 lines.
 
 - This PR merges last — it is the confirmation that all prior phases landed
   correctly and the repo is in its final state.
-

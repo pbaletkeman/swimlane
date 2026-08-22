@@ -15,9 +15,15 @@ export const showToastSuccess = (title: string, description?: string): string | 
 export const showToastError = (title: string, description?: string): string | number => toast.error({ title, description })
 
 export function useToast(): ToastHelpers {
-  return {
-    show: showToast,
-    success: showToastSuccess,
-    error: showToastError,
-  }
+  // Stable identity across renders: helpers are pure module-level functions,
+  // so a new object per call only churns consumers' effect dependencies
+  // (e.g. explore pages listing `toast` in useEffect deps) into endless
+  // refetch loops.
+  return TOAST_HELPERS
+}
+
+const TOAST_HELPERS: ToastHelpers = {
+  show: showToast,
+  success: showToastSuccess,
+  error: showToastError,
 }
