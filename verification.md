@@ -497,7 +497,7 @@ uncovered modules first.
   5. **API wrappers**: `src/api/events.ts`, `src/api/schedules.ts`,
      `src/api/forms.ts`, `src/api/messages.ts`, `src/api/users.ts`,
      `src/api/public.ts` (mock fetch, verify call shapes)
-- [ ] **9.7** — Reach 90% overall coverage on `frontend/src/`. Run final
+- [x] **9.7** — Reach 90% overall coverage on `frontend/src/`. Run final
   coverage report and commit the result.
 - [ ] **9.8** — Commit, push, and generate PR title + description.
 

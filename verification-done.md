@@ -970,3 +970,75 @@ Notes:
   toward the coverage target — outside 9.6's group list.
 - One intermittent failure observed in `app-router.test.tsx` under the
   instrumented coverage run only; passed on re-run and in plain `npm run test`.
+
+### 9.7 — Reach 90% overall coverage on `frontend/src/` ✅
+
+Final coverage report (`npm run coverage`, commit `c9a16e1`):
+
+| Metric | Result |
+|--------|--------|
+| Statements | **90.79%** (1786/1967) |
+| Lines | **91.43%** (1708/1868) |
+| Branches | 78.88% (874/1108) |
+| Functions | 88.09% (518/588) |
+| Test files / tests | **38 files, 325 passed** |
+
+Push from 9.6's 70.36% baseline (+20.4 pts) in one commit (`c9a16e1`,
+21 files, +3238 lines). What the last stretch covered:
+
+- **CoachEventsPage member drawer end-to-end** — list/add/remove/edit member,
+  add/remove/edit failure toasts, capacity refresh after each mutation, scope
+  switch via mocked Select, past-scope empty state.
+- **FormBuilderPage remainder** — bulk delete questions/rules through the real
+  `EntityDataTable` selection checkboxes + `BulkDeleteBar` confirm dialog, hard
+  deletes, question/rule save-failure paths, back navigation, dialog onHide.
+- **EventsPage extras** — hard delete, bulk delete (+failure), Date-object
+  submit exercising the `toIso` `instanceof Date` branch, onHide close, row
+  with missing `end_date_time`.
+- **EventDetailPage deep flows** — register success/failure/in-flight state,
+  post-register detail-refresh error, reschedule via mocked Select (incl.
+  invalid-date option labels), full/unlimited capacity, no-venue fallback,
+  schedules/alternates load-failure toasts.
+- **MySchedulePage** — iCal download success/failure, cancel registration,
+  reschedule pick+move success/failure, past-event tag, list-load failure.
+- **ProfilePage / ManageUsersPage / explore home** — populated panels,
+  invite/edit/delete flows, search + error toast paths.
+- **Router shell via real `<AppRouter/>`** (`router/router.test.tsx`) — every
+  lazy route mounted, unauthenticated `/dashboard` → `/login` redirect,
+  role-gated `/manage-users` bound for MEMBER, unknown-route 404;
+  `router/index.tsx` 65%→87%.
+- CRUD page load-failure toasts (facilities/venues/frequencies).
+
+Test-infrastructure patterns established along the way (now documented in the
+rewritten Testing section of `docs/README-Frontend.md`):
+
+- `primereact/dialog` Proxy passthrough; `primereact/select` `Root` mock whose
+  options are buttons firing `onValueChange({ value })`.
+- Page-level `EntityFormDialog`/`ConfirmDelete` mocks with a `vi.hoisted`
+  submit-value override — handler-level CRUD tests without PrimeReact form
+  internals.
+- Selection checkbox selector `input[data-scope="checkbox"]`; bulk trigger
+  `aria-label="Delete N selected <item>s"`; confirm button `Delete N`.
+- Method-aware fetch stubs where POST and GET share one URL.
+
+Verification gates:
+
+| Check | Result |
+|-------|--------|
+| `npm run test` | 38 files, **325 passed**, 0 unhandled errors |
+| `npm run coverage` | statements **90.79%** (target 90%) |
+| `npm run lint` | clean |
+| `npx tsc -b` | clean (fixed 5 unused-var errors introduced by test files) |
+| `npm run build` | passes |
+
+Commit: `c9a16e1` — also replaces the stale "no test framework is currently
+configured" section in `docs/README-Frontend.md` with the Vitest setup, helpers,
+conventions, and dev-dependency table.
+
+Notes:
+- Residual uncovered statements concentrate in PrimeReact form internals
+  (EntityFormDialog field-rendering/validation branches), portal markup, and
+  defensive catch arms — diminishing returns below ~91% without testing the
+  library itself.
+- The intermittent `app-router.test.tsx` flake noted under 9.6 did not recur
+  after the router suite was consolidated into `router/router.test.tsx`.
