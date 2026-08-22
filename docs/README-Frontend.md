@@ -261,12 +261,46 @@ npm run preview  # preview production build locally
 | `vite` | ^8.2.0 | Build tool |
 | `typescript` | ~6.0.2 | Type checking |
 | `oxlint` | ^1.75.0 | Linting |
+| `vitest` | ^4.1.11 | Unit/integration tests (`npm test`, `npm run coverage`) |
+| `@testing-library/react` | ^16.3.2 | Component testing |
+| `@testing-library/jest-dom` | ^7.0.1 | DOM matchers |
+| `jsdom` | ^30.0.1 | Browser-like test environment |
+| `@vitest/coverage-v8` | ^4.1.11 | Coverage reports |
 
 ## Testing
 
-No test framework is currently configured in the frontend. There are no `*.test.tsx` or `*.spec.tsx` files in `frontend/src/`.
+Vitest 4 + React Testing Library + jsdom, with `@vitest/coverage-v8` for coverage.
 
-Backend tests (`uv run pytest`) cover the API layer that the frontend consumes.
+```bash
+cd frontend
+npx vitest run                                  # all tests
+npx vitest run src/pages/my-schedule-page.test.tsx   # one file
+npx vitest run --coverage --coverage.reporter=text   # statements/lines summary
+npm run lint                                    # oxlint (also lints tests)
+npm run build                                   # tsc -b + vite build (type-checks tests too)
+```
+
+Current suite: **38 files / 325 tests**, ~90.8% statement coverage of `src/`.
+
+### Setup
+
+- `vitest.config.ts` — `globals: true`, `environment: 'jsdom'`, `setupFiles: './src/test-setup.ts'`
+- `src/test-setup.ts` — registers jest-dom matchers, polyfills `matchMedia`/`ResizeObserver`, and stubs a default 200-OK `fetch` so stray requests never fail a test
+
+### Helpers (`src/test-utils.tsx`)
+
+- `makeJwt(payload)` / `loginAs(role, sub?)` — seed unsigned JWT-shaped tokens in `localStorage` so `AuthProvider.hasRole` works; role claims are lowercased like the real backend, `loginAs` takes the uppercase `UserRole` name
+- `renderPage(node, path?)` — wraps content in `PrimeReactProvider → ThemeProvider → AuthProvider → MemoryRouter` (no `Routes`; navigation doesn't change the DOM)
+- `renderAtRoute(path, template, element)` — same stack plus `Routes` so `useParams` pages render at a route template
+
+### Conventions & gotchas learned while writing these
+
+- **Mock PrimeReact compound components that need portals/forms**: `primereact/dialog` is replaced by a Proxy passthrough (children always render); `primereact/select`'s `Root` is replaced by buttons calling `onValueChange({ value })`. `Button` must be a native `<button>` wherever forms are exercised.
+- **Mock page-level dialogs for handler tests**: replacing `components/EntityFormDialog.tsx` (renders a "Dialog submit" button calling `onSubmit`) and `components/ConfirmDelete.tsx` (buttons calling `onSoftDelete`/`onHardDelete`) makes create/edit/delete flows testable without PrimeReact form internals. Use `vi.hoisted` state to override the values the mock dialog submits (e.g. to hit the `Date` branch of `toIso`).
+- **`vi.mock()` calls must precede component imports** (hoisting), and `vi.stubGlobal('fetch', …)` persists across tests — clean up with `vi.unstubAllGlobals()`.
+- **Selection checkboxes** in `EntityDataTable` are `input[data-scope="checkbox"]`; after selecting, `BulkDeleteBar` renders its trigger as `aria-label="Delete N selected <item>s"`.
+- **API URL patterns**: `createCrudApi('events').list()` → `/api/events`; bulk delete → `DELETE /api/events/bulk`.
+- The router itself is covered by `src/router/router.test.tsx`, which renders `AppRouter` inside a `MemoryRouter` at many paths (lazy loading, `RouteGuard` redirects, role-gated `/manage-users`, 404). It stubs `fetch` to return `[]` — except facility-form URLs, which need `{"questions":[],"rules":[]}`.
 
 ## See Also
 

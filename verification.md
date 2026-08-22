@@ -487,7 +487,7 @@ uncovered modules first.
   (mock `window.matchMedia`, mock `fetch`, etc.).
 - [x] **9.5** — Run baseline coverage: `npm run coverage`. Record the starting
   percentage. Identify uncovered files.
-- [ ] **9.6** — Write tests in priority order:
+- [x] **9.6** — Write tests in priority order:
   1. **Pure logic**: `src/auth/tokens.ts`, `src/auth/types.ts` (ROLE_RANK),
      `src/api/client.ts` (fetch wrapper, 401 handling)
   2. **Nav filtering**: `src/layout/nav.ts` (item filtering by role)

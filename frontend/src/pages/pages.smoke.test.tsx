@@ -23,6 +23,7 @@ import FormViewPage from './FormViewPage.tsx'
 import FormBuilderPage from './FormBuilderPage.tsx'
 import ManageUsersPage from './ManageUsersPage.tsx'
 import { ErrorPage } from './ErrorPage.tsx'
+import { PlaceholderPage } from './PlaceholderPage.tsx'
 import ExploreHomePage from './explore/ExploreHomePage.tsx'
 import ExploreVenuesPage from './explore/ExploreVenuesPage.tsx'
 import VenueSchedulePage from './explore/VenueSchedulePage.tsx'
@@ -63,6 +64,12 @@ describe('public pages', () => {
     const { container } = renderPage(<ErrorPage code={404} title="Page not found" message="Nope." />)
     expect(container.textContent).toContain('404')
     expect(container.textContent).toContain('Nope.')
+  })
+
+  it('PlaceholderPage renders its title', () => {
+    const { container } = renderPage(<PlaceholderPage title="Coming Soon" />)
+    expect(container.textContent).toContain('Coming Soon')
+    expect(container.textContent).toContain('under construction')
   })
 })
 

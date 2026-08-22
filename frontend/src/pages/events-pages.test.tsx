@@ -53,7 +53,7 @@ beforeEach(() => {
 })
 
 describe('EventsPage', () => {
-  const events = [
+  const eventsData = [
     {
       event_id: 11,
       start_date_time: '2027-02-01T09:00:00',
@@ -65,13 +65,13 @@ describe('EventsPage', () => {
   ]
 
   it('loads events and frequencies together', async () => {
-    installFetch({ '/api/events': events, '/api/frequencies': [] })
+    installFetch({ '/api/events': eventsData, '/api/frequencies': [] })
     renderPage(<EventsPage />)
     await vi.waitFor(() => expect(document.body.innerHTML).toContain('2027'))
   })
 
   it('soft deletes an event via ConfirmDelete', async () => {
-    installFetch({ '/api/events': events, '/api/frequencies': [] })
+    installFetch({ '/api/events': eventsData, '/api/frequencies': [] })
     renderPage(<EventsPage />)
     await vi.waitFor(() => expect(document.body.innerHTML).toContain('2027'))
 
@@ -86,10 +86,15 @@ describe('EventsPage', () => {
     installFetch({ '/api/events': [], '/api/frequencies': [{ frequency_id: 1, name: 'Weekly', day_interval: '7' }] })
     renderPage(<EventsPage />)
     fireEvent.click((await screen.findAllByText('New Event'))[0])
-    // datetime picker inputs mount inside the (passthrough) dialog
     await waitFor(() => {
       expect(document.querySelectorAll('[id^="entity-form-dialog-"]').length).toBeGreaterThan(0)
     })
+  })
+
+  it('shows empty state with action button', async () => {
+    installFetch({ '/api/events': [], '/api/frequencies': [] })
+    renderPage(<EventsPage />)
+    expect(await screen.findByText('No events yet.')).toBeInTheDocument()
   })
 })
 
@@ -106,7 +111,7 @@ describe('CoachEventsPage', () => {
   ]
   const members = [{ schedule_id: 31, venue_id: 1, member_id: 'm-9', event_id: 21, is_active: true, member_name: 'Pat Doe' }]
 
-  function setup(): void {
+  function setup(extra: Record<string, unknown> = {}): void {
     installFetch({
       '/api/coach/events\\?scope=upcoming': mineUpcoming,
       '/api/coach/events\\?scope=past': [],
@@ -116,6 +121,7 @@ describe('CoachEventsPage', () => {
       '/api/venues': [],
       '/api/users': [],
       '/api/events/21/members': members,
+      ...extra,
     })
   }
 
@@ -130,9 +136,6 @@ describe('CoachEventsPage', () => {
     setup()
     renderPage(<CoachEventsPage />)
     await screen.findAllByText(/My upcoming session/)
-
-    // The scope switcher is a portal-based Select; assert the default fetch
-    // scope instead of driving the popup.
     expect(calls.some((c) => c.url.includes('scope=upcoming'))).toBe(true)
   })
 
@@ -141,7 +144,6 @@ describe('CoachEventsPage', () => {
     renderPage(<CoachEventsPage />)
     await screen.findAllByText(/My upcoming session/)
 
-    // open members drawer for the row
     const membersButton = document.querySelector('[aria-label="Manage members"]')
     if (!membersButton) throw new Error('Manage members control not found')
     fireEvent.click(membersButton)
@@ -151,12 +153,49 @@ describe('CoachEventsPage', () => {
     expect(removeBtn).not.toBeNull()
     fireEvent.click(removeBtn!)
 
-    // ConfirmDelete opens its own confirmation before issuing the request
     fireEvent.click(await screen.findByText('Delete'))
     await waitFor(() =>
       expect(
         calls.some((c) => c.url === '/api/events/21/members/31' && c.method === 'DELETE'),
       ).toBe(true),
     )
+  })
+
+  it('adds a member to an event', async () => {
+    setup()
+    renderPage(<CoachEventsPage />)
+    await screen.findAllByText(/My upcoming session/)
+
+    const membersButton = document.querySelector('[aria-label="Manage members"]')
+    fireEvent.click(membersButton!)
+    await screen.findAllByText('Pat Doe')
+
+    const input = screen.getByPlaceholderText('Member sub (e.g. Google subject)')
+    fireEvent.change(input, { target: { value: 'new-member-sub' } })
+    const addBtn = screen.getByRole('button', { name: /add/i })
+    fireEvent.click(addBtn)
+    await waitFor(() =>
+      expect(calls.some((c) => c.url === '/api/events/21/members' && c.method === 'POST')).toBe(true),
+    )
+  })
+
+  it('opens the New Event dialog for coach', async () => {
+    setup()
+    renderPage(<CoachEventsPage />)
+    await screen.findAllByText(/My upcoming session/)
+    fireEvent.click((await screen.findAllByText('New Event'))[0])
+    await waitFor(() => {
+      expect(document.querySelectorAll('[id^="entity-form-dialog-"]').length).toBeGreaterThan(0)
+    })
+  })
+
+  it('edits a coach event via the dialog', async () => {
+    setup()
+    renderPage(<CoachEventsPage />)
+    await screen.findAllByText(/My upcoming session/)
+    fireEvent.click(screen.getByLabelText('Edit event'))
+    await waitFor(() => {
+      expect(document.querySelectorAll('[id^="entity-form-dialog-"]').length).toBeGreaterThan(0)
+    })
   })
 })

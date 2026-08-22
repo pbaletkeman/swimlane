@@ -833,11 +833,11 @@ Branch `chore/backend-coverage`, head commit `2bb15db`. Phase V8 complete.
 
 ---
 
-## Phase V9 — Frontend Test Coverage (target: 80%)
+## Phase V9 ï¿½ Frontend Test Coverage (target: 80%)
 
 **Branch**: `chore/frontend-coverage` (from `main` at `676d5e7`)
 
-### 9.1 — Install vitest + testing-library dev deps ?
+### 9.1 ï¿½ Install vitest + testing-library dev deps ?
 
 Command run in `frontend/`:
 
@@ -855,20 +855,20 @@ npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom @vi
 
 Result: 107 packages added, 0 vulnerabilities; all five recorded under
 `frontend/package.json` `devDependencies`. No config or scripts changed yet
-(9.2–9.4 pending).
+(9.2ï¿½9.4 pending).
 
-### 9.2 — Create vitest.config.ts ?
+### 9.2 ï¿½ Create vitest.config.ts ?
 
 | Item | Result |
 |------|--------|
-| `frontend/vitest.config.ts` | Created — mirrors `vite.config.ts` (react plugin, `@` alias) |
+| `frontend/vitest.config.ts` | Created ï¿½ mirrors `vite.config.ts` (react plugin, `@` alias) |
 | Environment | `jsdom` |
 | Globals | `true` |
 | Coverage | provider `v8`, reporters `['text', 'html']`, include `src/**/*.{ts,tsx}` |
 | tsconfig wiring | Added to `tsconfig.node.json` `include` so `tsc -b` typechecks it |
 | Verification | `npm run build` passes (339ms); `npm run lint` clean |
 
-### 9.3 — Add test + coverage scripts ?
+### 9.3 ï¿½ Add test + coverage scripts ?
 
 | Script | Command | Purpose |
 |--------|---------|---------|
@@ -876,24 +876,24 @@ Result: 107 packages added, 0 vulnerabilities; all five recorded under
 | `npm run coverage` | `vitest run --coverage` | same run with v8 coverage report |
 
 Verification: `npm run test` executes vitest 4.1.11 and correctly reports
-"No test files found" (exit 1) — expected, since test files arrive in 9.6.
+"No test files found" (exit 1) ï¿½ expected, since test files arrive in 9.6.
 
-### 9.4 — Create test-setup.ts ?
+### 9.4 ï¿½ Create test-setup.ts ?
 
 `frontend/src/test-setup.ts` (wired via `setupFiles` in `vitest.config.ts`):
 
 | Concern | Handling |
 |---------|----------|
 | jest-dom matchers | `import '@testing-library/jest-dom/vitest'` |
-| `window.matchMedia` | Stubbed (jsdom lacks it) — ThemeContext + media-query.ts depend on it |
+| `window.matchMedia` | Stubbed (jsdom lacks it) ï¿½ ThemeContext + media-query.ts depend on it |
 | `ResizeObserver` | Stubbed for PrimeReact container measuring |
 | `fetch` | Soft-fail stub resolving `{}` 200; tests override with `vi.spyOn`/`vi.stubGlobal` |
-| localStorage | `afterEach(clear)` — tokens.ts / ThemeContext isolation |
+| localStorage | `afterEach(clear)` ï¿½ tokens.ts / ThemeContext isolation |
 
 Verification: `npm run build` passes (file typechecked under tsconfig.app),
 `npm run lint` clean.
 
-### 9.5 — Baseline coverage measurement ?
+### 9.5 ï¿½ Baseline coverage measurement ?
 
 Run: `npx vitest run --coverage --passWithNoTests` (`--passWithNoTests` required
 while zero test files exist; plain `npm run coverage` exits 1 until 9.6).
@@ -909,22 +909,22 @@ Every file in `frontend/src` is uncovered (57 ts/tsx files across api, auth,
 components, layout, pages (+explore), router, theme, toast, util). Priority
 order for writing tests follows the plan's 9.6 list:
 
-1. Pure logic — `src/auth/tokens.ts`, `src/auth/types.ts`, `src/api/client.ts`
-2. Nav filtering — `src/layout/nav.ts`
-3. Page smoke tests — all `src/pages/**` (wrap in MemoryRouter + mock auth)
-4. Form components — `EntityFormDialog`, `ThemeSwitch`, `EmptyState`
-5. API wrappers — `src/api/{events,schedules,forms,messages,users,public}.ts`
+1. Pure logic ï¿½ `src/auth/tokens.ts`, `src/auth/types.ts`, `src/api/client.ts`
+2. Nav filtering ï¿½ `src/layout/nav.ts`
+3. Page smoke tests ï¿½ all `src/pages/**` (wrap in MemoryRouter + mock auth)
+4. Form components ï¿½ `EntityFormDialog`, `ThemeSwitch`, `EmptyState`
+5. API wrappers ï¿½ `src/api/{events,schedules,forms,messages,users,public}.ts`
 
-### 9.6 — Write tests (in progress)
+### 9.6 ï¿½ Write tests âœ…
 
 | Batch | Commit | Tests | Coverage after | Files covered |
 |-------|--------|-------|----------------|---------------|
-| 1 — pure logic | `22ae013` | 28 | 5.4% | tokens.ts, types.ts, nav.ts, client.ts |
-| 2 — page smoke tests + toast fix | `a1a15ef`/`bd693f5` | 16 | **41.8%** | all pages incl. explore, LoginPage, ErrorPage |
+| 1 ï¿½ pure logic | `22ae013` | 28 | 5.4% | tokens.ts, types.ts, nav.ts, client.ts |
+| 2 ï¿½ page smoke tests + toast fix | `a1a15ef`/`bd693f5` | 16 | **41.8%** | all pages incl. explore, LoginPage, ErrorPage |
 
 Batch 2 details:
-- `src/test-utils.tsx` — makeJwt/loginAs/renderPage/renderAtRoute/stubListApi helpers.
-- `src/pages/pages.smoke.test.tsx` — 16 smoke tests: every page renders inside
+- `src/test-utils.tsx` ï¿½ makeJwt/loginAs/renderPage/renderAtRoute/stubListApi helpers.
+- `src/pages/pages.smoke.test.tsx` ï¿½ 16 smoke tests: every page renders inside
   PrimeReactProvider -> AuthProvider -> MemoryRouter without crashing; param
   routes via renderAtRoute.
 - **App fix discovered by testing**: `useToast()` returned a fresh object per
@@ -937,4 +937,36 @@ Batch 2 details:
 Verification: `npm run test` 44 passed; `npm run lint` clean;
 `npm run build` passes; coverage statements 41.78% (822/1967).
 
-| 3 — router + deep CRUD pattern | `f462a13` | 14 | **52.7%** | router/index, RouteGuard, AppLayout, ErrorPage via `<AppRouter/>`; FrequenciesPage deep flows (load/create/edit/soft+hard delete); ConfirmDelete internals |
+| 3 ï¿½ router + deep CRUD pattern | `f462a13` | 14 | **52.7%** | router/index, RouteGuard, AppLayout, ErrorPage via `<AppRouter/>`; FrequenciesPage deep flows (load/create/edit/soft+hard delete); ConfirmDelete internals |
+| 4 â€” deep CRUD: Facilities/Venues/Schedules, Events + CoachEvents member drawer | `ef90f72`, `920b5bb` | 13 | **58.2%** | Facilities/Venues/Schedules create/edit/delete flows; EventsPage + CoachEventsPage incl. member drawer |
+| 5 â€” AuthCallback, forms API remainder, ManageUsers, Forms trio + Profile tabs | `e25dc0b`, `1732dc4` | 19 | **63.1%** | AuthCallbackPage token capture; messages/users API shapes; ManageUsersPage deep flows; Forms trio; ProfilePage tabs |
+| 6 â€” DataTable interactions + Profile panels + explore deep flows | `80161c9`, `278e68c` | 8 | **67.4%** | EntityDataTable search/bulk-delete; ProfilePage populated panels; explore search/views/detail + register |
+| 7 â€” FormBuilder rules, logout, client edges + app shell | `815c67f`, `8ae677e` (`67e63fa` fix) | 7 | **68.5%** | FormBuilder rule authoring; logout flow; client refresh/error edges; sign-out/login-redirect/home nav via full shell |
+| 8 â€” final gaps sweep + PlaceholderPage smoke test | `5910ecd`, `8639a1e`, `0d09ad4` (PlaceholderPage uncommitted â€” commit lands with 9.8) | 10+1 | **70.36%** | Builder edit/delete; Profile submission detail; message mark-read; narrow sidebar; unauthorized handler; venue empty state; client error-detail fallback; PlaceholderPage title render |
+
+**Priority-group completeness (all five 9.6 groups covered):**
+
+| # | Group | Test files | Status |
+|---|-------|-----------|--------|
+| 1 | Pure logic (tokens/types/client) | `auth/tokens.test.ts`, `auth/types.test.ts`, `api/client.test.ts` | âœ… client.ts at 98% stmts |
+| 2 | Nav filtering by role | `layout/nav.test.ts` | âœ… |
+| 3 | Page smoke tests | `pages/pages.smoke.test.tsx` â€” all 20 routed pages + PlaceholderPage + ErrorPage inside PrimeReactProvider â†’ AuthProvider â†’ MemoryRouter; deeper page flows in dedicated `*.test.tsx` files | âœ… |
+| 4 | Form components | `components/EntityFormDialog.test.tsx`, `components/ThemeSwitch.test.tsx`, `components/EmptyState.test.tsx` | âœ… |
+| 5 | API wrappers (call shapes vs mock fetch) | `api/api-wrappers.test.ts` â€” events/schedules/forms/messages/users/public extras + crud factory + auth | âœ… |
+
+Final verified state for 9.6:
+
+| Check | Result |
+|-------|--------|
+| Test files | 22 |
+| Tests | **140 passed** |
+| Coverage statements | **70.36%** (1384/1967), lines 71.62%, branches 55.68%, functions 66.66% |
+| `npm run lint` | clean |
+| `npm run build` | passes (lazy chunks intact) |
+
+Notes:
+- Remaining uncovered code (CoachEventsPage internals, FormViewPage submit
+  branches, ToastProvider portal rendering, App/main entry) is 9.7's push
+  toward the coverage target â€” outside 9.6's group list.
+- One intermittent failure observed in `app-router.test.tsx` under the
+  instrumented coverage run only; passed on re-run and in plain `npm run test`.
