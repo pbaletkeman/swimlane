@@ -1042,3 +1042,17 @@ Notes:
   library itself.
 - The intermittent `app-router.test.tsx` flake noted under 9.6 did not recur
   after the router suite was consolidated into `router/router.test.tsx`.
+
+### 9.8 — Commit, push, and generate PR title + description ✅
+
+| Item | Result |
+|------|--------|
+| Commits | All V9 work committed on `chore/frontend-coverage` (28 commits, tip `a44ad15`) |
+| Push | `git push -u origin chore/frontend-coverage` — `0d09ad4..a44ad15` |
+| PR title | `test: frontend unit test coverage to 90%` |
+| PR | **[#45](https://github.com/pbaletkeman/swimlane/pull/45)** (`chore/frontend-coverage` → `main`), description finalized with actual numbers (90.79% statements, 325 tests/38 files, per-gate results) |
+
+The pre-drafted PR description in `verification.md` was superseded by the PR
+body, which records real final metrics instead of placeholders and adds the
+9.8 row. Phase V9 is fully complete (9.1–9.8); branch is up to date with its
+PR head after this docs commit.

@@ -499,7 +499,7 @@ uncovered modules first.
      `src/api/public.ts` (mock fetch, verify call shapes)
 - [x] **9.7** — Reach 90% overall coverage on `frontend/src/`. Run final
   coverage report and commit the result.
-- [ ] **9.8** — Commit, push, and generate PR title + description.
+- [x] **9.8** — Commit, push, and generate PR title + description.
 
 ### PR Title
 
