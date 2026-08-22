@@ -567,7 +567,7 @@ Ensure all methods have valid docstrings or function comments.
   ignore-private = true
   fail-under = 80
   ```
-- [ ] **10.6** — Commit, push, and generate PR title + description.
+- [ ] **10.6** — Commit, push, create a PR and generate PR title + description, never commit to main branch
 
 ### PR Title
 
@@ -620,7 +620,7 @@ Every source file must have a top-of-file comment explaining its contents.
   any component-specific CSS files.
 - [ ] **11.4** — Verify no generated or vendored files were accidentally
   annotated (skip `dist/`, `node_modules/`, `__pycache__/`).
-- [ ] **11.5** — Commit, push, and generate PR title + description.
+- [ ] **11.5** —  Commit, push, create a PR and generate PR title + description, never commit to main branch
 
 ### PR Title
 
@@ -672,7 +672,7 @@ Run a final sweep to confirm everything is in order.
 - [ ] **12.9** — Every `.md` file links to `readme.md` and at least one
   other doc file (no orphaned pages).
 - [ ] **12.10** — `git status` clean (no uncommitted changes).
-- [ ] **12.11** — Commit, push, and generate PR title + description.
+- [ ] **12.11** —  Commit, push, create a PR and generate PR title + description, never commit to main branch
 
 ### PR Title
 
