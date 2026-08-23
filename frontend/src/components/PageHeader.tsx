@@ -1,5 +1,6 @@
 import { Button } from 'primereact/button'
 
+/** Props for the PageHeader component. */
 export interface PageHeaderProps {
   title: string
   subtitle?: string
@@ -7,6 +8,7 @@ export interface PageHeaderProps {
   newLabel?: string
 }
 
+/** Renders a page header with title, optional subtitle, and action button. */
 export function PageHeader({ title, subtitle, onNew, newLabel = 'New' }: PageHeaderProps) {
   return (
     <header className="page-header">

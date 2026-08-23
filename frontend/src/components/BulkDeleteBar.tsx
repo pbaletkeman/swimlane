@@ -3,6 +3,7 @@ import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'
 import type { DialogRootChangeEvent } from '@primereact/types/primitive/dialog'
 
+/** Props for the BulkDeleteBar component. */
 export interface BulkDeleteBarProps {
   count: number
   itemLabel: string
@@ -10,6 +11,7 @@ export interface BulkDeleteBarProps {
   loading?: boolean
 }
 
+/** Renders a bulk-delete action bar with a confirmation dialog for selected items. */
 export function BulkDeleteBar({ count, itemLabel, onBulkDelete, loading = false }: BulkDeleteBarProps) {
   const [visible, setVisible] = useState(false)
   const [deleting, setDeleting] = useState(false)

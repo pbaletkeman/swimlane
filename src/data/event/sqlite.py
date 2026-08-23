@@ -23,11 +23,13 @@ class SQLite(EventInterfaceBase):
     """An implementation of the event database operations"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Load the YAML config and SQLite database file path."""
         super().__init__(*args, **kwargs)
         self._config: dict[str, Any] = Config.yaml_config() or {}
         self._sqlite_file: str = Config.sqlite_file()
 
     def _connect(self) -> sqlite3.Connection:
+        """Open a SQLite connection with Row rows and foreign keys enabled."""
         try:
             conn = sqlite3.connect(self._sqlite_file, factory=ClosingConnection)
             conn.row_factory = sqlite3.Row

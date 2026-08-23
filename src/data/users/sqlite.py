@@ -37,11 +37,13 @@ class SQLite(UserInterfaceBase):
     """An implementation of the user's database operations"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Load the YAML config and SQLite database file path."""
         super().__init__(*args, **kwargs)
         self._config: dict[str, Any] = Config.yaml_config() or {}
         self._sqlite_file: str = Config.sqlite_file()
 
     def _connect(self) -> sqlite3.Connection:
+        """Open a SQLite connection with Row rows and foreign keys enabled."""
         try:
             conn = sqlite3.connect(self._sqlite_file, factory=ClosingConnection)
             conn.row_factory = sqlite3.Row
@@ -209,6 +211,14 @@ class SQLite(UserInterfaceBase):
 
     # ------------------------------------------------------------------
     def update_user(self, user: User) -> Optional[User]:
+        """Update a user's fields matched on ``sub`` and stamp ``updated_at``.
+
+        Args:
+            user: The User carrying the field values to persist.
+
+        Returns:
+            The updated user, or None if no row matched.
+        """
         # Set updated_at to current UTC time
         user.updated_at = datetime.now(timezone.utc)
 

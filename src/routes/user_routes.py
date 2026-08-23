@@ -81,6 +81,7 @@ class UserRoutes:
     """Defines all user-management routes."""
 
     def __init__(self):
+        """Register the user routes on a new APIRouter."""
         self.router = APIRouter(prefix="/users", tags=["users"])
 
         self.router.add_api_route(
@@ -122,10 +123,12 @@ class UserRoutes:
 
     # ------------------------------------------------------------------
     def _get_users_db(self) -> UsersSQLite:
+        """Return a fresh SQLite user store."""
         return UsersSQLite()
 
     # ------------------------------------------------------------------
     def _get_invite_db(self) -> UserInviteSQLite:
+        """Return a fresh SQLite user invite store."""
         return UserInviteSQLite()
 
     # ------------------------------------------------------------------
@@ -154,6 +157,7 @@ class UserRoutes:
 
     # ------------------------------------------------------------------
     def _to_managed(self, user: User) -> ManagedUser:
+        """Convert a user into a masked ManagedUser response."""
         return ManagedUser(
             sub=user.sub,
             role=user.role or "member",

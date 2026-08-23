@@ -20,6 +20,7 @@ import { setAccessToken, setStoredUser } from './auth/tokens.ts'
 import type { User, UserRole } from './auth/types.ts'
 import { vi } from 'vitest'
 
+/** Builds an unsigned JWT-shaped string from the given payload. */
 export function makeJwt(payload: Record<string, unknown>): string {
   const json = JSON.stringify(payload)
   const bytes = new TextEncoder().encode(json)
@@ -31,11 +32,13 @@ export function makeJwt(payload: Record<string, unknown>): string {
   return `${header}.${body}.signature`
 }
 
+/** Seeds localStorage with a JWT and user object for the given role. */
 export function loginAs(role: UserRole = 'MEMBER', sub = 'test-user'): void {
   setAccessToken(makeJwt({ sub, role: role.toLowerCase(), type: 'access', exp: 4102444800 }))
   setStoredUser({ sub } satisfies User)
 }
 
+/** Renders ReactNode inside the full provider stack (PrimeReact, Theme, Auth, Router). */
 export function renderPage(node: ReactNode, path?: string): ReturnType<typeof render> {
   return render(
     <PrimeReactProvider>
@@ -50,6 +53,7 @@ export function renderPage(node: ReactNode, path?: string): ReturnType<typeof re
   )
 }
 
+/** Renders a route-matched element inside PrimeReact, Auth, and MemoryRouter providers. */
 export function renderAtRoute(path: string, template: string, element: ReactNode): ReturnType<typeof render> {
   return render(
     <PrimeReactProvider>

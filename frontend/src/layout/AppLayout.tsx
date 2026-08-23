@@ -23,6 +23,7 @@ function getInitials(name?: string): string {
     .join('')
 }
 
+/** Main authenticated layout with a collapsible sidebar, top bar, and outlet. */
 export function AppLayout() {
   const { user, logout, hasRole } = useAuth()
   const navigate = useNavigate()

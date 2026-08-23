@@ -8,6 +8,7 @@ interface RouteGuardProps {
   requiredRole?: UserRole
 }
 
+/** Wrapper that redirects unauthenticated or under-privileged users away from protected routes. */
 export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
   const { accessToken, loading, hasRole } = useAuth()
 

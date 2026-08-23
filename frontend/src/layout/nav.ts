@@ -1,5 +1,6 @@
 import type { UserRole } from '../auth/types.ts'
 
+/** A sidebar navigation entry with label, icon, route path, and required role. */
 export interface NavItem {
   label: string
   icon: string

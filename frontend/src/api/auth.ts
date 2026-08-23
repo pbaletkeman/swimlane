@@ -1,6 +1,7 @@
 import api, { apiBaseUrl } from './client.ts'
 import type { MessageResponse, User } from './types.ts'
 
+/** Response from the token refresh endpoint. */
 export interface RefreshResponse {
   access_token: string
   token_type: string

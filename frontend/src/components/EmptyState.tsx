@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Button } from 'primereact/button'
 
+/** Props for the EmptyState component. */
 export interface EmptyStateProps {
   message: string
   hint?: string
@@ -10,6 +11,7 @@ export interface EmptyStateProps {
   action?: ReactNode
 }
 
+/** Renders an empty-state placeholder with a message, hint, and optional action. */
 export function EmptyState({
   message,
   hint,

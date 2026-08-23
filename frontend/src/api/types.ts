@@ -5,8 +5,10 @@
  * Datetime fields serialize over JSON as ISO-8601 strings (or null).
  */
 
+/** Union of all user roles as uppercase enum member names. */
 export type Role = 'WEB_ADMIN' | 'FACILITY_MANAGER' | 'COACH' | 'MEMBER'
 
+/** A recurring frequency pattern (e.g. "weekly", "bi-weekly") used by events. */
 export interface Frequency {
   frequency_id?: number
   name: string
@@ -14,6 +16,7 @@ export interface Frequency {
   is_active: boolean
 }
 
+/** A facility (e.g. pool, gym) with optional capacity limits. */
 export interface Facility {
   facility_id?: number
   name: string
@@ -23,6 +26,7 @@ export interface Facility {
   is_active: boolean
 }
 
+/** A scheduled event tied to a venue, frequency, and optional coach. */
 export interface Event {
   event_id?: number
   start_date_time: string
@@ -87,6 +91,7 @@ export interface RescheduleInput {
   event_id: number
 }
 
+/** A physical venue (address + cost) belonging to a facility. */
 export interface Venue {
   venue_id?: number
   facility_id: number
@@ -98,6 +103,7 @@ export interface Venue {
   is_active: boolean
 }
 
+/** A member's registration linking a member to an event and venue. */
 export interface Schedule {
   schedule_id?: number
   venue_id: number
@@ -179,8 +185,10 @@ export interface VenueScheduleRow {
   event_end_date_time: string
 }
 
+/** Supported form question input types. */
 export type QuestionType = 'text' | 'checkbox'
 
+/** A question on a facility's signup form. */
 export interface FormQuestion {
   form_question_id?: number
   facility_id: number
@@ -191,6 +199,7 @@ export interface FormQuestion {
   is_active: boolean
 }
 
+/** A facility rule displayed on the signup form. */
 export interface FacilityRule {
   rule_id?: number
   facility_id: number
@@ -200,6 +209,7 @@ export interface FacilityRule {
   is_active: boolean
 }
 
+/** A member's form submission for a facility's signup form. */
 export interface FormSubmission {
   submission_id?: number
   facility_id: number
@@ -259,6 +269,7 @@ export interface MessageInput {
   body?: string
 }
 
+/** A single answer within a form submission. */
 export interface FormResponse {
   response_id?: number
   submission_id?: number | null
@@ -274,6 +285,7 @@ export interface FacilityForm {
   rules: FacilityRule[]
 }
 
+/** Generic message-only API response. */
 export interface MessageResponse {
   message: string
 }
@@ -323,6 +335,7 @@ export interface FrequencyInput {
   is_active?: boolean
 }
 
+/** Request body for creating or updating a facility. */
 export interface FacilityInput {
   name: string
   description?: string | null
@@ -331,6 +344,7 @@ export interface FacilityInput {
   is_active?: boolean
 }
 
+/** Request body for creating or updating an event. */
 export interface EventInput {
   start_date_time: string
   end_date_time: string
@@ -341,6 +355,7 @@ export interface EventInput {
   is_active?: boolean
 }
 
+/** Request body for creating or updating a venue. */
 export interface VenueInput {
   facility_id: number
   street: string
@@ -351,6 +366,7 @@ export interface VenueInput {
   is_active?: boolean
 }
 
+/** Request body for creating or updating a schedule. */
 export interface ScheduleInput {
   venue_id: number
   member_id: string
@@ -358,6 +374,7 @@ export interface ScheduleInput {
   is_active?: boolean
 }
 
+/** Request body for creating or updating a form question. */
 export interface QuestionInput {
   facility_id: number
   prompt: string
@@ -367,6 +384,7 @@ export interface QuestionInput {
   is_active?: boolean
 }
 
+/** Request body for creating or updating a facility rule. */
 export interface RuleInput {
   facility_id: number
   title: string
@@ -375,12 +393,14 @@ export interface RuleInput {
   is_active?: boolean
 }
 
+/** A single answer within a form submission request. */
 export interface FormResponseInput {
   question_id: number
   answer_text?: string | null
   answer_bool?: boolean | null
 }
 
+/** Request body for submitting a signed form with response answers. */
 export interface FormSubmissionInput {
   signed: boolean
   responses: FormResponseInput[]

@@ -13,6 +13,7 @@ class ClosingConnection(sqlite3.Connection):
     """
 
     def __exit__(self, exc_type, exc_value, traceback):  # type: ignore[override]
+        """Commit or roll back via the base class, then always close the connection."""
         try:
             super().__exit__(exc_type, exc_value, traceback)
         finally:

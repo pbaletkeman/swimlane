@@ -1,6 +1,7 @@
 import api from './client.ts'
 import type { MessageResponse } from './types.ts'
 
+/** Generic CRUD endpoint bundle for an entity type. */
 export interface CrudApi<Entity, Input> {
   list: () => Promise<Entity[]>
   get: (id: number) => Promise<Entity>

@@ -2,6 +2,7 @@ import { Button } from 'primereact/button'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/auth-context.ts'
 
+/** Landing page with explore, sign-in, and dashboard navigation options. */
 export function HomePage() {
   const { accessToken, loading, login } = useAuth()
   const navigate = useNavigate()

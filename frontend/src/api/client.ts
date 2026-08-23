@@ -16,6 +16,7 @@ import { clearTokens, getAccessToken, getRefreshToken, setAccessToken } from '..
 /** Dispatched when the backend rejects a request with 401 (see client.ts). */
 export const AUTH_UNAUTHORIZED_EVENT = 'swimlane:auth-unauthorized'
 
+/** API error with an HTTP status code and message. */
 export class ApiError extends Error {
   status: number
 
@@ -152,6 +153,7 @@ async function request<T>(method: string, path: string, body?: unknown, options:
   return (await response.json()) as T
 }
 
+/** Typed HTTP client wrapper with auth header injection and 401 handling. */
 export const api = {
   get: <T>(path: string, options?: RequestOptions): Promise<T> => request<T>('GET', path, undefined, options),
   post: <T>(path: string, body?: unknown): Promise<T> => request<T>('POST', path, body),

@@ -29,6 +29,7 @@ class FrequencyRoutes:
     """Defines all frequency-related routes."""
 
     def __init__(self):
+        """Register the frequency routes on a new APIRouter."""
         self.router = APIRouter(prefix="/frequencies", tags=["frequencies"])
         self.router.add_api_route(
             "",
@@ -87,6 +88,7 @@ class FrequencyRoutes:
 
     # ------------------------------------------------------------------
     def _get_db(self) -> FrequencySQLite:
+        """Return a fresh SQLite frequency store."""
         return FrequencySQLite()
 
     # ------------------------------------------------------------------

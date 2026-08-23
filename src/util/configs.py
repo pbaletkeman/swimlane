@@ -77,6 +77,7 @@ class Config:
         return path
 
     def __init__(self) -> None:
+        """Load YAML config and Google OAuth credentials, then select the database provider."""
         from src.data.users.sqlite import SQLite  # noqa: E402  # pylint: disable=import-outside-toplevel
 
         self.yamlconfig: dict[str, Any] = Config.yaml_config()

@@ -19,6 +19,7 @@ class JSONFormatter(logging.Formatter):
     """JSON log formatter for production log aggregators."""
 
     def format(self, record: logging.LogRecord) -> str:
+        """Format a log record as a single-line JSON object."""
         log_data: dict[str, object] = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,

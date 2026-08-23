@@ -63,6 +63,7 @@ class PublicRoutes:
     """Defines all public (unauthenticated) read-only routes."""
 
     def __init__(self) -> None:
+        """Register the public routes on a new APIRouter."""
         self.router = APIRouter(prefix="/public", tags=["public"])
         self.router.add_api_route("/venues", self.list_venues, methods=["GET"])
         self.router.add_api_route("/venues/{venue_id}", self.get_venue, methods=["GET"])

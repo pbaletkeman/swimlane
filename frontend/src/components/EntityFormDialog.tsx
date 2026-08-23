@@ -14,13 +14,16 @@ import type { DialogRootChangeEvent } from '@primereact/types/primitive/dialog'
 import type { InputNumberRootValueChangeEvent } from '@primereact/types/primitive/inputnumber'
 import type { SelectValueChangeEvent } from '@primereact/types/primitive/select'
 
+/** Supported form field input types. */
 export type EntityFormFieldType = 'text' | 'textarea' | 'number' | 'checkbox' | 'select' | 'datetime'
 
+/** A selectable option for dropdown or select fields. */
 export interface EntityFormFieldOption {
   label: string
   value: string | number
 }
 
+/** Describes a single form field rendered by EntityFormDialog. */
 export interface EntityFormField<T> {
   name: keyof T
   label: string
@@ -35,6 +38,7 @@ export interface EntityFormField<T> {
   validate?: (value: unknown, values: Record<string, unknown>) => string | undefined
 }
 
+/** Props for the EntityFormDialog component. */
 export interface EntityFormDialogProps<T> {
   visible: boolean
   title: string
@@ -91,6 +95,7 @@ function validateField<T>(
   return undefined
 }
 
+/** Renders a modal dialog containing a dynamic form built from field definitions. */
 export function EntityFormDialog<T>({
   visible,
   title,
