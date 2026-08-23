@@ -1,37 +1,44 @@
 /**
- * Toast helper functions and stable context hook.
+ * Toast helper functions — delegates to the custom toast system.
  */
-import { toast } from 'primereact/toaster'
-import type { ToastType } from '@primereact/types/primitive/toaster'
+import type { ToastItem } from '../components/ToastProvider.tsx'
 
-/** Stable toast helper methods for show, success, and error notifications. */
+/** Stable toast helper methods for show, success, error, warn, info notifications. */
 export interface ToastHelpers {
-  show: (options: ToastType) => string | number
-  success: (title: string, description?: string) => string | number
-  error: (title: string, description?: string) => string | number
+  show: (options: { title: string; description?: string; type?: ToastItem['type'] }) => void
+  success: (title: string, description?: string) => void
+  error: (title: string, description?: string) => void
+  warn: (title: string, description?: string) => void
+  info: (title: string, description?: string) => void
 }
 
-/** Show a toast notification with arbitrary options. */
-export const showToast = (options: ToastType): string | number => toast(options)
+let addToast: ((type: ToastItem['type'], title: string, description?: string) => void) | null = null
+
+/** Called by ToastProvider to register the add function. */
+export function registerToastAdd(fn: (type: ToastItem['type'], title: string, description?: string) => void) {
+  addToast = fn
+}
+
+/** Show a toast notification. */
+export function showToast(type: ToastItem['type'], title: string, description?: string) {
+  addToast?.(type, title, description)
+}
 
 /** Show a success toast with a title and optional description. */
-export const showToastSuccess = (title: string, description?: string): string | number =>
-  toast.success({ title, description })
+export const showToastSuccess = (title: string, description?: string): void => showToast('success', title, description)
 
 /** Show an error toast with a title and optional description. */
-export const showToastError = (title: string, description?: string): string | number => toast.error({ title, description })
+export const showToastError = (title: string, description?: string): void => showToast('error', title, description)
 
 /** Return a stable set of toast helpers. */
 export function useToast(): ToastHelpers {
-  // Stable identity across renders: helpers are pure module-level functions,
-  // so a new object per call only churns consumers' effect dependencies
-  // (e.g. explore pages listing `toast` in useEffect deps) into endless
-  // refetch loops.
   return TOAST_HELPERS
 }
 
 const TOAST_HELPERS: ToastHelpers = {
-  show: showToast,
-  success: showToastSuccess,
-  error: showToastError,
+  show: (opts) => showToast(opts.type ?? 'info', opts.title, opts.description),
+  success: (title, desc) => showToast('success', title, desc),
+  error: (title, desc) => showToast('error', title, desc),
+  warn: (title, desc) => showToast('warn', title, desc),
+  info: (title, desc) => showToast('info', title, desc),
 }

@@ -43,14 +43,18 @@ first‑party role enforcement.
 import json
 import logging
 import os
+import secrets
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 from urllib.parse import urlencode, urlsplit
 
+import httpx
 from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import HTTPBearer
+from itsdangerous import URLSafeTimedSerializer
 from jose import JWTError, exceptions, jwt
 from starlette import status
 
@@ -74,6 +78,42 @@ Config.google_config()
 # origin the user came from (captured at /login) is preferred so the callback
 # still works when Vite serves the SPA on a port other than this one.
 frontend_url: str = os.getenv("FRONTEND_URL", config["security"].get("frontend_url", "http://localhost:5173"))
+
+# --- STATE TOKEN HELPERS ---
+# Signed state tokens replace session-based CSRF state, avoiding session
+# persistence issues (ephemeral session secrets, cookie mismatches, etc.).
+_state_serializer = URLSafeTimedSerializer(TOKEN_SECRET_KEY)
+_state_store: dict[str, dict[str, Any]] = {}
+_STATE_TTL_SECONDS = 600  # 10 minutes
+
+
+def _create_state_token(frontend_url: str | None = None) -> str:
+    """Create a signed state token containing a random nonce and the frontend URL."""
+    nonce = secrets.token_urlsafe(16)
+    payload = {"nonce": nonce, "ts": int(time.time())}
+    token = _state_serializer.dumps(payload, salt="oauth-state")
+    _state_store[nonce] = {"frontend_url": frontend_url, "ts": time.time()}
+    # Prune expired entries
+    now = time.time()
+    expired = [k for k, v in _state_store.items() if now - v["ts"] > _STATE_TTL_SECONDS]
+    for k in expired:
+        _state_store.pop(k, None)
+    return token
+
+
+def _verify_state_token(token: str) -> dict[str, Any] | None:
+    """Verify a signed state token and return its payload, or None if invalid/expired."""
+    try:
+        payload = _state_serializer.loads(token, salt="oauth-state", max_age=_STATE_TTL_SECONDS)
+    except Exception:
+        return None
+    nonce = payload.get("nonce")
+    stored = _state_store.pop(nonce, None) if nonce else None
+    if stored is None:
+        return None
+    payload["frontend_url"] = stored.get("frontend_url")
+    return payload
+
 
 db_connect = Config().db
 
@@ -298,10 +338,26 @@ class AuthRoutes:
         login_origin = _local_frontend_origin(request.query_params.get("frontend_url")) or _local_frontend_origin(
             request.headers.get("origin") or request.headers.get("referer")
         )
-        if login_origin:
-            request.session["frontend_url"] = login_origin
-        redirect_uri = request.url_for("auth_callback")
-        return await self.oauth.google.authorize_redirect(request, redirect_uri)  # type: ignore
+        # Build the callback redirect URI
+        redirect_uri = str(request.url_for("auth_callback"))
+
+        # Create a signed state token (stores frontend_url server-side)
+        state_token = _create_state_token(frontend_url=login_origin or frontend_url)
+
+        # Build the Google authorization URL manually
+        google = self.oauth.google
+        metadata = await google.load_server_metadata()
+        params: dict[str, str] = {
+            "response_type": "code",
+            "client_id": google.client_id,
+            "redirect_uri": redirect_uri,
+            "scope": "openid email profile",
+            "state": state_token,
+            "access_type": "offline",
+            "prompt": "consent",
+        }
+        auth_url = metadata["authorization_endpoint"] + "?" + urlencode(params)
+        return RedirectResponse(url=auth_url, status_code=status.HTTP_302_FOUND)
 
     # ------------------------------------------------------------------
     async def auth_callback(self, request: Request) -> Any:
@@ -334,13 +390,53 @@ class AuthRoutes:
         """
         if "code" not in request.query_params:
             return HTMLResponse(DEVTOOLS_HTML)
-        try:
-            token: Any = await self.oauth.google.authorize_access_token(request)  # type: ignore
-        except Exception as exc:
-            logger.error("OAuth authorization failed: %s", exc)
-            raise HTTPException(status_code=400, detail="OAuth authorization failed") from exc
 
-        user_info: dict[str, Any] = token.get("userinfo")  # type: ignore
+        # Verify the signed state token (CSRF protection)
+        state_param = request.query_params.get("state", "")
+        state_data = _verify_state_token(state_param)
+        if state_data is None:
+            raise HTTPException(status_code=400, detail="Invalid or expired OAuth state")
+
+        redirect_uri = str(request.url_for("auth_callback"))
+        code = request.query_params["code"]
+        logger.info("Token exchange – redirect_uri=%s, code=%s…", redirect_uri, code[:8])
+
+        # Exchange authorization code for tokens via Google's token endpoint
+        google = self.oauth.google
+        metadata = await google.load_server_metadata()
+        token_endpoint = metadata["token_endpoint"]
+        async with httpx.AsyncClient() as client:
+            token_resp = await client.post(
+                token_endpoint,
+                data={
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": redirect_uri,
+                    "client_id": google.client_id,
+                    "client_secret": google.client_secret,
+                },
+                headers={"Accept": "application/json"},
+            )
+        if token_resp.status_code != 200:
+            logger.error("Token exchange failed: %s %s", token_resp.status_code, token_resp.text)
+            raise HTTPException(status_code=400, detail=f"OAuth token exchange failed: {token_resp.text}")
+        token = token_resp.json()
+
+        # Extract userinfo from the ID token or the userinfo endpoint
+        user_info: dict[str, Any] | None = token.get("userinfo")
+        if not user_info and "id_token" in token:
+            # Decode the ID token (no signature verification needed — we got it directly from Google)
+            from jose import jwt as _jwt
+
+            user_info = _jwt.get_unverified_claims(token["id_token"])
+        if not user_info:
+            # Fallback: call the userinfo endpoint
+            userinfo_endpoint = metadata.get("userinfo_endpoint", "https://www.googleapis.com/oauth2/v3/userinfo")
+            access_token = token.get("access_token")
+            if access_token:
+                ui_resp = await client.get(userinfo_endpoint, headers={"Authorization": f"Bearer {access_token}"})
+                if ui_resp.status_code == 200:
+                    user_info = ui_resp.json()
         if not user_info:
             raise HTTPException(status_code=400, detail="No user info returned")
 
@@ -391,7 +487,7 @@ class AuthRoutes:
             }
         )
         logger.info("Login successful, redirecting to frontend for sub=%s", sub)
-        redirect_base: str = request.session.get("frontend_url") or frontend_url
+        redirect_base: str = state_data.get("frontend_url") or frontend_url
         return RedirectResponse(url=f"{redirect_base}/auth/callback?{params}")
 
     # ------------------------------------------------------------------
