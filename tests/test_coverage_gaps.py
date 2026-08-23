@@ -123,9 +123,7 @@ def test_edit_event_member_move_venue(client: TestClient, seed: dict) -> None:
             "postal_code": "62701",
         },
     ).json()["venue_id"]
-    r = client.put(
-        f"/events/{eid}/members/{sid}", headers=seed["mgr"], json={"venue_id": new_vid}
-    )
+    r = client.put(f"/events/{eid}/members/{sid}", headers=seed["mgr"], json={"venue_id": new_vid})
     assert r.status_code == 200
     assert r.json()["venue_id"] == new_vid
 
@@ -164,7 +162,8 @@ def test_edit_event_member_bad_target_event(client: TestClient, seed: dict) -> N
 
 def test_send_message_unknown_recipient(client: TestClient, seed: dict) -> None:
     r = client.post(
-        "/messages", headers=seed["coach1"],
+        "/messages",
+        headers=seed["coach1"],
         json={"member_id": "ghost-user", "subject": "Hi", "body": "X"},
     )
     assert r.status_code == 404
@@ -191,15 +190,25 @@ def test_form_bulk_delete_handlers(client: TestClient, seed: dict) -> None:
 
     fr = FormRoutes()
     q = asyncio.run(
-        fr.create_question(QuestionRequest(
-            facility_id=seed["facility_id"], prompt="Bulk del Q",
-            question_type=QuestionType.TEXT, is_required=False, sort_order=1,
-        ))
+        fr.create_question(
+            QuestionRequest(
+                facility_id=seed["facility_id"],
+                prompt="Bulk del Q",
+                question_type=QuestionType.TEXT,
+                is_required=False,
+                sort_order=1,
+            )
+        )
     )
     r_rule = asyncio.run(
-        fr.create_rule(RuleRequest(
-            facility_id=seed["facility_id"], title="Bulk del R", content="C", sort_order=1,
-        ))
+        fr.create_rule(
+            RuleRequest(
+                facility_id=seed["facility_id"],
+                title="Bulk del R",
+                content="C",
+                sort_order=1,
+            )
+        )
     )
 
     qid = q.form_question_id

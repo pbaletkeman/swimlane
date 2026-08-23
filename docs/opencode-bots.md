@@ -11,3 +11,7 @@ Once the database structure is set, switch to DeepSeek V4 Flash to write the bul
 ## 📦 Optional: Bulk Mock Data -> Use Big Pickle
 
 If you need to quickly populate your database with dozens of rows of Python dicts, fake JSON payloads, or unit tests for your FastAPI routers, spin up Big Pickle.Its rapid-fire token generation makes it ideal for churning out mass boilerplate code.
+
+---
+
+[Back to README](../readme.md) | [Documentation Index](index.md)

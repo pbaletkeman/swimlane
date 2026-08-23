@@ -708,3 +708,7 @@ coverage passing, all markdown files cross-linked, README under 500 lines.
 
 - This PR merges last — it is the confirmation that all prior phases landed
   correctly and the repo is in its final state.
+
+---
+
+[Back to README](readme.md) | [Documentation Index](docs/index.md)

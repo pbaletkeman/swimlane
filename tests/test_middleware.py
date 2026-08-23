@@ -14,6 +14,7 @@ def test_middleware_adds_request_id():
         return {"request_id": get_request_id()}
 
     from fastapi.testclient import TestClient
+
     with TestClient(app) as client:
         r = client.get("/test")
         assert r.status_code == 200
@@ -31,6 +32,7 @@ def test_middleware_unique_request_ids():
         return {"request_id": get_request_id()}
 
     from fastapi.testclient import TestClient
+
     with TestClient(app) as client:
         r1 = client.get("/test")
         r2 = client.get("/test")
@@ -46,6 +48,7 @@ def test_health_path_not_raised():
         return {"status": "ok"}
 
     from fastapi.testclient import TestClient
+
     with TestClient(app) as client:
         r = client.get("/health")
         assert r.status_code == 200

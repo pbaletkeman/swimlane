@@ -22,7 +22,8 @@ def test_send_message(client: TestClient, seed: dict) -> None:
 
 def test_send_requires_nonempty_subject(client: TestClient, seed: dict) -> None:
     r = client.post(
-        "/messages", headers=seed["coach1"],
+        "/messages",
+        headers=seed["coach1"],
         json={"member_id": "t-m1", "subject": "", "body": "Hi"},
     )
     assert r.status_code in (400, 422)
@@ -35,7 +36,8 @@ def test_send_requires_auth(client: TestClient, seed: dict) -> None:
 
 def test_member_cannot_send(client: TestClient, seed: dict) -> None:
     r = client.post(
-        "/messages", headers=seed["m1"],
+        "/messages",
+        headers=seed["m1"],
         json={"member_id": "t-m2", "subject": "X", "body": "Y"},
     )
     assert r.status_code == 403

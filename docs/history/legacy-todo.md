@@ -126,3 +126,7 @@ Based on ERD (`docs/erd.mmd`) and relationships (`docs/relationships.md`)
 - Table auto-creation is handled by each SQLite implementation's `init()` method — no separate migration files
 - All entities use `is_active` soft-delete support per ERD
 - Facility entity lives at `src/data/facility/` (singular, not plural)
+
+---
+
+[Back to README](../../readme.md) | [Documentation Index](../index.md)

@@ -20,3 +20,7 @@ Weather & Other Cancellations out of Team Atomica's Control
 ### Other Session Terms
 
 Can be found near the bottom of our Spring 2026 Masters Swimming page on the Team Atomica website at: [https://teamatomica.com/2026-spring-masters/](https://teamatomica.com/2026-spring-masters/)  please take a moment to familiarize yourself with them.
+
+---
+
+[Back to README](../readme.md) | [Documentation Index](index.md)

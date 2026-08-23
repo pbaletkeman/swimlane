@@ -1175,3 +1175,7 @@ PR head after this docs commit.
 | `uv run ruff check src/` | All checks passed |
 | `uv run pyright` | 0 errors, 0 warnings, 0 informations |
 | `cd frontend && npx tsc -b` | Passed (no output) |
+
+---
+
+[Back to README](readme.md) | [Documentation Index](docs/index.md)
