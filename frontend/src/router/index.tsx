@@ -1,3 +1,6 @@
+/**
+ * App router: lazy-loaded routes with auth guards.
+ */
 import { Suspense, lazy } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { RouteGuard } from '../auth/RouteGuard.tsx'

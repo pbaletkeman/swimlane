@@ -1,3 +1,6 @@
+/**
+ * Sticky toolbar showing selected count with bulk/hard delete actions and a confirmation dialog.
+ */
 import { useEffect, useRef, useState } from 'react'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'

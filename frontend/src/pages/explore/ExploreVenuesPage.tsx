@@ -1,3 +1,6 @@
+/**
+ * Public venue listing page with address/facility name search and venue card grid.
+ */
 import { useEffect, useState } from 'react'
 import type { ChangeEvent, KeyboardEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'

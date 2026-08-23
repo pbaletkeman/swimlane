@@ -1,3 +1,6 @@
+/**
+ * Sidebar navigation items with role-based visibility.
+ */
 import type { UserRole } from '../auth/types.ts'
 
 /** A sidebar navigation entry with label, icon, route path, and required role. */

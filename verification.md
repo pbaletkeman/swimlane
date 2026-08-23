@@ -607,20 +607,20 @@ interfaces in `frontend/src/`.
 
 Every source file must have a top-of-file comment explaining its contents.
 
-- [ ] **11.1** — Python: verify every `.py` file in `src/` has a module
+- [x] **11.1** — Python: verify every `.py` file in `src/` has a module
   docstring (first non-comment line). Most already do — fill gaps.
-- [ ] **11.2** — TypeScript/TSX: add a header comment block to every
+- [x] **11.2** — TypeScript/TSX: add a header comment block to every
   `frontend/src/**/*.ts` and `frontend/src/**/*.tsx` file:
   ```
   /**
    * Brief description of what this file contains and its role in the app.
    */
   ```
-- [ ] **11.3** — CSS: add a header comment to `frontend/src/index.css` and
+- [x] **11.3** — CSS: add a header comment to `frontend/src/index.css` and
   any component-specific CSS files.
-- [ ] **11.4** — Verify no generated or vendored files were accidentally
+- [x] **11.4** — Verify no generated or vendored files were accidentally
   annotated (skip `dist/`, `node_modules/`, `__pycache__/`).
-- [ ] **11.5** —  Commit, push, create a PR and generate PR title + description, never commit to main branch
+- [x] **11.5** —  Commit, push, create a PR and generate PR title + description, never commit to main branch
 
 ### PR Title
 

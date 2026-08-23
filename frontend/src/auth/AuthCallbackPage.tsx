@@ -1,3 +1,6 @@
+/**
+ * OAuth callback page: extracts JWT tokens from URL.
+ */
 import { useEffect, useRef } from 'react'
 import { clearStoredUser, setAccessToken, setRefreshToken, setStoredUser } from './tokens.ts'
 import type { User } from './types.ts'

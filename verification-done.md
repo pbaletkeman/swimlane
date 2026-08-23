@@ -1125,3 +1125,53 @@ PR head after this docs commit.
 | `uv run ruff format --check src/` | 87 files already formatted |
 | `uv run pyright` | 0 errors, 0 warnings, 0 informations |
 | `cd frontend && npx tsc -b` | Passed (no output) |
+
+---
+
+## Phase V11 — File-Header Documentation
+
+### 11.1 — Python module docstrings verified ✅
+
+| Item | Result |
+|------|--------|
+| Status | Already complete from V10 — all `.py` files in `src/` have module docstrings |
+| Verified with | AST scan: 0 missing module docstrings |
+
+### 11.2 — TypeScript/TSX header comments added ✅
+
+| Item | Result |
+|------|--------|
+| Files edited | 54 `.ts` and `.tsx` files in `frontend/src/` |
+| Format | `/** Brief description. */` JSDoc block as first line |
+| Style | Accurate per-file description (verified by reading each file) |
+
+### 11.3 — CSS header comment added ✅
+
+| Item | Result |
+|------|--------|
+| File | `frontend/src/index.css` |
+| Header | `/** Global application styles for Swimlane. */` (CSS comment syntax) |
+
+### 11.4 — No generated/vendored files annotated ✅
+
+| Item | Result |
+|------|--------|
+| Verified | No headers in `dist/`, `node_modules/`, `__pycache__/` |
+
+### 11.5 — Commit, push, and PR ✅
+
+| Item | Result |
+|------|--------|
+| Commit | `7233b83` — "docs: add file-header documentation to all source files" |
+| Branch | `chore/file-headers` (from `main`) |
+| Files changed | 55 files, 165 insertions |
+| Push | `git push -u origin chore/file-headers` |
+| PR | **[#47](https://github.com/pbaletkeman/swimlane/pull/47)** (`chore/file-headers` → `main`) |
+
+### Verification
+
+| Gate | Result |
+|------|--------|
+| `uv run ruff check src/` | All checks passed |
+| `uv run pyright` | 0 errors, 0 warnings, 0 informations |
+| `cd frontend && npx tsc -b` | Passed (no output) |

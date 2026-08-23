@@ -1,3 +1,6 @@
+/**
+ * Auth API wrappers for login, logout, token refresh, and user info.
+ */
 import api, { apiBaseUrl } from './client.ts'
 import type { MessageResponse, User } from './types.ts'
 

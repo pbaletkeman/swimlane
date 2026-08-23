@@ -1,3 +1,6 @@
+/**
+ * User management page with list, invite, role editing, and soft/hard delete for facility managers.
+ */
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from 'primereact/button'
 import { Select } from 'primereact/select'

@@ -1,3 +1,6 @@
+/**
+ * Schedule CRUD and member self-service API.
+ */
 import { createCrudApi } from './crud.ts'
 import api from './client.ts'
 import type { MessageResponse, MyScheduleItem, RescheduleInput, Schedule, ScheduleInput } from './types.ts'

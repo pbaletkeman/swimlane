@@ -1,3 +1,6 @@
+/**
+ * User profile page with personal info, role display, form submissions, and staff inbox.
+ */
 import { useEffect, useState } from 'react'
 import { Avatar } from 'primereact/avatar'
 import { Button } from 'primereact/button'

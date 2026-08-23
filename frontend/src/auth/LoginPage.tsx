@@ -1,3 +1,6 @@
+/**
+ * Login page with Google OAuth button.
+ */
 import { Button } from 'primereact/button'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from './auth-context.ts'

@@ -1,3 +1,6 @@
+/**
+ * Venue CRUD API bindings.
+ */
 import { createCrudApi } from './crud.ts'
 import type { Venue, VenueInput } from './types.ts'
 

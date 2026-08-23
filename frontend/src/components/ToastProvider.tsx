@@ -1,3 +1,6 @@
+/**
+ * PrimeReact Toast provider that supplies app-wide success, error, and warning notifications.
+ */
 import { Toast } from 'primereact/toast'
 import { Toaster } from 'primereact/toaster'
 import type { ToasterRegionExposes } from '@primereact/types/primitive/toaster'

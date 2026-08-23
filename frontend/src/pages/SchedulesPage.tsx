@@ -1,3 +1,6 @@
+/**
+ * Schedule management CRUD page for facility managers with event, venue, and member selection.
+ */
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'

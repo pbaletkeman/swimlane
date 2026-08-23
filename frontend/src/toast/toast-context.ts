@@ -1,3 +1,6 @@
+/**
+ * Toast helper functions and stable context hook.
+ */
 import { toast } from 'primereact/toaster'
 import type { ToastType } from '@primereact/types/primitive/toaster'
 

@@ -1,3 +1,6 @@
+/**
+ * Facility manager event management page with CRUD operations, bulk delete, and frequency lookup.
+ */
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'

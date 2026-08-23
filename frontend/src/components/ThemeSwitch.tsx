@@ -1,3 +1,6 @@
+/**
+ * Theme switcher dropdown menu for toggling between light, dark, and system themes.
+ */
 import { Menu } from 'primereact/menu'
 import { useTheme } from '../theme/theme-context.ts'
 import type { Theme } from '../theme/theme-context.ts'

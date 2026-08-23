@@ -1,3 +1,6 @@
+/**
+ * Member dashboard showing role info, quick-action nav links, and upcoming events summary.
+ */
 import { useNavigate } from 'react-router-dom'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'

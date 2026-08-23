@@ -1,3 +1,6 @@
+/**
+ * Reusable empty-state placeholder with an icon, message, hint, and optional action button.
+ */
 import type { ReactNode } from 'react'
 import { Button } from 'primereact/button'
 

@@ -1,3 +1,6 @@
+/**
+ * Public event detail page showing description, schedule, venue, live capacity, and registration.
+ */
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Button } from 'primereact/button'

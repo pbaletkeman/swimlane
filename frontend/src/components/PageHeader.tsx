@@ -1,3 +1,6 @@
+/**
+ * Page header with title, optional subtitle, and an optional "New" action button.
+ */
 import { Button } from 'primereact/button'
 
 /** Props for the PageHeader component. */

@@ -1,3 +1,6 @@
+/**
+ * React context and hook for authentication state.
+ */
 import { createContext, useContext } from 'react'
 import type { User, UserRole } from './types.ts'
 

@@ -1,3 +1,6 @@
+/**
+ * Auth-related TypeScript types and role constants.
+ */
 import type { Role } from '../api/types.ts'
 
 /** User role string literal matching the backend UserRole enum. */

@@ -1,3 +1,6 @@
+/**
+ * Generic error page displaying a status code, message, and optional retry action.
+ */
 import { Button } from 'primereact/button'
 
 /** Props for the ErrorPage component. */

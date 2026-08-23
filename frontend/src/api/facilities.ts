@@ -1,3 +1,6 @@
+/**
+ * Facility CRUD API bindings.
+ */
 import { createCrudApi } from './crud.ts'
 import type { Facility, FacilityInput } from './types.ts'
 
