@@ -1175,3 +1175,84 @@ PR head after this docs commit.
 | `uv run ruff check src/` | All checks passed |
 | `uv run pyright` | 0 errors, 0 warnings, 0 informations |
 | `cd frontend && npx tsc -b` | Passed (no output) |
+
+---
+
+## Phase V12 — Final Repo-Wide Audit
+
+### 12.1 — Ruff lint + format clean ✅
+
+| Item | Result |
+|------|--------|
+| `uv run ruff check .` | All checks passed |
+| `uv run ruff format --check .` | 7 test files reformatted (tests/ only), 150 already formatted |
+
+### 12.2 — Pyright typecheck clean ✅
+
+| Item | Result |
+|------|--------|
+| `uv run pyright` | 0 errors, 0 warnings, 0 informations |
+
+### 12.3 — Backend pytest ✅
+
+| Item | Result |
+|------|--------|
+| `uv run pytest --cov=src --cov-report=term-missing` | **243 passed** in 5.04s |
+| Coverage | **90%** (4548 statements, 477 missed) |
+
+### 12.4 — Interrogate docstring coverage ✅
+
+| Item | Result |
+|------|--------|
+| `uv run interrogate src/ -v --fail-under 80` | **100.0%** (663/663 documented) |
+
+### 12.5 — Frontend lint ✅
+
+| Item | Result |
+|------|--------|
+| `cd frontend && npm run lint` | oxlint clean (no output) |
+
+### 12.6 — Frontend build ✅
+
+| Item | Result |
+|------|--------|
+| `cd frontend && npm run build` | Built in 1.33s |
+
+### 12.7 — Frontend test coverage ✅
+
+| Item | Result |
+|------|--------|
+| `cd frontend && npx vitest run --coverage` | **90.79% statements** (1786/1967) |
+| Lines | 91.43% (1708/1868) |
+| Branches | 78.88% (874/1108) |
+| Functions | 88.09% (518/588) |
+
+### 12.8 — readme.md under 500 lines ✅
+
+| Item | Result |
+|------|--------|
+| `readme.md` | **283 lines** |
+
+### 12.9 — Markdown cross-links ✅
+
+| Item | Result |
+|------|--------|
+| Files needing cross-links | 20 |
+| Files fixed | 20 (docs/history/*.md, docs/*.md, verification*.md) |
+| Final check | **0 files remaining** — all project .md files cross-linked |
+
+### 12.10 — Working tree clean ✅
+
+| Item | Result |
+|------|--------|
+| `git status` | Clean after commit |
+
+### 12.11 — Commit, push, and PR ✅
+
+| Item | Result |
+|------|--------|
+| Commit | `231745e` — "chore: final verification sweep — all checks pass" |
+| Branch | `chore/final-audit` (from `main`) |
+| Files changed | 27 files, 139 insertions, 24 deletions |
+| Push | `git push -u origin chore/final-audit` |
+| PR | **[#48](https://github.com/pbaletkeman/swimlane/pull/48)** (`chore/final-audit` → `main`) |

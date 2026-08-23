@@ -16,8 +16,10 @@ from src.env import TOKEN_SECRET_KEY
 
 # --- Token helpers (src/routes/auth_routes.py) --------------------------
 
+
 def _ar():
     from src.routes.auth_routes import create_local_access_token, create_refresh_token
+
     return create_local_access_token, create_refresh_token
 
 
@@ -173,7 +175,8 @@ def test_config_postgresql_not_implemented(monkeypatch) -> None:
     from src.util.configs import Config
 
     monkeypatch.setattr(
-        Config, "_yaml_cache",
+        Config,
+        "_yaml_cache",
         {"sql": {"active": "postgresql", "providers": {"postgresql": {}}}},
         raising=False,
     )
@@ -185,7 +188,8 @@ def test_config_unknown_driver_warns(caplog, monkeypatch) -> None:
     from src.util.configs import Config
 
     monkeypatch.setattr(
-        Config, "_yaml_cache",
+        Config,
+        "_yaml_cache",
         {"sql": {"active": "mongodb", "providers": {}}},
         raising=False,
     )

@@ -88,3 +88,7 @@ Events can be grouped (e.g. by season, geography, etc.)
 
 - name (e.g. tennis court, ping pong tables, pool)
 - max capacity
+
+---
+
+[Back to README](../readme.md) | [Documentation Index](index.md)

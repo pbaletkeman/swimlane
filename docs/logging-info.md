@@ -413,3 +413,7 @@ curl -X POST http://localhost:8000/facilities -d '{"invalid": "data"}'
 - Test file logging by setting `LOG_FILE` environment variable
 - Verify log rotation works (create >5MB of logs)
 - Verify `logger.exception()` includes full traceback in logs
+
+---
+
+[Back to README](../readme.md) | [Documentation Index](index.md)

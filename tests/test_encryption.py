@@ -20,6 +20,7 @@ def test_encrypt_produces_unique_nonces():
 def test_encrypt_returns_base64_strings():
     result = encrypt_field("test")
     import base64
+
     base64.b64decode(result["nonce"])
     base64.b64decode(result["ciphertext"])
 
@@ -27,6 +28,7 @@ def test_encrypt_returns_base64_strings():
 def test_decrypt_wrong_nonce_raises():
     encrypted = encrypt_field("secret")
     import base64
+
     wrong_nonce = base64.b64encode(b"000000000000").decode("ascii")
     try:
         decrypt_field(wrong_nonce, encrypted["ciphertext"])
@@ -38,6 +40,7 @@ def test_decrypt_wrong_nonce_raises():
 def test_decrypt_wrong_ciphertext_raises():
     encrypted = encrypt_field("secret")
     import base64
+
     wrong_ct = base64.b64encode(b"garbage").decode("ascii")
     try:
         decrypt_field(encrypted["nonce"], wrong_ct)

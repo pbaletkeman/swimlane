@@ -583,3 +583,7 @@ Branch: `feature/verify-document` (cut from `main` at `95f40fb`, the PR #37 squa
 - `npm run lint` — clean. `npm run build` — passes; per-page lazy chunks confirmed in the bundle output.
 - Live HTTP checks recorded under J.6 above (all 200s; the two venue-detail 404s were correct-by-design — the dev DB has no active venue id 1, and inactive/missing venues must not leak).
 - Docs spot-checked against source: router registrations re-read from `src/routes/*.py` while writing J.8; FK claims taken from the actual DDL/`ALTER TABLE` statements.
+
+---
+
+[Back to README](../../readme.md) | [Documentation Index](../index.md)

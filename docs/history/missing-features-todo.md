@@ -285,3 +285,7 @@ Confirmed before starting; deviating from these requires updating this section.
 3. **User creation without Google OAuth** — **RESOLVED: email-keyed invite, NOT raw `sub` pre-seed.** A facility manager knows an email, never a Google `sub`, and the `users` PII columns are `NOT NULL` (no placeholder row pre-login). `POST /users` takes `{email, role}`, records the intended role keyed by `email_hash`; `auth_callback` checks `email_hash` **before** auto-registering and applies the invited role on first Google login. If a lean Phase G is preferred, defer `POST /users` (list/role-change/delete suffice). See G.1.3.
 4. **Event ↔ venue association** — **RESOLVED: `venue_id` on `event`; capacity derives from `venue→facility.max_capacity`** (matches `relationships.md`: `venueid` is an event attribute, capacity is a facility property). No capacity column on event. **Nullable `max_capacity` = unlimited** (no 409). Registration/reschedule write the event's venue onto the created/updated `schedule` row. See C.5/C.6/C.7.
 5. **Messages** — **RESOLVED: one-way staff → member only** (facility-manager/coach → member); no member→staff messaging or threads in v1. **Add `sender_id` (FK `users.sub`)** to `Message` so the inbox shows who sent it. `POST /messages` sender guard = `coach_role`+. See E.4.
+
+---
+
+[Back to README](../../readme.md) | [Documentation Index](../index.md)

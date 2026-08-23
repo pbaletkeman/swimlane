@@ -72,8 +72,11 @@ def test_message_update_list_bulk(client: TestClient, seed: dict) -> None:
     created = db.create_message(Message(member_id="t-m3", sender_id="t-coach1", subject="U", body="B"))
     assert created is not None
 
-    updated = db.update_message(Message(message_id=created.message_id, member_id="t-m3",
-                                        sender_id="t-coach1", subject="U", body="B", is_read=True))
+    updated = db.update_message(
+        Message(
+            message_id=created.message_id, member_id="t-m3", sender_id="t-coach1", subject="U", body="B", is_read=True
+        )
+    )
     assert updated is not None and updated.is_read is True
 
     listed = db.list_messages()
@@ -170,7 +173,8 @@ def test_event_bulk_handlers(client: TestClient, seed: dict) -> None:
     }
     eid = client.post("/events", headers=seed["mgr"], json=payload).json()["event_id"]
     client.post(
-        "/events", headers=seed["mgr"],
+        "/events",
+        headers=seed["mgr"],
         json={**payload, "description": "Bulk handler B"},
     ).json()["event_id"]
 
@@ -181,8 +185,11 @@ def test_event_bulk_handlers(client: TestClient, seed: dict) -> None:
     from fastapi import HTTPException
 
     try:
-        asyncio_run(er.delete_events_bulk([EventRequest(start_date_time="1999-01-01T00:00:00",
-                                                        end_date_time="1999-01-01T01:00:00")]))
+        asyncio_run(
+            er.delete_events_bulk(
+                [EventRequest(start_date_time="1999-01-01T00:00:00", end_date_time="1999-01-01T01:00:00")]
+            )
+        )
         raised_404 = False
     except HTTPException as exc:
         raised_404 = exc.status_code == 404

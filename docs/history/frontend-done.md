@@ -438,3 +438,7 @@ Branch: `feature/document`
 - [x] `npm run lint` (oxlint) — clean
 - [x] Manual smoke test against the running backend (10.3) — 33/33 API checks pass; all frontend pages render headless with zero console errors
 - [x] Role-gated menu/actions verified (10.4) — MEMBER vs FACILITY_MANAGER vs WEB_ADMIN nav + badges correct
+
+---
+
+[Back to README](../../readme.md) | [Documentation Index](../index.md)

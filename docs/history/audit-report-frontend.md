@@ -62,3 +62,7 @@ items (10.8–10.10).
 Done file says "in progress: 10.0–10.6". Todo has 10.1–10.7 checked,
 10.8–10.10 unchecked. The done file is slightly behind (doesn't mention
 10.7), but the work for 10.1–10.6 is fully documented with verification.
+
+---
+
+[Back to README](../../readme.md) | [Documentation Index](../index.md)

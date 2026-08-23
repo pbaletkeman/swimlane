@@ -172,3 +172,7 @@ Update `docs/sequence/new-signup.mmd` to reflect the web-form flow.
 - 8.1 [x] Choose PDF library (e.g., `reportlab`) and add to deps — only when required
 - 8.2 [x] Endpoint to render a member's completed submission as PDF for records
 - 8.3 [x] Optional: fold facility rules into the exported PDF
+
+---
+
+[Back to README](../../readme.md) | [Documentation Index](../index.md)

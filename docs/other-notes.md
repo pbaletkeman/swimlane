@@ -7,3 +7,7 @@
 - cancellations/rescheduling must be done within x hours of the event
 - other rules about swim cancellations and other terms...
 - Missed Swims
+
+---
+
+[Back to README](../readme.md) | [Documentation Index](index.md)

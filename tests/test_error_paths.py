@@ -40,8 +40,15 @@ def exploding_db(monkeypatch: pytest.MonkeyPatch) -> None:
     import src.routes.venue_routes as vr
 
     sqlite_names = [
-        "EventSQLite", "ScheduleSQLite", "VenueSQLite", "FacilitySQLite", "FrequencySQLite",
-        "FormQuestionSQLite", "FacilityRuleSQLite", "FormSubmissionSQLite", "UsersSQLite",
+        "EventSQLite",
+        "ScheduleSQLite",
+        "VenueSQLite",
+        "FacilitySQLite",
+        "FrequencySQLite",
+        "FormQuestionSQLite",
+        "FacilityRuleSQLite",
+        "FormSubmissionSQLite",
+        "UsersSQLite",
     ]
     for mod in (er, sr, frm, pr, fr, facr, vr):
         for name in sqlite_names:

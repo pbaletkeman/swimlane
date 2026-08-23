@@ -42,3 +42,7 @@ see below for a sample launch.json file for vs code
   ]
 }
 ```
+
+---
+
+[Back to README](../readme.md) | [Documentation Index](index.md)
