@@ -305,44 +305,54 @@ def _auth_routes() -> AuthRoutes:
 def test_login_stores_origin_and_redirects(client, monkeypatch: pytest.MonkeyPatch) -> None:
     ar = _auth_routes()
 
-    async def fake_redirect(request: Any, uri: str) -> tuple[str, str]:
-        return ("redirected", uri)
-
-    monkeypatch.setattr(ar.oauth.google, "authorize_redirect", fake_redirect)
-
     # explicit frontend_url wins
     req = FakeRequest(qp={"frontend_url": "http://localhost:5174"})
-    out = _login(ar, req)
-    assert out[0] == "redirected" and "auth_callback" in out[1]
-    assert req.session["frontend_url"] == "http://localhost:5174"
+    resp = _login(ar, req)
+    assert resp.status_code == 302
+    loc = resp.headers["location"]
+    assert "accounts.google.com" in loc and "auth_callback" in loc and "state=" in loc
 
     # Origin header fallback
     req2 = FakeRequest(headers={"origin": "http://127.0.0.1:4173"})
-    _login(ar, req2)
-    assert req2.session["frontend_url"] == "http://127.0.0.1:4173"
+    resp2 = _login(ar, req2)
+    assert resp2.status_code == 302
+    assert "state=" in resp2.headers["location"]
 
-    # no origin anywhere -> nothing stored
+    # no origin anywhere -> still works (uses default frontend_url)
     req3 = FakeRequest()
-    _login(ar, req3)
-    assert "frontend_url" not in req3.session
+    resp3 = _login(ar, req3)
+    assert resp3.status_code == 302
+    assert "state=" in resp3.headers["location"]
+
+
+def _make_state_token(frontend_url: str | None = None) -> str:
+    """Create a valid signed state token for tests."""
+    from src.routes.auth_routes import _create_state_token
+
+    return _create_state_token(frontend_url=frontend_url)
 
 
 def test_auth_callback_existing_user(client, seed, monkeypatch: pytest.MonkeyPatch) -> None:
     ar = _auth_routes()
     userinfo = {"sub": "t-m1", "given_name": "First", "family_name": "Last", "email": "t-m1@example.com"}
 
-    async def fake_token(request: Any) -> dict[str, Any]:
-        return {"userinfo": userinfo}
+    class FakeResp:
+        status_code = 200
 
-    monkeypatch.setattr(ar.oauth.google, "authorize_access_token", fake_token)
-    req = FakeRequest(qp={"code": "abc"})
-    req.session["frontend_url"] = "http://localhost:9999"
+        def json(self) -> dict[str, Any]:
+            return {"userinfo": userinfo}
+
+    async def fake_post(self: Any, url: str, **kwargs: Any) -> Any:
+        return FakeResp()
+
+    monkeypatch.setattr("httpx.AsyncClient.post", fake_post)
+    state = _make_state_token(frontend_url="http://localhost:9999")
+    req = FakeRequest(qp={"code": "abc", "state": state})
 
     resp = _callback(ar, req)
     loc = resp.headers["location"]
     assert loc.startswith("http://localhost:9999/auth/callback?")
     assert "access_token=" in loc and "refresh_token=" in loc and "user=" in loc
-    assert req.session["user"]["sub"] == "t-m1"
 
 
 def test_auth_callback_new_user_applies_invite(client, seed, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -355,11 +365,18 @@ def test_auth_callback_new_user_applies_invite(client, seed, monkeypatch: pytest
     ar = _auth_routes()
     userinfo = {"sub": "oauth-new", "given_name": "New", "family_name": "User", "email": email}
 
-    async def fake_token(request: Any) -> dict[str, Any]:
-        return {"userinfo": userinfo}
+    class FakeResp:
+        status_code = 200
 
-    monkeypatch.setattr(ar.oauth.google, "authorize_access_token", fake_token)
-    req = FakeRequest(qp={"code": "abc"})  # no stored origin -> falls back to configured frontend_url
+        def json(self) -> dict[str, Any]:
+            return {"userinfo": userinfo}
+
+    async def fake_post(self: Any, url: str, **kwargs: Any) -> Any:
+        return FakeResp()
+
+    monkeypatch.setattr("httpx.AsyncClient.post", fake_post)
+    state = _make_state_token()  # no stored origin -> falls back to configured frontend_url
+    req = FakeRequest(qp={"code": "abc", "state": state})
 
     resp = _callback(ar, req)
     assert "/auth/callback?" in resp.headers["location"]
@@ -379,11 +396,16 @@ def test_auth_callback_new_user_applies_invite(client, seed, monkeypatch: pytest
 def test_auth_callback_bad_oauth_raises_400(client, monkeypatch: pytest.MonkeyPatch) -> None:
     ar = _auth_routes()
 
-    async def boom(request: Any) -> dict[str, Any]:
-        raise RuntimeError("google down")
+    class FakeResp:
+        status_code = 400
+        text = "invalid_grant"
 
-    monkeypatch.setattr(ar.oauth.google, "authorize_access_token", boom)
-    req = FakeRequest(qp={"code": "abc"})
+    async def fake_post(self: Any, url: str, **kwargs: Any) -> Any:
+        return FakeResp()
+
+    monkeypatch.setattr("httpx.AsyncClient.post", fake_post)
+    state = _make_state_token()
+    req = FakeRequest(qp={"code": "abc", "state": state})
     with pytest.raises(HTTPException) as exc:
         _callback(ar, req)
     assert exc.value.status_code == 400

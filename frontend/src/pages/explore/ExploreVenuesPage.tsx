@@ -107,6 +107,12 @@ export default function ExploreVenuesPage() {
             <Link to="/explore/venues" className="explore-nav-link">
               Venues
             </Link>
+            <Link to="/explore/events" className="explore-nav-link">
+              Events
+            </Link>
+            <Link to="/explore/calendar" className="explore-nav-link">
+              Calendar
+            </Link>
           </nav>
         </header>
 

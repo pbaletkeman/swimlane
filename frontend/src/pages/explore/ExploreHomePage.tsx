@@ -1,7 +1,7 @@
 /**
- * Public explore home page with address search leading to venues and inline event search results.
+ * Public explore home page with upcoming events and search.
  */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from 'primereact/button'
@@ -24,11 +24,7 @@ function formatDateTime(iso: string): string {
 }
 
 /**
- * Public landing page for browsing venues/schedules without logging in.
- *
- * Address search leads to the venue grid (`/explore/venues`); event search runs
- * the public `/public/events?q=` free-text search inline and links each result
- * to its detail page (`/explore/events/:id`, Phase C).
+ * Public landing page showing next 10 upcoming events and search options.
  */
 export default function ExploreHomePage() {
   const toast = useToast()
@@ -38,6 +34,30 @@ export default function ExploreHomePage() {
   const [eventResults, setEventResults] = useState<PublicEvent[]>([])
   const [eventSearched, setEventSearched] = useState(false)
   const [eventLoading, setEventLoading] = useState(false)
+  const [upcomingEvents, setUpcomingEvents] = useState<PublicEvent[]>([])
+  const [upcomingLoading, setUpcomingLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const results = await searchEvents()
+        if (!cancelled) {
+          setUpcomingEvents(results.slice(0, 10))
+        }
+      } catch {
+        if (!cancelled) {
+          setUpcomingEvents([])
+        }
+      } finally {
+        if (!cancelled) {
+          setUpcomingLoading(false)
+        }
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [])
 
   const submitAddress = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -96,6 +116,9 @@ export default function ExploreHomePage() {
             <Link to="/explore/venues" className="explore-nav-link">
               Venues
             </Link>
+            <Link to="/explore/events" className="explore-nav-link">
+              Events
+            </Link>
           </nav>
         </header>
 
@@ -153,23 +176,62 @@ export default function ExploreHomePage() {
           </Card.Content>
         </Card.Root>
 
-        {eventSearched ? (
-          <div className="explore-event-list">
-            {eventLoading ? (
+        <Card.Root>
+          <Card.Header>
+            <Card.Title>Upcoming Events</Card.Title>
+          </Card.Header>
+          <Card.Content>
+            {upcomingLoading ? (
               <>
                 <Skeleton height="4rem" className="w-full" />
                 <Skeleton height="4rem" className="w-full" />
               </>
-            ) : eventResults.length > 0 ? (
-              eventResults.map(renderEventResult)
+            ) : upcomingEvents.length > 0 ? (
+              <div className="explore-event-list">
+                {upcomingEvents.map(renderEventResult)}
+              </div>
             ) : (
               <EmptyState
-                message="No events found"
-                hint="Try a different search term."
+                message="No upcoming events"
+                hint="Check back later for new events."
                 icon="pi-calendar-times"
               />
             )}
-          </div>
+          </Card.Content>
+          <Card.Footer>
+            <Link to="/explore/events">
+              <Button type="button" variant="text">
+                <span className="p-button-label">View all events</span>
+                <i className="pi pi-arrow-right" />
+              </Button>
+            </Link>
+          </Card.Footer>
+        </Card.Root>
+
+        {eventSearched ? (
+          <Card.Root>
+            <Card.Header>
+              <Card.Title>Search Results</Card.Title>
+            </Card.Header>
+            <Card.Content>
+              {eventLoading ? (
+                <>
+                  <Skeleton height="4rem" className="w-full" />
+                  <Skeleton height="4rem" className="w-full" />
+                </>
+              ) : eventResults.length > 0 ? (
+                <div className="explore-event-list">
+                  {eventResults.map(renderEventResult)}
+                </div>
+              ) : (
+                <EmptyState
+                  message="No events found"
+                  hint="Try a different search term."
+                  icon="pi-calendar-times"
+                />
+              )}
+            </Card.Content>
+          </Card.Root>
         ) : null}
       </div>
     </div>

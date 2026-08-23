@@ -11,7 +11,7 @@ import type { SelectValueChangeEvent } from '@primereact/types/primitive/select'
 import { ApiError } from '../../api/client.ts'
 import { getEventDetail, searchEvents } from '../../api/public.ts'
 import { registerForEvent } from '../../api/events.ts'
-import { reschedule, schedules } from '../../api/schedules.ts'
+import { cancelRegistration, reschedule, schedules } from '../../api/schedules.ts'
 import type { PublicEvent, Schedule } from '../../api/types.ts'
 import type { PublicEventDetail } from '../../api/types.ts'
 import { EmptyState } from '../../components/EmptyState.tsx'
@@ -28,8 +28,8 @@ function formatDateTime(iso: string): string {
 }
 
 /**
- * Public single-event detail page (Phase C): description, times, venue and live
- * capacity. Registration and reschedule actions are added in C.12.2–C.12.4.
+ * Public single-event detail page: description, times, venue and live
+ * capacity. Registration, unregister, and reschedule actions.
  */
 export default function EventDetailPage() {
   const toast = useToast()
@@ -44,7 +44,10 @@ export default function EventDetailPage() {
   const [alternates, setAlternates] = useState<PublicEvent[]>([])
   const [targetEventId, setTargetEventId] = useState<number | null>(null)
   const [registering, setRegistering] = useState(false)
+  const [unregistering, setUnregistering] = useState(false)
   const [rescheduling, setRescheduling] = useState(false)
+  const [showRegisterConfirm, setShowRegisterConfirm] = useState(false)
+  const [showUnregisterConfirm, setShowUnregisterConfirm] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -138,6 +141,7 @@ export default function EventDetailPage() {
   }
 
   const handleRegister = async () => {
+    setShowRegisterConfirm(false)
     setRegistering(true)
     try {
       const created = await registerForEvent(id)
@@ -149,6 +153,23 @@ export default function EventDetailPage() {
       toast.error('Registration failed', message)
     } finally {
       setRegistering(false)
+    }
+  }
+
+  const handleUnregister = async () => {
+    if (!mySchedule?.schedule_id) return
+    setShowUnregisterConfirm(false)
+    setUnregistering(true)
+    try {
+      await cancelRegistration(mySchedule.schedule_id)
+      setMySchedule(null)
+      toast.success('Unregistered', 'Your registration has been cancelled.')
+      await refreshDetail()
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : 'Could not cancel registration'
+      toast.error('Unregister failed', message)
+    } finally {
+      setUnregistering(false)
     }
   }
 
@@ -250,9 +271,17 @@ export default function EventDetailPage() {
               <div>
                 <dt>Venue</dt>
                 <dd>
-                  {detail.venue
-                    ? `${detail.venue.facility_name} — ${detail.venue.street}, ${detail.venue.city}, ${detail.venue.state}`
-                    : 'To be announced'}
+                  {detail.venue ? (
+                    <>
+                      {detail.venue.facility_name} — {detail.venue.street}, {detail.venue.city}, {detail.venue.state}
+                      <Link to={`/explore/venues/${detail.venue.venue_id}`} className="explore-venue-link">
+                        <i className="pi pi-calendar" />
+                        <span>View all events at this venue</span>
+                      </Link>
+                    </>
+                  ) : (
+                    'To be announced'
+                  )}
                 </dd>
               </div>
             </dl>
@@ -274,14 +303,31 @@ export default function EventDetailPage() {
             <div className="explore-actions">
               {signedIn ? (
                 registeredForThisEvent ? (
-                  <span className="explore-registered-note">
-                    <i className="pi pi-check-circle" />
-                    <span>You are registered for this event.</span>
-                  </span>
+                  <>
+                    <span className="explore-registered-note">
+                      <i className="pi pi-check-circle" />
+                      <span>You are registered for this event.</span>
+                    </span>
+                    <Button
+                      type="button"
+                      severity="danger"
+                      variant="outlined"
+                      onClick={() => setShowUnregisterConfirm(true)}
+                      disabled={unregistering}
+                      loading={unregistering}
+                    >
+                      <span className="p-button-label">Unregister</span>
+                    </Button>
+                  </>
                 ) : (
-                  <Button type="button" onClick={handleRegister} disabled={full || registering}>
+                  <Button
+                    type="button"
+                    onClick={() => setShowRegisterConfirm(true)}
+                    disabled={full || registering}
+                    loading={registering}
+                  >
                     <span className="p-button-label">
-                      {registering ? 'Registering…' : full ? 'Event full' : 'Register'}
+                      {full ? 'Event full' : 'Register'}
                     </span>
                   </Button>
                 )
@@ -340,6 +386,54 @@ export default function EventDetailPage() {
           </Card.Root>
         ) : null}
       </div>
+
+      {/* Register confirmation modal */}
+      {showRegisterConfirm && (
+        <div className="explore-modal-backdrop" onClick={() => setShowRegisterConfirm(false)}>
+          <div className="explore-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="explore-modal-title">Confirm Registration</h3>
+            <p>
+              Register for <strong>{detail.description || 'this event'}</strong>?
+            </p>
+            <p className="explore-hint">
+              Starts: {formatDateTime(detail.start_date_time)}
+              <br />
+              Ends: {formatDateTime(detail.end_date_time)}
+            </p>
+            <div className="explore-modal-actions">
+              <Button type="button" variant="text" onClick={() => setShowRegisterConfirm(false)}>
+                <span className="p-button-label">Cancel</span>
+              </Button>
+              <Button type="button" onClick={handleRegister} disabled={registering} loading={registering}>
+                <i className="pi pi-check" />
+                <span className="p-button-label">Confirm</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unregister confirmation modal */}
+      {showUnregisterConfirm && (
+        <div className="explore-modal-backdrop" onClick={() => setShowUnregisterConfirm(false)}>
+          <div className="explore-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="explore-modal-title">Cancel Registration?</h3>
+            <p>
+              Are you sure you want to unregister from <strong>{detail.description || 'this event'}</strong>?
+            </p>
+            <p className="explore-hint">This action cannot be undone.</p>
+            <div className="explore-modal-actions">
+              <Button type="button" variant="text" onClick={() => setShowUnregisterConfirm(false)}>
+                <span className="p-button-label">Keep registration</span>
+              </Button>
+              <Button type="button" severity="danger" onClick={handleUnregister} disabled={unregistering} loading={unregistering}>
+                <i className="pi pi-times" />
+                <span className="p-button-label">Unregister</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
