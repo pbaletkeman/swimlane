@@ -1,3 +1,6 @@
+/**
+ * Application entry point: mounts React root with providers.
+ */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { PrimeReactProvider } from '@primereact/core/config'

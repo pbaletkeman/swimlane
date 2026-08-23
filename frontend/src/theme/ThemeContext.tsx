@@ -1,3 +1,6 @@
+/**
+ * ThemeProvider managing system preference detection and localStorage persistence.
+ */
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
 import { ThemeProvider as PrimeReactThemeProvider } from '@primereact/core/theme'

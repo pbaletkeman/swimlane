@@ -1,3 +1,6 @@
+/**
+ * User management API: list, invite, role change, delete.
+ */
 import api from './client.ts'
 import type {
   ManagedUser,

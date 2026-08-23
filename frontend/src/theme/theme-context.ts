@@ -1,3 +1,6 @@
+/**
+ * Theme context, types, and hook for dark/light mode.
+ */
 import { createContext, useContext } from 'react'
 
 /** User-selectable theme preference. */

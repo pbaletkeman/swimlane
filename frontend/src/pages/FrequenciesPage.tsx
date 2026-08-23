@@ -1,3 +1,6 @@
+/**
+ * Frequency management CRUD page with data table, form dialog, and soft/hard delete.
+ */
 import { useEffect, useState } from 'react'
 import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'

@@ -1,3 +1,6 @@
+/**
+ * Member schedule page with iCal export, event registration, and cancel/reschedule actions.
+ */
 import { useEffect, useState } from 'react'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'

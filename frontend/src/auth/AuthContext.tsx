@@ -1,3 +1,6 @@
+/**
+ * AuthProvider component managing login state and token refresh.
+ */
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { apiBaseUrl, AUTH_UNAUTHORIZED_EVENT } from '../api/client.ts'

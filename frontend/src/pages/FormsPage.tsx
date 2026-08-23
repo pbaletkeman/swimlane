@@ -1,3 +1,6 @@
+/**
+ * Forms management page listing facilities with links to their signup form builders.
+ */
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from 'primereact/button'

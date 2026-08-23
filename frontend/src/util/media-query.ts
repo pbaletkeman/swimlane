@@ -1,3 +1,6 @@
+/**
+ * useMediaQuery hook using matchMedia for responsive breakpoints.
+ */
 import { useSyncExternalStore } from 'react'
 
 /**

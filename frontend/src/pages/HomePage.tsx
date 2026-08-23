@@ -1,3 +1,6 @@
+/**
+ * App home page with explore and dashboard routing based on authentication state.
+ */
 import { Button } from 'primereact/button'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/auth-context.ts'

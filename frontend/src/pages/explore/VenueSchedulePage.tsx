@@ -1,3 +1,6 @@
+/**
+ * Public venue schedule page with week, month, and event-list view modes.
+ */
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Button } from 'primereact/button'

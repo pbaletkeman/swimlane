@@ -1,3 +1,6 @@
+/**
+ * Frequency CRUD API bindings.
+ */
 import { createCrudApi } from './crud.ts'
 import type { Frequency, FrequencyInput } from './types.ts'
 

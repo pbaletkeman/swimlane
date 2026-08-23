@@ -1,3 +1,6 @@
+/**
+ * Form and form submission API wrappers.
+ */
 import api from './client.ts'
 import type {
   FacilityForm,

@@ -1,3 +1,6 @@
+/**
+ * Event API: capacity, registration, coach member management.
+ */
 import { createCrudApi } from './crud.ts'
 import api from './client.ts'
 import type {

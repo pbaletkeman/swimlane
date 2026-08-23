@@ -1,3 +1,6 @@
+/**
+ * Coach event management page with create, edit, delete, and per-event member list management.
+ */
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'

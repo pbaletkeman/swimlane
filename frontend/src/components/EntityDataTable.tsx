@@ -1,3 +1,6 @@
+/**
+ * Generic data table with sorting, selection, pagination, and search powered by PrimeReact DataTable.
+ */
 import { useMemo, useState } from 'react'
 import type { ChangeEvent, MouseEvent, ReactNode } from 'react'
 import { Button } from 'primereact/button'

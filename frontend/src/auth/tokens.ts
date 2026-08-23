@@ -1,3 +1,6 @@
+/**
+ * JWT token storage, decoding, and role extraction utilities.
+ */
 import { ROLE_RANK } from './types.ts'
 import type { User, UserRole } from './types.ts'
 

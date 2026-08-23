@@ -1,3 +1,6 @@
+/**
+ * Staff-to-member messaging API.
+ */
 import api from './client.ts'
 import type { Message, MessageInput } from './types.ts'
 

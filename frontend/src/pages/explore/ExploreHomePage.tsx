@@ -1,3 +1,6 @@
+/**
+ * Public explore home page with address search leading to venues and inline event search results.
+ */
 import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'

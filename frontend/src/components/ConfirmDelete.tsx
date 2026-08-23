@@ -1,3 +1,6 @@
+/**
+ * Confirmation dialog for soft and hard deletes with role-based access control.
+ */
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { Button } from 'primereact/button'

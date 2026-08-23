@@ -1,3 +1,6 @@
+/**
+ * Route guard: redirects unauthenticated or unauthorized users.
+ */
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from './auth-context.ts'

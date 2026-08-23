@@ -1,3 +1,6 @@
+/**
+ * Venue management CRUD page with facility lookup, data table, and soft/hard delete.
+ */
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from 'primereact/button'
 import { Tag } from 'primereact/tag'

@@ -1,3 +1,6 @@
+/**
+ * Form builder page for managing a facility's signup form questions and facility rules.
+ */
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from 'primereact/button'

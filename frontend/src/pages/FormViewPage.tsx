@@ -1,3 +1,6 @@
+/**
+ * Public form view and submission page for members to fill out facility signup forms.
+ */
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'

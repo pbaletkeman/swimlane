@@ -1,3 +1,6 @@
+/**
+ * Generic CRUD API factory for entity endpoints.
+ */
 import api from './client.ts'
 import type { MessageResponse } from './types.ts'
 

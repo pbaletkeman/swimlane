@@ -1,3 +1,6 @@
+/**
+ * Generic form dialog for creating and editing entities with configurable field definitions.
+ */
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Button } from 'primereact/button'
