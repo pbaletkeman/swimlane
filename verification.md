@@ -660,19 +660,19 @@ file contains and its role in the app.
 
 Run a final sweep to confirm everything is in order.
 
-- [ ] **12.1** — `uv run ruff check .` + `uv run ruff format .` — clean.
-- [ ] **12.2** — `uv run pyright` — 0 errors.
-- [ ] **12.3** — `uv run pytest --cov=src --cov-report=term-missing` —
+- [x] **12.1** — `uv run ruff check .` + `uv run ruff format .` — clean.
+- [x] **12.2** — `uv run pyright` — 0 errors.
+- [x] **12.3** — `uv run pytest --cov=src --cov-report=term-missing` —
   80%+ coverage, all tests pass.
-- [ ] **12.4** — `uv run interrogate src/ -v --fail-under 80` — passes.
-- [ ] **12.5** — `cd frontend && npm run lint` — clean.
-- [ ] **12.6** — `cd frontend && npm run build` — passes.
-- [ ] **12.7** — `cd frontend && npm run coverage` — 80%+ coverage.
-- [ ] **12.8** — `readme.md` under 500 lines.
-- [ ] **12.9** — Every `.md` file links to `readme.md` and at least one
+- [x] **12.4** — `uv run interrogate src/ -v --fail-under 80` — passes.
+- [x] **12.5** — `cd frontend && npm run lint` — clean.
+- [x] **12.6** — `cd frontend && npm run build` — passes.
+- [x] **12.7** — `cd frontend && npm run coverage` — 80%+ coverage.
+- [x] **12.8** — `readme.md` under 500 lines.
+- [x] **12.9** — Every `.md` file links to `readme.md` and at least one
   other doc file (no orphaned pages).
-- [ ] **12.10** — `git status` clean (no uncommitted changes).
-- [ ] **12.11** —  Commit, push, create a PR and generate PR title + description, never commit to main branch
+- [x] **12.10** — `git status` clean (no uncommitted changes).
+- [x] **12.11** —  Commit, push, create a PR and generate PR title + description, never commit to main branch
 
 ### PR Title
 
