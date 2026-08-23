@@ -47,6 +47,7 @@ class MessageRoutes:
     """Defines all message-related routes."""
 
     def __init__(self):
+        """Register the message routes on a new APIRouter."""
         self.router = APIRouter(prefix="/messages", tags=["messages"])
 
         self.router.add_api_route(
@@ -82,10 +83,12 @@ class MessageRoutes:
 
     # ------------------------------------------------------------------
     def _get_db(self) -> MessageSQLite:
+        """Return a fresh SQLite message store."""
         return MessageSQLite()
 
     # ------------------------------------------------------------------
     def _get_users_db(self) -> UsersSQLite:
+        """Return a fresh SQLite user store."""
         return UsersSQLite()
 
     # ------------------------------------------------------------------
@@ -105,6 +108,7 @@ class MessageRoutes:
 
     # ------------------------------------------------------------------
     def _to_item(self, message: Message) -> MessageItem:
+        """Convert a message into a MessageItem with the sender's display name."""
         return MessageItem(
             message_id=message.message_id or 0,
             member_id=message.member_id,

@@ -25,6 +25,7 @@ class CoachRoutes:
     """Defines all coach-scoped routes."""
 
     def __init__(self) -> None:
+        """Register the coach routes on a new APIRouter."""
         self.router = APIRouter(prefix="/coach", tags=["coach"])
         self.router.add_api_route(
             "/events",
@@ -35,6 +36,7 @@ class CoachRoutes:
 
     # ------------------------------------------------------------------
     def _get_event_db(self) -> EventSQLite:
+        """Return a fresh SQLite event store."""
         return EventSQLite()
 
     # ------------------------------------------------------------------

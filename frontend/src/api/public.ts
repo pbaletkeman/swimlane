@@ -8,8 +8,10 @@ import type { PublicEvent, PublicEventDetail, PublicVenue } from './types.ts'
  * still attaches a Bearer header when a token happens to be present.
  */
 
+/** Schedule display mode: week grid, month calendar, or list view. */
 export type ScheduleView = 'week' | 'month' | 'list'
 
+/** Options for the venue schedule endpoint. */
 export interface VenueScheduleOptions {
   /** Which view to render; defaults to `week` (current week anchored on `date`). */
   view?: ScheduleView
@@ -17,6 +19,7 @@ export interface VenueScheduleOptions {
   date?: string
 }
 
+/** Filters for the public event search endpoint. */
 export interface EventSearchOptions {
   /** Scope the listing to events with an active schedule at this venue. */
   venueId?: number

@@ -118,6 +118,7 @@ class FormRoutes:
     """Defines all form-related routes."""
 
     def __init__(self):
+        """Register the form routes on a new APIRouter."""
         self.router = APIRouter(prefix="/forms", tags=["forms"])
 
         # --- Facility form (display) ---
@@ -244,18 +245,22 @@ class FormRoutes:
 
     # ------------------------------------------------------------------
     def _get_question_db(self) -> FormQuestionSQLite:
+        """Return a fresh SQLite form question store."""
         return FormQuestionSQLite()
 
     # ------------------------------------------------------------------
     def _get_rule_db(self) -> FacilityRuleSQLite:
+        """Return a fresh SQLite facility rule store."""
         return FacilityRuleSQLite()
 
     # ------------------------------------------------------------------
     def _get_form_db(self) -> FormSubmissionSQLite:
+        """Return a fresh SQLite form submission store."""
         return FormSubmissionSQLite()
 
     # ------------------------------------------------------------------
     def _get_facility_db(self) -> FacilitySQLite:
+        """Return a fresh SQLite facility store."""
         return FacilitySQLite()
 
     # ------------------------------------------------------------------
@@ -431,6 +436,7 @@ class FormRoutes:
         }
 
         def answer_text(response: FormResponse) -> str:
+            """Format a response's answer as display text (Yes/No for booleans)."""
             if response.answer_text is not None:
                 return response.answer_text
             if response.answer_bool is not None:
@@ -438,6 +444,7 @@ class FormRoutes:
             return "-"
 
         def sort_key(response: FormResponse) -> tuple[int, int]:
+            """Sort responses by question order, then response id."""
             question = question_map.get(response.question_id)
             if question is not None:
                 return question.sort_order, response.response_id or 0

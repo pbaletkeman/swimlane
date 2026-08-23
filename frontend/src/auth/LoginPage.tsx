@@ -2,6 +2,7 @@ import { Button } from 'primereact/button'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from './auth-context.ts'
 
+/** Login page that redirects authenticated users to the dashboard. */
 export function LoginPage() {
   const { accessToken, loading, login } = useAuth()
 

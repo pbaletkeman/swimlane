@@ -7,6 +7,7 @@ import type { DialogRootChangeEvent } from '@primereact/types/primitive/dialog'
 import { useAuth } from '../auth/auth-context.ts'
 import type { UserRole } from '../auth/types.ts'
 
+/** Props for the ConfirmDelete component. */
 export interface ConfirmDeleteProps {
   itemName: string
   onSoftDelete: () => Promise<void> | void
@@ -20,6 +21,7 @@ export interface ConfirmDeleteProps {
 
 type ConfirmMode = 'soft' | 'hard' | null
 
+/** Renders soft/hard delete buttons with a confirmation dialog. */
 export function ConfirmDelete({
   itemName,
   onSoftDelete,

@@ -5,19 +5,25 @@ const ACCESS_TOKEN_KEY = 'swimlane.accessToken'
 const REFRESH_TOKEN_KEY = 'swimlane.refreshToken'
 const USER_KEY = 'swimlane.user'
 
+/** Retrieve the stored JWT access token from localStorage. */
 export const getAccessToken = (): string | null => localStorage.getItem(ACCESS_TOKEN_KEY)
 
+/** Persist a JWT access token to localStorage. */
 export const setAccessToken = (token: string): void => localStorage.setItem(ACCESS_TOKEN_KEY, token)
 
+/** Retrieve the stored JWT refresh token from localStorage. */
 export const getRefreshToken = (): string | null => localStorage.getItem(REFRESH_TOKEN_KEY)
 
+/** Persist a JWT refresh token to localStorage. */
 export const setRefreshToken = (token: string): void => localStorage.setItem(REFRESH_TOKEN_KEY, token)
 
+/** Remove both access and refresh tokens from localStorage. */
 export const clearTokens = (): void => {
   localStorage.removeItem(ACCESS_TOKEN_KEY)
   localStorage.removeItem(REFRESH_TOKEN_KEY)
 }
 
+/** Retrieve and parse the stored user object from localStorage. */
 export const getStoredUser = <T = User>(): T | null => {
   const raw = localStorage.getItem(USER_KEY)
   if (!raw) return null
@@ -28,14 +34,17 @@ export const getStoredUser = <T = User>(): T | null => {
   }
 }
 
+/** Persist a User object to localStorage as JSON. */
 export const setStoredUser = (user: User): void => {
   localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
 
+/** Remove the stored user object from localStorage. */
 export const clearStoredUser = (): void => {
   localStorage.removeItem(USER_KEY)
 }
 
+/** Decoded JWT claims used for role and expiry checks on the client. */
 export interface JwtPayload {
   sub?: string
   role?: string
@@ -63,6 +72,7 @@ export function decodeTokenPayload(token: string): JwtPayload | null {
   }
 }
 
+/** Extract and uppercase the role claim from a JWT access token. */
 export function getRoleFromToken(token: string | null): UserRole | null {
   if (!token) return null
   const payload = decodeTokenPayload(token)

@@ -91,6 +91,7 @@ class EventRoutes:
     """Defines all event-related routes."""
 
     def __init__(self):
+        """Register the event routes on a new APIRouter."""
         self.router = APIRouter(prefix="/events", tags=["events"])
         self.router.add_api_route(
             "",
@@ -179,6 +180,7 @@ class EventRoutes:
 
     # ------------------------------------------------------------------
     def _get_db(self) -> EventSQLite:
+        """Return a fresh SQLite event store."""
         return EventSQLite()
 
     # ------------------------------------------------------------------

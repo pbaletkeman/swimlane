@@ -30,6 +30,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """Logs method, path, status code, duration, and request ID for each request."""
 
     async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+        """Log method, path, status code, and duration for the request."""
         request_id = str(uuid.uuid4())[:8]
         request_id_var.set(request_id)
 

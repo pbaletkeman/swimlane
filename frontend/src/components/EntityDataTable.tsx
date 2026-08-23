@@ -13,6 +13,7 @@ import type {
   DataTableSelectionExposes,
 } from '@primereact/types/primitive/datatable'
 
+/** Describes a single column in the entity data table. */
 export interface EntityDataTableColumn<T> {
   field: string
   header: string
@@ -21,6 +22,7 @@ export interface EntityDataTableColumn<T> {
   body?: (row: T) => ReactNode
 }
 
+/** Props for the EntityDataTable component. */
 export interface EntityDataTableProps<T> {
   data: T[]
   columns: EntityDataTableColumn<T>[]
@@ -40,6 +42,7 @@ export interface EntityDataTableProps<T> {
   onSelectionChange?: (keys: Record<string, boolean>) => void
 }
 
+/** Renders a searchable, sortable, paginated data table with optional row selection. */
 export function EntityDataTable<T>({
   data,
   columns,

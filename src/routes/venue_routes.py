@@ -33,6 +33,7 @@ class VenueRoutes:
     """Defines all venue-related routes."""
 
     def __init__(self):
+        """Register the venue routes on a new APIRouter."""
         self.router = APIRouter(prefix="/venues", tags=["venues"])
         self.router.add_api_route(
             "",
@@ -91,6 +92,7 @@ class VenueRoutes:
 
     # ------------------------------------------------------------------
     def _get_db(self) -> VenueSQLite:
+        """Return a fresh SQLite venue store."""
         return VenueSQLite()
 
     # ------------------------------------------------------------------

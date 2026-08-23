@@ -261,6 +261,7 @@ class AuthRoutes:
 
     # ------------------------------------------------------------------
     def oauth2user(self, userinfo: dict[str, Any]) -> User:
+        """Build a User from Google userinfo with encrypted PII fields."""
         first_name_enc = encrypt_field(userinfo["given_name"])
         last_name_enc = encrypt_field(userinfo["family_name"])
         email_enc = encrypt_field(userinfo["email"])

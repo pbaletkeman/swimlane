@@ -544,30 +544,30 @@ infrastructure, and writes unit tests to achieve 90%+ line coverage on
 
 Ensure all methods have valid docstrings or function comments.
 
-- [ ] **10.1** — Python: run `uv add --dev interrogate` then
+- [x] **10.1** — Python: run `uv add --dev interrogate` then
   `uv run interrogate src/ -v --fail-under 80` to measure current docstring
   coverage. Record the baseline.
-- [ ] **10.2** — Add docstrings to all uncovered Python functions/methods.
+- [x] **10.2** — Add docstrings to all uncovered Python functions/methods.
   Follow Google-style docstring format. Include:
   - One-line summary
   - Args section (for non-trivial parameters)
   - Returns section (for non-trivial returns)
   - Raises section (where applicable)
-- [ ] **10.3** — Frontend: add JSDoc comments to all exported functions,
+- [x] **10.3** — Frontend: add JSDoc comments to all exported functions,
   components, and interfaces. Format:
   ```
   /** Brief description of what this component/function does. */
   ```
-- [ ] **10.4** — Re-run `uv run interrogate src/ -v --fail-under 80` and
+- [x] **10.4** — Re-run `uv run interrogate src/ -v --fail-under 80` and
   commit the result.
-- [ ] **10.5** — Add `interrogate` config to `pyproject.toml`:
+- [x] **10.5** — Add `interrogate` config to `pyproject.toml`:
   ```toml
   [tool.interrogate]
   ignore-init-module = true
   ignore-private = true
   fail-under = 80
   ```
-- [ ] **10.6** — Commit, push, create a PR and generate PR title + description, never commit to main branch
+- [x] **10.6** — Commit, push, create a PR and generate PR title + description, never commit to main branch
 
 ### PR Title
 

@@ -24,6 +24,7 @@ function getSystemDarkSnapshot(): boolean {
   return window.matchMedia(SYSTEM_DARK_QUERY).matches
 }
 
+/** Provides theme state and applies the resolved scheme to the document. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(readStoredTheme)
   const systemPrefersDark = useSyncExternalStore(subscribeSystemDark, getSystemDarkSnapshot)

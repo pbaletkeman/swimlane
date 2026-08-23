@@ -8,6 +8,7 @@ const THEME_OPTIONS: { value: Theme; label: string; icon: string }[] = [
   { value: 'system', label: 'System', icon: 'pi pi-desktop' },
 ]
 
+/** Renders a theme-switcher dropdown for toggling light, dark, and system themes. */
 export function ThemeSwitch() {
   const { theme, effectiveTheme, setTheme } = useTheme()
 

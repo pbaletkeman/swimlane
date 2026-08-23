@@ -1,5 +1,6 @@
 import type { Role } from '../api/types.ts'
 
+/** User role string literal matching the backend UserRole enum. */
 export type UserRole = Role
 
 /** Mirrors the backend's hierarchical roles (WEB_ADMIN highest). */
@@ -10,6 +11,7 @@ export const ROLE_RANK: Record<UserRole, number> = {
   MEMBER: 3,
 }
 
+/** All valid user roles in descending privilege order. */
 export const USER_ROLES: UserRole[] = ['WEB_ADMIN', 'FACILITY_MANAGER', 'COACH', 'MEMBER']
 
 /** Google OpenID Connect userinfo profile (from the OAuth callback). */

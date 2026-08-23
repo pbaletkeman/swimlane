@@ -27,6 +27,7 @@ dev = [
     "pytest>=8.0.0",
     "pyright>=1.1.411",
     "pytest-cov>=7.1.0",
+    "interrogate>=1.7.0",
 ]
 
 [tool.ruff]
@@ -54,3 +55,8 @@ pythonVersion = "3.14"
 typeCheckingMode = "basic"
 venvPath = "."
 venv = ".venv"
+
+[tool.interrogate]
+ignore-init-module = true
+ignore-private = true
+fail-under = 80

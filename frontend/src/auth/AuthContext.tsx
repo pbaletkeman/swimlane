@@ -7,6 +7,7 @@ import { clearStoredUser, clearTokens, getAccessToken, getRefreshToken, getRoleF
 import { ROLE_RANK } from './types.ts'
 import type { User, UserRole } from './types.ts'
 
+/** Top-level provider that manages auth state, tokens, and role checks. */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => getStoredUser<User>())
   const [accessToken, setAccessTokenState] = useState<string | null>(() => getAccessToken())

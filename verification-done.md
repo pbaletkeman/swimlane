@@ -1056,3 +1056,72 @@ The pre-drafted PR description in `verification.md` was superseded by the PR
 body, which records real final metrics instead of placeholders and adds the
 9.8 row. Phase V9 is fully complete (9.1–9.8); branch is up to date with its
 PR head after this docs commit.
+
+---
+
+## Phase V10 — Docstring & Comment Sweep
+
+### 10.1 — Baseline docstring coverage measured ✅
+
+| Item | Result |
+|------|--------|
+| Tool installed | `uv add --dev interrogate` (interrogate 1.7.0) |
+| Baseline | **89.3%** (592/663 documented, 71 missing) |
+| Command | `uv run interrogate src/ -v --fail-under 80` |
+
+### 10.2 — Python docstrings added ✅
+
+| Item | Result |
+|------|--------|
+| Module docstrings | 14 `__init__.py` + `src/data/venue/init.py` + `src/__init__.py` — all given accurate package-level docstrings |
+| `SQLite.__init__` | 11 entity sqlite.py files documented |
+| `SQLite._connect` | 11 entity sqlite.py files documented |
+| Route class `__init__` + `_get_db` | All 11 route files documented (AuthRoutes, CoachRoutes, EventRoutes, FacilityRoutes, FormRoutes, FrequencyRoutes, MessageRoutes, PublicRoutes, ScheduleRoutes, UserRoutes, VenueRoutes) |
+| Route helper methods | `_invite_from_row`, `update_user`, `_to_item`, `_to_managed`, `_get_users_db`, `_get_invite_db`, `oauth2user`, nested `answer_text`/`sort_key` |
+| Other | `ClosingConnection.__exit__`, `RequestLoggingMiddleware.dispatch`, `Config.__init__`, `JSONFormatter.format` |
+| Style | Google-style one-liners; `update_user` uses full Args/Returns |
+| Files changed | ~40 Python files in `src/` |
+
+### 10.3 — Frontend JSDoc comments added ✅
+
+| Item | Result |
+|------|--------|
+| Total exports checked | 151 |
+| Missing before | 126 |
+| Missing after | **0** |
+| Files changed | 30 frontend files across `api/`, `auth/`, `components/`, `pages/`, `layout/`, `router/`, `toast/`, `theme/`, `util/`, `test-utils.tsx` |
+| Style | `/** Brief one-line description. */` — concise, no multi-line JSDoc |
+
+### 10.4 — Final interrogate coverage ✅
+
+| Item | Result |
+|------|--------|
+| Result | **100.0%** (663/663 documented) |
+| Command | `uv run interrogate src/ -v --fail-under 80` |
+
+### 10.5 — interrogate config in pyproject.toml ✅
+
+| Item | Result |
+|------|--------|
+| Config added | `[tool.interrogate]` section in `pyproject.toml` |
+| Settings | `ignore-init-module = true`, `ignore-private = true`, `fail-under = 80` |
+
+### 10.6 — Commit, push, and PR ✅
+
+| Item | Result |
+|------|--------|
+| Commit | `bf90151` — "docs: add docstrings to all Python functions and JSDoc to frontend exports" |
+| Branch | `chore/docstring-sweep` (from `main`) |
+| Files changed | 71 files, 215 insertions, 1 deletion |
+| Push | `git push -u origin chore/docstring-sweep` |
+| PR | **[#46](https://github.com/pbaletkeman/swimlane/pull/46)** (`chore/docstring-sweep` → `main`) |
+
+### Verification
+
+| Gate | Result |
+|------|--------|
+| `uv run interrogate src/ -v --fail-under 80` | 100.0% — PASSED |
+| `uv run ruff check src/` | All checks passed |
+| `uv run ruff format --check src/` | 87 files already formatted |
+| `uv run pyright` | 0 errors, 0 warnings, 0 informations |
+| `cd frontend && npx tsc -b` | Passed (no output) |

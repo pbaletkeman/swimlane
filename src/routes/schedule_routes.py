@@ -59,6 +59,7 @@ class ScheduleRoutes:
     """Defines all schedule-related routes."""
 
     def __init__(self):
+        """Register the schedule routes on a new APIRouter."""
         self.router = APIRouter(prefix="/schedules", tags=["schedules"])
         self.router.add_api_route(
             "",
@@ -142,6 +143,7 @@ class ScheduleRoutes:
 
     # ------------------------------------------------------------------
     def _get_db(self) -> ScheduleSQLite:
+        """Return a fresh SQLite schedule store."""
         return ScheduleSQLite()
 
     # ------------------------------------------------------------------

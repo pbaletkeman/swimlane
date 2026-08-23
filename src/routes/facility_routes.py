@@ -31,6 +31,7 @@ class FacilityRoutes:
     """Defines all facility-related routes."""
 
     def __init__(self):
+        """Register the facility routes on a new APIRouter."""
         self.router = APIRouter(prefix="/facilities", tags=["facilities"])
         self.router.add_api_route(
             "",
@@ -89,6 +90,7 @@ class FacilityRoutes:
 
     # ------------------------------------------------------------------
     def _get_db(self) -> FacilitySQLite:
+        """Return a fresh SQLite facility store."""
         return FacilitySQLite()
 
     # ------------------------------------------------------------------

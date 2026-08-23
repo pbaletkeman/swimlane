@@ -39,6 +39,7 @@ function NotFoundPage() {
   return <ErrorPage code={404} title="Page not found" message="The page you requested does not exist." />
 }
 
+/** Root router component defining all public and authenticated routes. */
 export function AppRouter() {
   return (
     <Suspense fallback={<LazyFallback />}>

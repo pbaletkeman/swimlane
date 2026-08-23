@@ -4,10 +4,12 @@ import type { ToasterRegionExposes } from '@primereact/types/primitive/toaster'
 import type { ToastType } from '@primereact/types/primitive/toaster'
 import type { ToasterPosition } from '@primereact/types/headless/toaster'
 
+/** Props for the ToastProvider component. */
 export interface ToastProviderProps {
   position?: ToasterPosition
 }
 
+/** Provides a global toast notification system using PrimeReact's Toaster. */
 export function ToastProvider({ position = 'top-right' }: ToastProviderProps) {
   return (
     <Toaster.Root position={position}>
