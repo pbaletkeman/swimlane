@@ -13,6 +13,7 @@ uv run ruff check .            # lint
 uv run ruff format .           # format
 uv run pyright                 # typecheck
 uv run pytest                  # test
+uv run interrogate src/ -v --fail-under 80  # docstring coverage
 
 cd frontend
 npm install                    # install frontend deps
