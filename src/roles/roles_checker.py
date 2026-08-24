@@ -7,7 +7,7 @@ role-based permissions on endpoint routes.
 """
 
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import jwt
 from jose.exceptions import JWTError
 
@@ -15,7 +15,7 @@ from src.data.users.user import User
 from src.env import TOKEN_SECRET_KEY
 from src.util.configs import Config
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+bearer_scheme = HTTPBearer()
 
 config: dict = Config.yaml_config()  # type: ignore
 
@@ -44,15 +44,17 @@ class RoleChecker:
 
         self.allowed_roles = allowed_roles  # type: ignore
 
-    def __call__(self, token: str = Depends(oauth2_scheme)) -> User:
+    def __call__(
+        self, credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)
+    ) -> User:
         """
         Validates the JWT token and authorizes the user role.
 
-        Decodes the incoming OAuth2 token, extracts user identity and role
+        Decodes the incoming Bearer token, extracts user identity and role
         claims, and ensures the user role exists within the allowed scope.
 
         Args:
-            token: The OAuth2 bearer token extracted from the request headers.
+            credentials: The HTTP Bearer credentials extracted from the request headers.
 
         Returns:
             User: An instantiated user object containing email and role details.
@@ -61,6 +63,7 @@ class RoleChecker:
             HTTPException: 401 error if token is invalid or claims are missing.
             HTTPException: 403 error if the user lacks the required role.
         """
+        token = credentials.credentials
         try:
             # Decode the token issued by your backend
             payload = jwt.decode(token, TOKEN_SECRET_KEY, algorithms=[algorithm])
