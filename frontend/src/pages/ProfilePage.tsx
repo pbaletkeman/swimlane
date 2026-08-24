@@ -355,7 +355,7 @@ export default function ProfilePage() {
       </Tabs.Root>
 
       <Dialog.Root
-        visible={viewSubmission !== null}
+        open={viewSubmission !== null}
         modal
         dismissable
         blockScroll
@@ -406,7 +406,7 @@ export default function ProfilePage() {
       </Dialog.Root>
 
       <Dialog.Root
-        visible={viewMessage !== null}
+        open={viewMessage !== null}
         modal
         dismissable
         blockScroll

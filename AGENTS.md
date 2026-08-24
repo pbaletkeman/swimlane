@@ -79,6 +79,7 @@ Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `sched
 - `auth_callback` returns `DEVTOOLS_HTML` when called without a `code` param, so `/auth/callback` is safe to visit directly (it renders the test page, not an error).
 - Frontend: PrimeReact 11 components require `<PrimeReactProvider>` (exported from `@primereact/core/config`) at the root of `main.tsx`. The `ThemeProvider` from `@primereact/core/theme` does **not** provide it — omitting `PrimeReactProvider` crashes the whole tree at runtime ("[PrimeReact] PrimeReactProvider not found").
 - Frontend: PrimeReact 11 `Button` renders only its children — the old `label=`/`icon=` props (v4 API) do nothing and produce an empty button. Pass `<i className="p-button-icon pi pi-google" />` + `<span className="p-button-label">…</span>` inside the button instead.
+- Frontend: PrimeReact 11 `Dialog.Root` uses `open` (not `visible`) to control visibility. The old `visible` prop (v4 API) is silently ignored and the dialog never opens.
 - Frontend: `npm run build` runs `tsc -b` then Vite; `npm run lint` is oxlint.
 - Frontend: JWT `role` claims are the lowercase `UserRole` enum values (e.g. `facility_manager`), but the frontend role maps (`ROLE_RANK`, nav/severity/label maps) key on the uppercase member names (`FACILITY_MANAGER`). `getRoleFromToken` (`frontend/src/auth/tokens.ts`) uppercases the decoded role before the lookup — keep both sides in sync if you change role handling.
 - `referances/` directory name is intentionally misspelled.

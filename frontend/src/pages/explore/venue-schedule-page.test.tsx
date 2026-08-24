@@ -47,7 +47,7 @@ function json(body: unknown, status = 200): Response {
 }
 
 const venue = { venue_id: 42, facility_name: 'Pool Miami', street: '123 Main', city: 'Miami', state: 'FL', postal_code: '33101' }
-const events = [{ event_id: 1, start_date_time: '2099-01-01T09:00:00', end_date_time: '2099-01-01T11:00:00', description: 'Lap swim' }]
+const events = [{ event_id: 1, start_date_time: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-15T09:00:00`, end_date_time: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-15T11:00:00`, description: 'Lap swim' }]
 
 function renderVenue(scheduleData: unknown[]) {
   vi.stubGlobal('fetch', vi.fn().mockImplementation(async (input: string | URL) => {
@@ -74,14 +74,14 @@ describe('VenueSchedulePage', () => {
     expect(screen.getByText('Event list')).toBeInTheDocument()
   })
 
-  it('renders events with view details link', async () => {
+  it('renders events in the calendar', async () => {
     renderVenue(events)
-    await waitFor(() => expect(screen.getAllByText('View details').length).toBeGreaterThan(0))
+    await waitFor(() => expect(screen.getAllByText('Lap swim').length).toBeGreaterThan(0))
   })
 
   it('shows empty state when no events', async () => {
     renderVenue([])
-    expect(await screen.findByText('No events in this view')).toBeInTheDocument()
+    expect(await screen.findByText('No events this month')).toBeInTheDocument()
   })
 
   it('shows 404 state for unknown venue', async () => {

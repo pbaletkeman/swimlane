@@ -138,6 +138,10 @@ describe('EventDetailPage', () => {
     if (!registerButton) throw new Error('Register control not found')
     fireEvent.click(registerButton)
 
+    // Confirm in the modal
+    const confirm = await screen.findByText('Confirm')
+    fireEvent.click(confirm.closest('button')!)
+
     await waitFor(() =>
       expect(
         calls.some((c) => c.url === '/api/events/21/register' && c.method === 'POST'),

@@ -327,7 +327,7 @@ export default function EventDetailPage() {
                     loading={registering}
                   >
                     <span className="p-button-label">
-                      {full ? 'Event full' : 'Register'}
+                      {registering ? 'Registering…' : full ? 'Event full' : 'Register'}
                     </span>
                   </Button>
                 )

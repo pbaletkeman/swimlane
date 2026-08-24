@@ -87,7 +87,7 @@ export function ConfirmDelete({
         </Button>
       )}
       <Dialog.Root
-        visible={mode !== null}
+        open={mode !== null}
         modal
         dismissable
         blockScroll

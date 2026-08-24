@@ -58,7 +58,7 @@ export function BulkDeleteBar({ count, itemLabel, onBulkDelete, loading = false 
         <span className="p-button-label">Delete</span>
       </Button>
       <Dialog.Root
-        visible={visible}
+        open={visible}
         modal
         dismissable
         blockScroll
