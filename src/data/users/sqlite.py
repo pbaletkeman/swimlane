@@ -54,6 +54,12 @@ class SQLite(UserInterfaceBase):
             raise
 
     # ------------------------------------------------------------------
+    @staticmethod
+    def _normalize_sub(sub: str) -> str:
+        """Strip any provider prefix (e.g. ``google-oauth2|``) from a sub."""
+        return sub.rsplit("|", 1)[-1] if "|" in sub else sub
+
+    # ------------------------------------------------------------------
     def get_create_table(self) -> LiteralString:
         """Get the User's Table DDL"""
         sql = """CREATE TABLE IF NOT EXISTS users (
@@ -150,8 +156,34 @@ class SQLite(UserInterfaceBase):
                         SELECT MIN(id) FROM users GROUP BY sub
                     )
                 """)
-                # Merge prefix-mismatched subs: if "google-oauth2|X" and "X"
-                # both exist, drop the prefixed row; otherwise strip the prefix.
+                # Merge prefix-mismatched subs: when "google-oauth2|X" and "X"
+                # both exist, promote the higher-privilege role onto the
+                # unprefixed row and delete the prefixed one.
+                cursor.execute("""
+                    UPDATE users SET role = (
+                        SELECT p.role FROM users p
+                        WHERE p.sub = 'google-oauth2|' || users.sub
+                    )
+                    WHERE sub NOT LIKE '%|%'
+                      AND EXISTS (
+                          SELECT 1 FROM users p
+                          WHERE p.sub = 'google-oauth2|' || users.sub
+                            AND CASE p.role
+                                  WHEN 'web_admin' THEN 4
+                                  WHEN 'facility_manager' THEN 3
+                                  WHEN 'coach' THEN 2
+                                  WHEN 'member' THEN 1
+                                  ELSE 0
+                                END
+                              > CASE users.role
+                                  WHEN 'web_admin' THEN 4
+                                  WHEN 'facility_manager' THEN 3
+                                  WHEN 'coach' THEN 2
+                                  WHEN 'member' THEN 1
+                                  ELSE 0
+                                END
+                      )
+                """)
                 cursor.execute("""
                     DELETE FROM users
                     WHERE sub LIKE '%|%'
@@ -296,7 +328,7 @@ class SQLite(UserInterfaceBase):
 
             return_user: Optional[User] = None
             sql: str = self.get_record_select("WHERE sub = ?")
-            cursor.execute(sql, (sub,))
+            cursor.execute(sql, (self._normalize_sub(sub),))
             rs = cursor.fetchone()
             if rs:
                 return_user = self.create_user_helper(rs)
@@ -427,7 +459,7 @@ class SQLite(UserInterfaceBase):
 
             data.append(
                 (
-                    str(user.sub),  # type: ignore[attr-defined]
+                    self._normalize_sub(str(user.sub)),  # type: ignore[attr-defined]
                     str(user.role),  # type: ignore[union-attr]
                     user.first_name_nonce or "",
                     user.first_name_ciphertext or "",
@@ -439,7 +471,7 @@ class SQLite(UserInterfaceBase):
                 )
             )
 
-            subs_params.append(str(user.sub))  # type: ignore[attr-defined]
+            subs_params.append(self._normalize_sub(str(user.sub)))  # type: ignore[attr-defined]
 
         with self._connect() as conn:
             cursor = conn.cursor()
