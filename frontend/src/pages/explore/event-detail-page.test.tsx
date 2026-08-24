@@ -148,6 +148,9 @@ describe('EventDetailPage', () => {
     renderDetail()
     await waitFor(() => expect(screen.getByText('Register')).toBeTruthy())
     screen.getByText('Register').click()
+    // Confirm in the modal
+    const confirm = await screen.findByText('Confirm')
+    fireEvent.click(confirm.closest('button')!)
     await waitFor(() => expect(mockRegisterForEvent).toHaveBeenCalledWith(1))
   })
 
@@ -201,6 +204,9 @@ describe('EventDetailPage', () => {
     renderDetail()
     await waitFor(() => expect(screen.getByText('Register')).toBeTruthy())
     fireEvent.click(screen.getByText('Register'))
+    // Confirm in the modal
+    const confirm = await screen.findByText('Confirm')
+    fireEvent.click(confirm.closest('button')!)
     await waitFor(() => expect(mockRegisterForEvent).toHaveBeenCalledWith(1))
   })
 
@@ -225,11 +231,15 @@ describe('EventDetailPage', () => {
     renderDetail()
     await waitFor(() => expect(screen.getByText('Register')).toBeTruthy())
     fireEvent.click(screen.getByText('Register'))
+    // Confirm in the modal
+    const confirm = await screen.findByText('Confirm')
+    fireEvent.click(confirm.closest('button')!)
     await waitFor(() => expect(mockGetEventDetail).toHaveBeenCalledTimes(2))
   })
 
   it('reschedules to a selected alternate event', async () => {
     loginAs('MEMBER')
+    mockGetEventDetail.mockResolvedValue(detail)
     mockSchedulesList.mockResolvedValue([{ schedule_id: 10, event_id: 1, member_id: 'test-user', is_active: true }])
     mockSearchEvents.mockResolvedValue([
       { event_id: 2, start_date_time: '2027-04-01T09:00:00' },
@@ -283,6 +293,9 @@ describe('EventDetailPage', () => {
     renderDetail()
     await waitFor(() => expect(screen.getByText('Register')).toBeTruthy())
     fireEvent.click(screen.getByText('Register'))
+    // Confirm in the modal
+    const confirm = await screen.findByText('Confirm')
+    fireEvent.click(confirm.closest('button')!)
     await waitFor(() => expect(screen.getByText('Registering…')).toBeTruthy())
     resolve({})
   })

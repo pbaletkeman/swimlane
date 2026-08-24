@@ -424,7 +424,7 @@ export default function CoachEventsPage() {
         submitting={submitting}
       />
       <Dialog.Root
-        visible={membersEvent !== null}
+        open={membersEvent !== null}
         modal
         dismissable
         blockScroll

@@ -334,7 +334,7 @@ export function EntityFormDialog<T>({
 
   return (
     <Dialog.Root
-      visible={visible}
+      open={visible}
       modal
       dismissable
       blockScroll

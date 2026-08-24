@@ -89,6 +89,10 @@ describe('EventDetailPage', () => {
     const btn = await screen.findByText('Register')
     fireEvent.click(btn.closest('button')!)
 
+    // Confirm in the modal
+    const confirm = await screen.findByText('Confirm')
+    fireEvent.click(confirm.closest('button')!)
+
     await waitFor(() =>
       expect(calls.some((c) => c.url === '/api/events/21/register' && c.method === 'POST')).toBe(true),
     )
