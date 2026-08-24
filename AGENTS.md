@@ -20,6 +20,7 @@ npm install                    # install frontend deps
 npm run dev                    # Vite dev server (port 5173)
 npm run lint                   # oxlint
 npm run build                  # tsc -b + vite build
+npm run test                   # vitest run
 ```
 
 Tests live in `tests/` (pytest, throwaway SQLite DB — never the dev `swimlane.db`). They cover public capacity/register/reschedule, coach scoping, and user-role bounds; conftest overrides the DB before `main` is imported.
@@ -41,7 +42,7 @@ Tests live in `tests/` (pytest, throwaway SQLite DB — never the dev `swimlane.
 - `src/routes/message_routes.py` — One-way staff→member inbox (`/messages`): member GET own inbox / mark read / soft delete; coach+ send; admin hard delete
 - `src/routes/coach_routes.py` — Coach-scoped endpoints (`/coach/events?scope=upcoming|past|all` — the caller's own events)
 - `src/routes/user_routes.py` — User management (facility manager+): list by role, detail, email-keyed invite (role applied on first Google login), role change, soft/hard delete. Senior roles (`facility_manager`, `web_admin`) are listable/assignable/removable by `web_admin` only
-- `src/routes/devtools.py` — `DEVTOOLS_HTML`, a self-contained API test page. Served at `GET /devtools` and by `auth_callback` when no OAuth `code` is present, so the post-login redirect can land here (set `FRONTEND_URL`/`security.frontend_url` to the backend origin) and auto-capture the tokens for backend-only testing.
+- `src/routes/devtools.py` — `DEVTOOLS_HTML`, a self-contained API test page. Not a standalone router; imported by `auth_routes.py` and served at `GET /devtools` (inside `AuthRoutes`) and by `auth_callback` when no OAuth `code` is present, so the post-login redirect can land here (set `FRONTEND_URL`/`security.frontend_url` to the backend origin) and auto-capture the tokens for backend-only testing.
 
 **Data layer** (`src/data/<entity>/`): each entity has 3 files following the same pattern:
 
@@ -49,15 +50,15 @@ Tests live in `tests/` (pytest, throwaway SQLite DB — never the dev `swimlane.
 - `<entity>_interface.py` — Abstract base class (ABC)
 - `sqlite.py` — SQLite implementation (raw `sqlite3`, no ORM)
 
-Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `schedule`, `form_question`, `facility_rule`, `form_submission`, `message`, `user_invite`.
+Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `schedule`, `form_question`, `facility_rule`, `form_submission`, `message`, `user_invite`. `form_response` is a sub-model inside `src/data/form_submission/` (not a separate directory). Also: `src/data/connection.py` provides `ClosingConnection` for guaranteed sqlite3 connection cleanup; `src/misc_models.py` defines `TokenData(BaseModel)` used by auth routes.
 
 **Config**: `config.yaml` (root) — YAML loaded by `src/util/configs.py:Config`. Controls DB driver (`sql.active: sqlite|postgresql`) and security settings. `security.frontend_url` is where the OAuth callback redirects the browser with the JWTs appended (override with `FRONTEND_URL` env). `.secrets/client_secret.json` for Google OAuth credentials (gitignored).
 
-**OAuth callback redirect**: after Google auth, `/auth/callback` redirects the browser to the SPA origin that started the login, preferring the `frontend_url` query param passed by the frontend at `/login` (validated to `localhost`/`127.0.0.1`/`::1` only), then the `Origin`/`Referer` headers, then `security.frontend_url`/`FRONTEND_URL`. The chosen origin is stored in the session cookie so it survives the Google round-trip. For backend-only development, point `frontend_url` at the backend origin — the callback then lands on the devtools page (see `src/routes/devtools.py`), which captures the tokens.
+**OAuth callback redirect**: after Google auth, `/auth/callback` redirects the browser to the SPA origin that started the login, preferring the `frontend_url` query param passed by the frontend at `/login` (validated to `localhost`/`127.0.0.1`/`::1` only), then the `Origin`/`Referer` headers, then `security.frontend_url`/`FRONTEND_URL`. The chosen origin is stored in a server-side `_state_store` dict (keyed by a signed state nonce) so it survives the Google round-trip. For backend-only development, point `frontend_url` at the backend origin — the callback then lands on the devtools page (see `src/routes/devtools.py`), which captures the tokens.
 
 **Roles**: `src/roles/` — `UserRole` StrEnum (`WEB_ADMIN`, `FACILITY_MANAGER`, `COACH`, `MEMBER`). `RoleChecker` is a FastAPI dependency that decodes JWT and enforces role. Roles are hierarchical. Usage: `member_role` guards member self-service (register, reschedule, cancel, own schedule/iCal, form submit, own submissions/inbox); `coach_role` guards event create/update/delete (with the inline ownership guard) plus message send and coach event-member management; `facility_manager_role` guards entity CRUD/bulk; senior-role user management (`facility_manager`/`web_admin`) is `web_admin`-only.
 
-**Encryption**: `src/encryption.py` — AES-256-GCM for PII fields. Key from env var (`APP_AES_KEY`). User model stores nonce + ciphertext columns, never plaintext.
+**Encryption**: `src/encryption.py` — AES-256-GCM for PII fields. Key from env var (`APP_AES_KEY`). User model stores nonce + ciphertext columns, never plaintext. Also provides `hash_field()` for deterministic SHA-256 lookups on encrypted fields.
 
 **Logging**: `src/util/logging.py` — centralized `setup_logging()`. `src/middleware/logging.py` — request logging middleware with UUID correlation IDs. Env vars: `LOG_LEVEL` (default `INFO`), `LOG_FORMAT` (`text`|`json`), `LOG_FILE` (optional file output).
 
@@ -67,11 +68,11 @@ Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `sched
 
 **PDF export**: `GET /forms/submissions/{id}/pdf` renders a member's submission with reportlab (facility, member name, answers, facility rules). Members may export only their own submission; managers/coaches/admins may export any. `itsdangerous` is a declared dep (SessionMiddleware needs it).
 
-**Frontend** (`frontend/`): React 19 + TypeScript + Vite SPA styled with PrimeReact 11 (compound components + `@primeuix/themes` Aura preset). Provider stack in `src/main.tsx`: `PrimeReactProvider` (from `@primereact/core/config`) → `ThemeProvider` (from `@primereact/core/theme`) → `AuthProvider` → `ToastProvider` + `App`. Routes live in `src/router/`: public (outside `RouteGuard`) are `/` (HomePage: explore + login/dashboard), `/login`, `/auth/callback`, and the `/explore/*` browse pages (`/explore`, `/explore/venues`, `/explore/venues/:venueId`, `/explore/events/:eventId`). Authenticated routes sit behind `RouteGuard` + `AppLayout`: `/dashboard`, `/profile`, `/my-schedule`, `/manage-events`, `/manage-users`, the five CRUD pages, `/forms/builder/:facilityId`. The sidebar nav (`src/layout/nav.ts`) is role-filtered via rank-based `hasRole`: MEMBER sees Dashboard, Signup Forms, My Schedule (+ Profile in the sidebar footer); COACH adds Manage Events; FACILITY_MANAGER adds Frequencies/Facilities/Events/Venues/Schedules/Manage Users; WEB_ADMIN sees everything. API calls go through `src/api/client.ts` (Bearer header, single 401 → refresh → retry, then a `swimlane:auth-unauthorized` event that signs the user out). The login flow passes the SPA's own origin via `?frontend_url=` so the OAuth callback always returns to the correct port.
+**Frontend** (`frontend/`): React 19 + TypeScript + Vite SPA styled with PrimeReact 11 (compound components + `@primeuix/themes` Aura preset). Provider stack in `src/main.tsx`: `PrimeReactProvider` (from `@primereact/core/config`) → `ThemeProvider` (from `@primereact/core/theme`) → `AuthProvider` → `ToastProvider` + `App`. Routes live in `src/router/`: public (outside `RouteGuard`) are `/` (HomePage: explore + login/dashboard), `/login`, `/auth/callback`, and the `/explore/*` browse pages (`/explore`, `/explore/venues`, `/explore/venues/:venueId`, `/explore/events/:eventId`, `/explore/calendar`). Authenticated routes sit behind `RouteGuard` + `AppLayout`: `/dashboard`, `/profile`, `/my-schedule`, `/manage-events`, `/manage-users`, the five CRUD pages, `/forms`, `/forms/facility/:facilityId`, `/forms/builder/:facilityId`. The sidebar nav (`src/layout/nav.ts`) is role-filtered via rank-based `hasRole`: MEMBER sees Dashboard, Signup Forms, My Schedule (+ Profile in the sidebar footer); COACH adds Manage Events; FACILITY_MANAGER adds Frequencies/Facilities/Events/Venues/Schedules/Manage Users; WEB_ADMIN sees everything. API calls go through `src/api/client.ts` (Bearer header, single 401 → refresh → retry, then a `swimlane:auth-unauthorized` event that signs the user out). The login flow passes the SPA's own origin via `?frontend_url=` so the OAuth callback always returns to the correct port.
 
 ## Gotchas
 
-- `src/env.py` has hardcoded `TOKEN_SECRET_KEY` and `ENCRYPTION_KEY` — not real secrets, just defaults. Override via env vars in production.
+- `src/env.py` has hardcoded `TOKEN_SECRET_KEY` and `ENCRYPTION_KEY_ENV_VAR` — not real secrets, just defaults. Override via env vars in production.
 - `Config().db` is a **class** (not instance) — call `Config().db()` to get a SQLite instance.
 - `Config.__init__` calls `Config.google_config()` which reads `.secrets/client_secret.json` — app won't start without it (or will raise `FileNotFoundError`).
 - The OAuth session secret is `os.urandom(24)` at startup (`main.py`) — regenerated every restart, so a login flow interrupted by a restart loses the session cookie.
@@ -82,7 +83,7 @@ Implemented entities: `users`, `frequency`, `facility`, `event`, `venue`, `sched
 - Frontend: JWT `role` claims are the lowercase `UserRole` enum values (e.g. `facility_manager`), but the frontend role maps (`ROLE_RANK`, nav/severity/label maps) key on the uppercase member names (`FACILITY_MANAGER`). `getRoleFromToken` (`frontend/src/auth/tokens.ts`) uppercases the decoded role before the lookup — keep both sides in sync if you change role handling.
 - `referances/` directory name is intentionally misspelled.
 - `pymarkdownlnt` is in dev deps but no markdown lint config exists — don't run it unless configured.
-- Ruff line-length is 120 (not default 88).
+- Ruff line-length is 120 (not default 88). `pylint` and `pytest-cov` are also in dev deps.
 
 ## Entity Pattern (when adding new entities)
 
