@@ -1226,10 +1226,17 @@ li[role="option"][data-selected] {
 /* ─────────────────────────────────────────────────────
    Dialog styling — PrimeReact 11 compound components
    Uses data-scope="dialog" + data-part="..." attributes
+   Dialog NEVER unmounts — data-open/data-closed toggle visibility
    ───────────────────────────────────────────────────── */
 
+/* When closed, hide everything */
+[data-scope="dialog"][data-part="positioner"][data-closed],
+[data-scope="dialog"][data-part="backdrop"][data-closed] {
+  display: none !important;
+}
+
 /* Backdrop / overlay — the semi-transparent mask behind the dialog */
-[data-scope="dialog"][data-part="backdrop"] {
+[data-scope="dialog"][data-part="backdrop"][data-open] {
   background-color: rgba(0, 0, 0, 0.5) !important;
   position: fixed !important;
   inset: 0 !important;
@@ -1237,7 +1244,7 @@ li[role="option"][data-selected] {
 }
 
 /* Positioner — centers the dialog in the viewport */
-[data-scope="dialog"][data-part="positioner"] {
+[data-scope="dialog"][data-part="positioner"][data-open] {
   position: fixed !important;
   inset: 0 !important;
   display: flex !important;
