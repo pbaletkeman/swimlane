@@ -315,7 +315,7 @@ export function EntityFormDialog<T>({
         invalid={invalid}
         className="w-full"
       >
-        <Select.Trigger>
+        <Select.Trigger type="button">
           <Select.Value placeholder={field.placeholder ?? 'Select...'} />
           <Select.Indicator>
             <i className="pi pi-chevron-down" />
