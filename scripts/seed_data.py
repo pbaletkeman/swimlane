@@ -88,7 +88,7 @@ def create_users() -> list[User]:
             first_name = first_names[idx]
             last_name = last_names[idx]
             email = f"user{idx+1}@swimclub.example.com"
-            sub = f"google-oauth2|{sub_counter + idx}"
+            sub = str(sub_counter + idx)
 
             fn_enc = encrypt_field(first_name)
             ln_enc = encrypt_field(last_name)

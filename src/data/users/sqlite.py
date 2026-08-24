@@ -143,6 +143,27 @@ class SQLite(UserInterfaceBase):
                 cursor = conn.cursor()
                 sql: str = self.get_create_table()
                 cursor.executescript(sql)
+                # Deduplicate: keep the earliest row per sub, delete the rest
+                cursor.execute("""
+                    DELETE FROM users
+                    WHERE id NOT IN (
+                        SELECT MIN(id) FROM users GROUP BY sub
+                    )
+                """)
+                # Merge prefix-mismatched subs: if "google-oauth2|X" and "X"
+                # both exist, drop the prefixed row; otherwise strip the prefix.
+                cursor.execute("""
+                    DELETE FROM users
+                    WHERE sub LIKE '%|%'
+                      AND substr(sub, instr(sub, '|') + 1) IN (
+                          SELECT sub FROM users WHERE sub NOT LIKE '%|%'
+                      )
+                """)
+                cursor.execute("""
+                    UPDATE users
+                    SET sub = substr(sub, instr(sub, '|') + 1)
+                    WHERE sub LIKE '%|%'
+                """)
                 conn.commit()
         except sqlite3.Error as e:
             logger.error("Database initialization failed: %s", e)
@@ -377,7 +398,18 @@ class SQLite(UserInterfaceBase):
                  email_nonce,
                  email_ciphertext,
                  email_hash)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(sub) DO UPDATE SET
+                 role                  = excluded.role,
+                 first_name_nonce      = excluded.first_name_nonce,
+                 first_name_ciphertext = excluded.first_name_ciphertext,
+                 last_name_nonce       = excluded.last_name_nonce,
+                 last_name_ciphertext  = excluded.last_name_ciphertext,
+                 email_nonce           = excluded.email_nonce,
+                 email_ciphertext      = excluded.email_ciphertext,
+                 email_hash            = excluded.email_hash,
+                 updated_at            = CURRENT_TIMESTAMP
+          WHERE excluded.sub = users.sub"""
 
         data: list[tuple[str, str, str, str, str, str, str, str, str]] = []
         subs_params: list[str] = []

@@ -306,8 +306,12 @@ class AuthRoutes:
         last_name_enc = encrypt_field(userinfo["family_name"])
         email_enc = encrypt_field(userinfo["email"])
 
+        # Strip any provider prefix (e.g. "google-oauth2|") from the sub
+        raw_sub: str = userinfo.get("sub", "")
+        sub = raw_sub.rsplit("|", 1)[-1] if "|" in raw_sub else raw_sub
+
         user: User = User(
-            sub=userinfo.get("sub"),  # type: ignore
+            sub=sub,  # type: ignore
             first_name_nonce=first_name_enc["nonce"],
             first_name_ciphertext=first_name_enc["ciphertext"],
             last_name_nonce=last_name_enc["nonce"],
@@ -441,9 +445,11 @@ class AuthRoutes:
             raise HTTPException(status_code=400, detail="No user info returned")
 
         # Look up user in local database to find their permissions
-        sub: str | None = user_info.get("sub")  # type: ignore
-        if not sub:
+        raw_sub: str | None = user_info.get("sub")  # type: ignore
+        if not raw_sub:
             raise HTTPException(status_code=400, detail="Subject not found in user info")
+        # Strip any provider prefix (e.g. "google-oauth2|") from the sub
+        sub = raw_sub.rsplit("|", 1)[-1] if "|" in raw_sub else raw_sub
 
         # Query the database for an existing user
         existing_user: User | None = None
