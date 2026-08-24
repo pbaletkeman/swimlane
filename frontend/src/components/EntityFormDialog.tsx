@@ -321,13 +321,11 @@ export function EntityFormDialog<T>({
             <i className="pi pi-chevron-down" />
           </Select.Indicator>
         </Select.Trigger>
-        <Select.Portal>
-          <Select.Positioner>
-            <Select.Popup>
-              <Select.List />
-            </Select.Popup>
-          </Select.Positioner>
-        </Select.Portal>
+        <Select.Positioner>
+          <Select.Popup>
+            <Select.List />
+          </Select.Popup>
+        </Select.Positioner>
       </Select.Root>
     )
   }

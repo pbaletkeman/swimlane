@@ -304,10 +304,10 @@ export interface ManagedUser {
   is_deleted: boolean
 }
 
-/** Request body for `POST /users` (email-keyed invite; role is coach or member). */
+/** Request body for `POST /users` (email-keyed invite; role applied on first login). */
 export interface ManagedUserInput {
   email: string
-  role: 'coach' | 'member'
+  role: 'coach' | 'member' | 'facility_manager' | 'web_admin'
 }
 
 /** Response body for `POST /users` — an invite created or an existing user's role updated. */

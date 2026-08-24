@@ -13,7 +13,7 @@ import {
   softDeleteUser,
   updateUserRole,
 } from '../api/users.ts'
-import type { ManagedUser, ManagedUserRoleFilter } from '../api/types.ts'
+import type { ManagedUser, ManagedUserInput, ManagedUserRoleFilter } from '../api/types.ts'
 import { useAuth } from '../auth/auth-context.ts'
 import { ConfirmDelete } from '../components/ConfirmDelete.tsx'
 import { EmptyState } from '../components/EmptyState.tsx'
@@ -31,10 +31,17 @@ const ROLE_META: Record<string, { label: string; severity: 'secondary' | 'info' 
   web_admin: { label: 'Web Admin', severity: 'danger' },
 }
 
-/** Invite dialogs only ever assign coach or member (backend `UserInviteInput` Literal). */
-const INVITE_ROLE_OPTIONS: EntityFormFieldOption[] = [
+/** Invite role options: coach/member for managers, all roles for web admins. */
+const MANAGER_INVITE_ROLES: EntityFormFieldOption[] = [
   { label: 'Coach', value: 'coach' },
   { label: 'Member', value: 'member' },
+]
+
+const ADMIN_INVITE_ROLES: EntityFormFieldOption[] = [
+  { label: 'Coach', value: 'coach' },
+  { label: 'Member', value: 'member' },
+  { label: 'Facility Manager', value: 'facility_manager' },
+  { label: 'Web Admin', value: 'web_admin' },
 ]
 
 /** Role-edit options for facility managers: coach/member only (cannot assign senior roles). */
@@ -128,7 +135,7 @@ export default function ManageUsersPage() {
 
   const inviteFields: EntityFormField<ManagedUser>[] = [
     { name: 'email', label: 'Email', type: 'text', required: true, placeholder: 'coach@example.com' },
-    { name: 'role', label: 'Role', type: 'select', required: true, options: INVITE_ROLE_OPTIONS },
+    { name: 'role', label: 'Role', type: 'select', required: true, options: isAdmin ? ADMIN_INVITE_ROLES : MANAGER_INVITE_ROLES },
   ]
 
   const roleFields: EntityFormField<ManagedUser>[] = [
@@ -160,7 +167,7 @@ export default function ManageUsersPage() {
         showToastSuccess('Role updated', `${editing.name ?? editing.sub} is now ${roleMeta(role).label}.`)
       } else {
         const email = String(values.email ?? '').trim().toLowerCase()
-        const role = values.role === 'member' ? 'member' : 'coach'
+        const role = (values.role ?? 'coach') as ManagedUserInput['role']
         await createUser({ email, role })
         showToastSuccess('Invite sent', `An invite was created for ${email}.`)
       }
