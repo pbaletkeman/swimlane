@@ -148,6 +148,16 @@ uv run pytest --cov=src --cov-report=term-missing   # coverage: 90% on src/
 
 Backend test coverage is **90%** (above the 80% gate from Phase V8; see [`tests/README.md`](tests/README.md) for the progress log and per-module breakdown).
 
+### Seed sample data (optional)
+
+To populate the database with 20 users, 20 facilities, venues, events, schedules, form submissions, messages, and invites:
+
+```bash
+uv run python scripts/seed_data.py
+```
+
+This creates realistic test data without requiring Google OAuth — useful for exploring the UI or testing API endpoints.
+
 That's it — you're up and running.
 
 ## Development
@@ -182,6 +192,14 @@ See [`frontend/README.md`](frontend/README.md) for full setup, `VITE_API_URL` co
 uv run pytest
 uv run pytest tests/test_specific.py
 ```
+
+### Seeding sample data
+
+```bash
+uv run python scripts/seed_data.py
+```
+
+Creates 20 users, facilities, venues, events, schedules, form submissions, messages, and invites in the local SQLite database. Safe to run multiple times — tables are created with `IF NOT EXISTS` and data is inserted fresh each run.
 
 ### Linting and formatting
 
@@ -258,6 +276,8 @@ swimlane/
 │   ├── routes/              # API routers (auth, public browse, entity CRUD, self-service, messaging, user management, devtools)
 │   └── util/                # Config management (YAML, DB provider)
 ├── frontend/                # React + TypeScript + Vite SPA (see frontend/README.md)
+├── scripts/
+│   └── seed_data.py         # Populate DB with sample data
 ├── docs/                    # Documentation
 │   ├── erd.mmd              # Entity-Relationship diagram
 │   ├── flow/                # Workflow flowcharts
