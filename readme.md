@@ -74,6 +74,18 @@ With `security.frontend_url` (or `FRONTEND_URL`) pointing at the backend origin 
 2. The browser lands on `http://localhost:8000/auth/callback?...` which renders the **API Devtools** page (`GET /devtools` also serves it) and auto-captures the JWTs from the URL.
 3. Use the quick-endpoint buttons (`/me`, `/frequencies`, `/facilities`, `/events`, `/venues`, `/schedules`, `/forms`), `POST /refresh`, `GET /logout`, or the custom method/path/body form to call the API from the browser (same origin — no CORS, no curl).
 
+### Creating a web_admin account
+
+After logging in via `http://localhost:8000/login`, the devtools page displays your JWT payload. Copy the `"sub"` value (your Google user ID) and add it to `config.yaml` under `security.web_admins`:
+
+```yaml
+security:
+  web_admins:
+    - your-sub-value-here
+```
+
+Restart the server for the change to take effect.
+
 ## Get Started In Under Ten Minutes
 
 Go from zero to running server + frontend in under ten minutes.
