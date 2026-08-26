@@ -9,8 +9,6 @@ Project documentation including architecture, workflows, and development plans.
 | `readme.md` | Documentation index and overview |
 | `erd.mmd` | Entity-Relationship diagram (Mermaid format) |
 | `relationships.md` | Business domain relationships and entity descriptions |
-| `plan.md` | Development plan and milestones |
-| `TODO.md` | Task tracking — completed, in-progress, and to-do items |
 | `policy-amendment.md` | Team Atomica swim policy (makeup rules, refunds) |
 | `other-notes.md` | Business notes (invoicing, missed swim tracking) |
 | `diagrams.md` | Diagram index and descriptions |

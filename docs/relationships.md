@@ -1,93 +1,95 @@
 # Relationships
 
-- 1 member can attend 1 or more event
-- 1 venue can have 1 or more facility
-- 1 member can have 1 or more security role
-- 1 venue can have 1 or more events
-- 1 event must have 1 frequency
+> **Note**: This file describes the business domain relationships. For the full
+> schema with field-level detail, see the [ERD](erd.mmd).
 
-- [Relationships](#relationships)
-  - [frequency](#frequency)
-  - [event](#event)
-  - [members](#members)
-  - [schedule](#schedule)
-  - [roles](#roles)
-  - [rolesTypes](#rolestypes)
-  - [venue](#venue)
-  - [facility](#facility)
+## Business Rules
 
-## frequency
+- 1 user can be a member of 1 or more schedules (registrations)
+- 1 venue can have 1 or more facilities
+- 1 facility can have 1 or more venues
+- 1 user can have 1 role (web_admin, facility_manager, coach, member)
+- 1 venue can host 1 or more events
+- 1 event must have 1 frequency type
+- 1 facility can have 1 or more signup form questions
+- 1 facility can have 1 or more signup form rules
+- 1 user can submit 1 or more signup form submissions per facility
+- 1 staff user can send 1 or more messages to members
 
-- frequencyid
-- one time
-- one or more times weekly,
-- one or more times monthly,
-- one or more times annually.
+## Entity Summaries
 
-## event
+### frequency
 
-- eventid
-- start time
-- end time
-- start date
-- end date
-- venueid
-- scheduleid
+- frequency_id (PK, auto-increment)
+- name — one_time, weekly, monthly, annually, etc.
+- day_interval — interval description
 
-## members
+### event
 
-- memberid
-- firstname
-- lastname
-- email
-- phone
-- pass
-
-## schedule
-
-- scheduleid
-- memberid
-- reenquecyid
-
-## roles
-
-- roleid
-- name
+- event_id (PK, auto-increment)
+- start_date_time, end_date_time
+- frequency_id (FK → frequency)
 - description
-- parentid
+- coach_id (FK → user.sub) — the assigned coach
+- venue_id (FK → venue) — where the event takes place
 
-## rolesTypes
+### venue
 
-- admin
-- facilitator
-- user
-
----
-
-Team member roles are configurable.
-The person with the admin role creates the group and the events in the group, therefore a group admin is automatically an event admin.
-Each event is facilitated by a team consisting of one or more team members.
-
----
-
-## venue
-
-- facilities
-- location
+- venue_id (PK, auto-increment)
+- facility_id (FK → facility) — the physical facility
+- street, city, state, postal_code
 - cost
 
----
+### facility
 
-A venue has multiple configurable attributes.
-Each attribute has a capacity of an integer value.
-Events can be grouped (e.g. by season, geography, etc.)
+- facility_id (PK, auto-increment)
+- name, description
+- max_capacity, min_capacity
 
----
+### schedule (member registration)
 
-## facility
+- schedule_id (PK, auto-increment)
+- venue_id (FK → venue)
+- member_id (FK → user.sub)
+- event_id (FK → event)
 
-- name (e.g. tennis court, ping pong tables, pool)
-- max capacity
+### form_question
+
+- form_question_id (PK, auto-increment)
+- facility_id (FK → facility)
+- prompt, question_type (text|checkbox), is_required, sort_order
+
+### facility_rule
+
+- rule_id (PK, auto-increment)
+- facility_id (FK → facility)
+- title, content, sort_order
+
+### form_submission
+
+- submission_id (PK, auto-increment)
+- facility_id (FK → facility)
+- sub (FK → user.sub) — the member who submitted
+- signed_at, submitted_at, is_complete
+
+### form_response
+
+- form_response_id (PK, auto-increment)
+- submission_id (FK → form_submission)
+- form_question_id (FK → form_question)
+- answer
+
+### message
+
+- message_id (PK, auto-increment)
+- member_id (FK → user.sub) — recipient
+- sender_id (FK → user.sub) — staff sender
+- subject, body, is_read, sent_at
+
+### user_invite
+
+- email_hash (PK) — SHA-256 of email
+- role — intended role for the not-yet-registered user
 
 ---
 

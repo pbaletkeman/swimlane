@@ -103,14 +103,15 @@ export function AppLayout() {
       </Sidebar.Root>
       <Sidebar.Main>
         <header className="app-topbar">
-          <div className="app-topbar-left">
-            <Sidebar.Trigger className="app-topbar-trigger" aria-label="Toggle navigation">
-              <i className="pi pi-bars" />
-            </Sidebar.Trigger>
-            <span className="app-topbar-title">Swimlane</span>
-          </div>
+          <div className="app-topbar-center">Company Name & Logo</div>
           <div className="app-topbar-right">
-            <div className="app-user-chip">
+            <div
+              className="app-user-chip"
+              onClick={() => navigate('/profile')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/profile') }}
+            >
               <Avatar.Root shape="circle" size="normal">
                 <Avatar.Image src={user?.picture} alt={user?.name ?? 'User avatar'} />
                 <Avatar.Fallback>{getInitials(user?.name)}</Avatar.Fallback>

@@ -1,19 +1,26 @@
 erDiagram
-    %% Implemented entities (exist in codebase)
-    user ||--o{ schedule : "sub → member_id"
+    %% All entities are implemented in src/data/
+    user ||--o{ schedule : "sub -> member_id"
+    user ||--o{ event : "sub -> coach_id"
+    user ||--o{ form_submission : "sub -> sub"
+    user ||--o{ message : "sub -> member_id"
+    user ||--o{ message : "sub -> sender_id"
 
-    %% Planned entities (not yet implemented — design roadmap)
-    frequency ||--o{ event : "frequency_id → frequency_id"
-    event ||--|{ user : "event_id → event_id"
-    event ||--o{ schedule : "event_id → schedule_id"
-    venue ||--o{ schedule : "venue_id → venue_id"
-    facility ||--o{ schedule : "facility_id → facility_id"
-
+    frequency ||--o{ event : "frequency_id -> frequency_id"
+    event ||--o{ schedule : "event_id -> event_id"
+    venue ||--o{ schedule : "venue_id -> venue_id"
+    venue ||--o{ event : "venue_id -> venue_id"
+    facility ||--o{ venue : "facility_id -> facility_id"
+    facility ||--o{ form_question : "facility_id -> facility_id"
+    facility ||--o{ facility_rule : "facility_id -> facility_id"
+    facility ||--o{ form_submission : "facility_id -> facility_id"
+    form_submission ||--o{ form_response : "submission_id -> submission_id"
+    form_question ||--o{ form_response : "form_question_id -> form_question_id"
 
     user {
         int id PK "auto-increment"
         string sub UK "Google subject ID, NOT NULL, UNIQUE"
-        string role "NOT NULL, DEFAULT 'member' — enum: web_admin, facility_manager, coach, member"
+        string role "NOT NULL, DEFAULT 'member' -- enum: web_admin, facility_manager, coach, member"
         string first_name_nonce "AES-256-GCM nonce, NOT NULL"
         string first_name_ciphertext "AES-256-GCM ciphertext, NOT NULL"
         string last_name_nonce "AES-256-GCM nonce, NOT NULL"
@@ -23,46 +30,105 @@ erDiagram
         string email_hash "SHA-256 hash for lookups, NOT NULL, UNIQUE"
         datetime created_at "NOT NULL, DEFAULT CURRENT_TIMESTAMP"
         datetime updated_at "NULL, DEFAULT CURRENT_TIMESTAMP"
-        datetime deleted_at "NULL — soft delete timestamp"
+        datetime deleted_at "NULL -- soft delete timestamp"
         bool is_deleted "NULL, DEFAULT 0"
         bool is_active "NULL, DEFAULT 1"
     }
 
     frequency {
-        automatic frequency_id
-        string name
-        string day_interval
-        bool is_active
+        int frequency_id PK "auto-increment"
+        string name "NOT NULL"
+        string day_interval "NOT NULL"
+        bool is_active "DEFAULT 1"
     }
+
     event {
-        automatic event_id
-        datetime start_date_time
-        datetime end_date_time
-        bool is_active
-        string frequency_id
+        int event_id PK "auto-increment"
+        datetime start_date_time "NOT NULL"
+        datetime end_date_time "NOT NULL"
+        int frequency_id FK "references frequency"
+        string description "NULL"
+        string coach_id FK "references user.sub, NULL"
+        int venue_id FK "references venue, NULL"
+        bool is_active "DEFAULT 1"
     }
+
     venue {
-        automatic venue_id
-        string facility_id
-        string street
-        string city
-        string state
-        string postal_code
-        float cost
-        bool is_active
+        int venue_id PK "auto-increment"
+        int facility_id FK "references facility, NOT NULL"
+        string street "NOT NULL"
+        string city "NOT NULL"
+        string state "NOT NULL"
+        string postal_code "NOT NULL"
+        float cost "DEFAULT 0.0"
+        bool is_active "DEFAULT 1"
     }
+
     facility {
-        automatic facility_id
-        string name
-        string description
-        int max_capicity
-        int min_capicity
-        bool is_active
+        int facility_id PK "auto-increment"
+        string name "NOT NULL"
+        string description "NULL"
+        int max_capacity "NULL"
+        int min_capacity "NULL"
+        bool is_active "DEFAULT 1"
     }
+
     schedule {
-        automatic schedule_id
-        string venue_id
-        string member_id
-        string event_id
-        bool is_active
+        int schedule_id PK "auto-increment"
+        int venue_id FK "references venue, NOT NULL"
+        string member_id FK "references user.sub, NOT NULL"
+        int event_id FK "references event, NOT NULL"
+        bool is_active "DEFAULT 1"
+    }
+
+    form_question {
+        int form_question_id PK "auto-increment"
+        int facility_id FK "references facility, NOT NULL"
+        string prompt "NOT NULL"
+        string question_type "DEFAULT 'text' -- text | checkbox"
+        bool is_required "DEFAULT 1"
+        int sort_order "DEFAULT 0"
+        bool is_active "DEFAULT 1"
+    }
+
+    facility_rule {
+        int rule_id PK "auto-increment"
+        int facility_id FK "references facility, NOT NULL"
+        string title "NOT NULL"
+        string content "NOT NULL"
+        int sort_order "DEFAULT 0"
+        bool is_active "DEFAULT 1"
+    }
+
+    form_submission {
+        int submission_id PK "auto-increment"
+        int facility_id FK "references facility, NOT NULL"
+        string sub FK "references user.sub, NOT NULL"
+        datetime signed_at "NULL"
+        datetime submitted_at "NULL"
+        bool is_complete "DEFAULT 0"
+    }
+
+    form_response {
+        int form_response_id PK "auto-increment"
+        int submission_id FK "references form_submission, NOT NULL"
+        int form_question_id FK "references form_question, NOT NULL"
+        string answer "NOT NULL"
+    }
+
+    message {
+        int message_id PK "auto-increment"
+        string member_id FK "references user.sub, NOT NULL"
+        string sender_id FK "references user.sub, NOT NULL"
+        string subject "NOT NULL"
+        string body "NOT NULL"
+        bool is_read "DEFAULT 0"
+        datetime sent_at "NULL"
+        bool is_active "DEFAULT 1"
+    }
+
+    user_invite {
+        string email_hash PK "SHA-256 of email, NOT NULL"
+        string role "NOT NULL"
+        bool is_active "DEFAULT 1"
     }

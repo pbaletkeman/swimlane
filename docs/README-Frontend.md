@@ -42,8 +42,12 @@ All page components are **lazy-loaded** via `React.lazy()` with a spinner fallba
 | `/auth/callback` | `AuthCallbackPage` | OAuth hand-off; stores JWTs from query params |
 | `/explore` | `ExploreHomePage` | Address + event search |
 | `/explore/venues` | `ExploreVenuesPage` | Public venue grid with `?q=` search |
+| `/explore/events` | `ExploreEventsPage` | Public event search |
+| `/explore/calendar` | `EventCalendarPage` | Public calendar view of events |
 | `/explore/venues/:venueId` | `VenueSchedulePage` | Week/Month/List schedule views per venue |
 | `/explore/events/:eventId` | `EventDetailPage` | Event detail, capacity bar, register/reschedule |
+
+Explore routes use `AppLayout` (sidebar + topbar) but do not require auth.
 
 ### Authenticated Routes (inside RouteGuard + AppLayout)
 
@@ -184,6 +188,9 @@ Refresh calls are deduplicated via a `refreshInFlight` promise guard.
 | Label | Icon | Path | Required Role |
 |-------|------|------|---------------|
 | Dashboard | `pi pi-home` | `/dashboard` | MEMBER |
+| Explore Venues | `pi pi-map-marker` | `/explore/venues` | MEMBER |
+| Explore Events | `pi pi-bolt` | `/explore/events` | MEMBER |
+| Explore Calendar | `pi pi-calendar` | `/explore/calendar` | MEMBER |
 | My Schedule | `pi pi-calendar-plus` | `/my-schedule` | MEMBER |
 | Signup Forms | `pi pi-file-edit` | `/forms` | MEMBER |
 | Manage Events | `pi pi-user-edit` | `/manage-events` | COACH |
@@ -198,7 +205,7 @@ Refresh calls are deduplicated via a `refreshInFlight` promise guard.
 
 | Role | Visible Items |
 |------|--------------|
-| MEMBER | Dashboard, My Schedule, Signup Forms, Profile (footer) |
+| MEMBER | Dashboard, Explore Venues, Explore Events, Explore Calendar, My Schedule, Signup Forms, Profile (footer) |
 | COACH | + Manage Events |
 | FACILITY_MANAGER | + Frequencies, Facilities, Events, Venues, Schedules, Manage Users |
 | WEB_ADMIN | Everything |
@@ -228,7 +235,7 @@ Three-file system in `src/theme/`:
 
 Uses PrimeReact 11 compound `Menu` components. Trigger button shows `pi pi-moon` (dark) or `pi pi-sun` (light). Dropdown offers Light, Dark, System with check indicator on the active option.
 
-Rendered in the sidebar footer in `AppLayout.tsx`.
+Rendered in the topbar in `AppLayout.tsx` (next to the user chip and sign-out button).
 
 ## Build & Lint
 

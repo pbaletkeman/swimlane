@@ -32,7 +32,7 @@ npm run dev
 
 Vite serves the app on `http://localhost:5173` (it picks another port if 5173 is busy). Open that URL and sign in with Google.
 
-`/` is a **public** home page (placeholder content). Signing in lands on the authenticated dashboard at `/dashboard`; the entity CRUD pages and the signup form view/builder also sit behind the route guard.
+`/` is a **public** home page (explore + login/dashboard). Signing in lands on the authenticated dashboard at `/dashboard`; the entity CRUD pages and the signup form view/builder also sit behind the route guard. Explore routes (`/explore/*`) are accessible without auth but use the full app layout (sidebar + topbar).
 
 ## How login works (dev)
 

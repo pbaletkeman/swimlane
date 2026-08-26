@@ -31,6 +31,9 @@ describe('rank-based visibility', () => {
   it('MEMBER sees only member-level items', () => {
     expect(visible('MEMBER').map((i) => i.label)).toEqual([
       'Dashboard',
+      'Explore Venues',
+      'Explore Events',
+      'Explore Calendar',
       'My Schedule',
       'Signup Forms',
     ])
@@ -39,7 +42,7 @@ describe('rank-based visibility', () => {
   it('COACH adds Manage Events', () => {
     const labels = visible('COACH').map((i) => i.label)
     expect(labels).toContain('Manage Events')
-    expect(labels).toHaveLength(4)
+    expect(labels).toHaveLength(7)
     expect(labels).not.toContain('Frequencies')
   })
 

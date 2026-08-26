@@ -159,8 +159,10 @@ export function EntityDataTable<T>({
             </DataTable.THeadRow>
           </DataTable.THead>
           <DataTable.TBody>
-            {({ item }) => (
-              <DataTable.Row>
+            {({ item, index }: { item: Record<string, unknown>; index: number }) => (
+              <DataTable.Row
+                style={index % 2 === 1 ? { background: 'color-mix(in srgb, var(--p-content-background) 92%, var(--p-text-muted-color) 8%)' } : undefined}
+              >
                 {resolvedColumns.map((column) => (
                   <DataTable.Cell key={column.field} className={column.className}>
                     {column.field === '__select' ? (

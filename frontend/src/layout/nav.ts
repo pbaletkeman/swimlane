@@ -19,7 +19,8 @@ export interface NavItem {
  * check, so admins automatically see all items with no per-item duplication).
  *
  * Role → visible items:
- * - MEMBER:            Dashboard, Signup Forms, My Schedule, Profile (footer)
+ * - MEMBER:            Dashboard, Explore Venues, Explore Events, Explore Calendar,
+ *                      My Schedule, Signup Forms, Profile (footer)
  * - COACH:             + Manage Events
  * - FACILITY_MANAGER:  + Frequencies, Facilities, Events, Venues, Schedules,
  *                      Manage Users, Signup Forms builder (the builder is not a
@@ -33,6 +34,9 @@ export interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', icon: 'pi pi-home', path: '/dashboard', requiredRole: 'MEMBER' },
+  { label: 'Explore Venues', icon: 'pi pi-map-marker', path: '/explore/venues', requiredRole: 'MEMBER' },
+  { label: 'Explore Events', icon: 'pi pi-bolt', path: '/explore/events', requiredRole: 'MEMBER' },
+  { label: 'Explore Calendar', icon: 'pi pi-calendar', path: '/explore/calendar', requiredRole: 'MEMBER' },
   { label: 'My Schedule', icon: 'pi pi-calendar-plus', path: '/my-schedule', requiredRole: 'MEMBER' },
   { label: 'Manage Events', icon: 'pi pi-user-edit', path: '/manage-events', requiredRole: 'COACH' },
   { label: 'Frequencies', icon: 'pi pi-calendar', path: '/frequencies', requiredRole: 'FACILITY_MANAGER' },

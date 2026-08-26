@@ -152,7 +152,7 @@ npm run dev
 
 Vite serves the app on `http://localhost:5173` (it picks another port if 5173 is busy). In dev, API calls are proxied to the backend (`/api` → `http://127.0.0.1:8000`), and the login flow returns to whichever port the frontend is actually served on.
 
-Public, no sign-in needed: `/` (explore + login), `/login`, and the `/explore/*` browse pages (`/explore`, `/explore/venues`, `/explore/venues/:venueId`, `/explore/events/:eventId`). Signing in lands on the authenticated dashboard at `/dashboard`; the dashboard, profile, my-schedule, manage pages, signup forms, and all entity CRUD pages sit behind the route guard.
+Public, no sign-in needed: `/` (explore + login), `/login`, and the `/explore/*` browse pages (`/explore`, `/explore/venues`, `/explore/events`, `/explore/calendar`, `/explore/venues/:venueId`, `/explore/events/:eventId`). Signing in lands on the authenticated dashboard at `/dashboard`; the dashboard, profile, my-schedule, manage pages, signup forms, and all entity CRUD pages sit behind the route guard.
 
 Frontend checks:
 

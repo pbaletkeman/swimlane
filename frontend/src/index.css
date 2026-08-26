@@ -10,12 +10,63 @@
   gap: 0.5rem;
 }
 
+/**
+ * Sidebar layout — force the Sidebar.Layout wrapper into a horizontal flex
+ * row so that Sidebar.Root (the nav panel) and Sidebar.Main (the content
+ * area) sit side-by-side.  PrimeReact 11 injects its own CSS via the
+ * ThemeProvider, but primeflex / our overrides can clobber the layout.
+ */
+[data-scope="sidebar"][data-part="layout"] {
+  display: flex;
+  min-height: 100vh;
+}
+
+[data-scope="sidebar"][data-part="main"] {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .app-topbar {
-  position: fixed;
+  position: sticky;
   top: 0;
-  right: 0;
   padding: 1rem;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: var(--p-content-background);
+  border-bottom: 1px solid var(--p-content-border-color);
+}
+
+.app-topbar-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.app-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-user-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.15s;
+}
+
+.app-user-chip:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
 }
 
 .theme-switch-trigger {
@@ -808,6 +859,7 @@
 
 /* Popup / listbox container — PrimeReact 11 uses data-scope/data-part */
 [data-scope="select"][data-part="listbox"],
+[data-scope="datepicker"][data-part="popup"],
 body > div[data-portal] > div,
 [data-pc-section="listbox"],
 .p-select-listbox,
@@ -1320,6 +1372,38 @@ li[role="option"][data-selected] {
   color: var(--p-text-color) !important;
   padding: 0 1.5rem !important;
   margin-bottom: 0.5rem !important;
+}
+
+/* ─────────────────────────────────────────────────────
+   Entity form dialog — labels, inputs, zebra striping
+   ───────────────────────────────────────────────────── */
+
+/* Zebra striping override for better contrast in both themes */
+[data-scope="datatable"][data-part="row"][data-striped="true"] {
+  background: color-mix(in srgb, var(--p-content-background) 92%, var(--p-text-muted-color) 8%) !important;
+}
+
+/* 2px padding on form labels */
+.entity-form-dialog-label {
+  padding: 2px 0;
+}
+
+/* 2px padding on form inputs */
+.entity-form-dialog-field input,
+.entity-form-dialog-field textarea,
+.entity-form-dialog-field [data-scope="select"],
+.entity-form-dialog-field [data-scope="input-number"],
+.entity-form-dialog-field [data-scope="datepicker"] {
+  padding: 2px 2px 2px 5px;
+}
+
+/* Reduce text input width to 75% */
+.entity-form-dialog-field input,
+.entity-form-dialog-field textarea,
+.entity-form-dialog-field [data-scope="select"],
+.entity-form-dialog-field [data-scope="input-number"],
+.entity-form-dialog-field [data-scope="datepicker"] {
+  max-width: 75% !important;
 }
 
 /* ─────────────────────────────────────────────────────

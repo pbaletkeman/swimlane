@@ -11,7 +11,7 @@ Central hub for all project documentation.
 
 - [Backend Walkthrough](README-Backend.md) — FastAPI: architecture, data layer, routers, roles, encryption, testing
 - [Frontend Walkthrough](README-Frontend.md) — React SPA: providers, routing, auth, pages, theming, build
-- [Frontend Setup](readme.md) — Run instructions, config, structure
+- [Frontend Setup](../frontend/README.md) — Run instructions, config, structure
 
 ## Diagrams
 

@@ -52,12 +52,15 @@ export function AppRouter() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
-        <Route path="/explore" element={<ExploreHomePage />} />
-        <Route path="/explore/venues" element={<ExploreVenuesPage />} />
-        <Route path="/explore/events" element={<ExploreEventsPage />} />
-        <Route path="/explore/calendar" element={<ExploreCalendarPage />} />
-        <Route path="/explore/venues/:venueId" element={<VenueSchedulePage />} />
-        <Route path="/explore/events/:eventId" element={<EventDetailPage />} />
+        {/* Explore routes use AppLayout (sidebar + topbar) but do not require auth. */}
+        <Route element={<AppLayout />}>
+          <Route path="/explore" element={<ExploreHomePage />} />
+          <Route path="/explore/venues" element={<ExploreVenuesPage />} />
+          <Route path="/explore/events" element={<ExploreEventsPage />} />
+          <Route path="/explore/calendar" element={<ExploreCalendarPage />} />
+          <Route path="/explore/venues/:venueId" element={<VenueSchedulePage />} />
+          <Route path="/explore/events/:eventId" element={<EventDetailPage />} />
+        </Route>
         {/* Everything below requires auth; public routes live above, outside RouteGuard (I.1). */}
         <Route
           element={
