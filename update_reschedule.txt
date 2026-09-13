@@ -1,0 +1,86 @@
+# Plan: Add venue name to "Reschedule to..." dropdown
+
+## Goal
+On the My Schedule page, the "Reschedule to..." dropdown shows available alternate
+events. Currently the label is just the formatted datetime (e.g. "6/1/2099, 10:00 AM").
+Add the venue name so users can distinguish between events at different venues.
+
+## Current Flow
+1. `MySchedulePage.tsx` calls `searchEvents()` on mount → `GET /public/events`
+2. Backend `PublicRoutes.list_events()` → `EventSQLite().list_public_events()` → `_to_public_events()`
+3. `_to_public_events()` returns `PublicEvent` objects (no venue name, only `venue_id`)
+4. Frontend builds `alternateOptions` mapping each event to `{ label: formatDateTime(event.start_date_time), value: event.event_id }`
+
+## Changes
+
+### 1. Backend: Enrich `PublicEvent` with venue name
+**File:** `src/routes/public_routes.py`
+
+- Add `venue_name: str | None = None` field to the `PublicEvent` Pydantic model (line ~51)
+- Update `_to_public_events()` (line 128) to resolve venue names: for each event with a `venue_id`, look up the venue and facility name via `VenueSQLite().get_venue_by_id()` and `FacilitySQLite().get_facility_by_id()` (or reuse the existing `_with_facility_name` helper)
+- The simplest approach: in `_to_public_events`, batch-fetch venues and facilities, or call `_with_facility_name` per event. Since `_with_facility_name` already exists and takes a list of venues, collect all venues first, then enrich.
+
+Updated `_to_public_events` logic:
+```python
+def _to_public_events(self, events: list[Event]) -> list[PublicEvent]:
+    venue_ids = {e.venue_id for e in events if e.venue_id is not None}
+    venue_names: dict[int, str] = {}
+    if venue_ids:
+        vdb = VenueSQLite()
+        fdb = FacilitySQLite()
+        for vid in venue_ids:
+            v = vdb.get_venue_by_id(vid)
+            if v:
+                f = fdb.get_facility_by_id(v.facility_id)
+                venue_names[vid] = f.name if f else "Unknown"
+    return [
+        PublicEvent(
+            event_id=e.event_id or 0,
+            start_date_time=e.start_date_time,
+            end_date_time=e.end_date_time,
+            frequency_id=e.frequency_id,
+            description=e.description,
+            coach_id=e.coach_id,
+            venue_id=e.venue_id,
+            is_active=e.is_active,
+            venue_name=venue_names.get(e.venue_id) if e.venue_id else None,
+        )
+        for e in events
+    ]
+```
+
+### 2. Frontend: Update `PublicEvent` type
+**File:** `frontend/src/api/types.ts` (line ~152)
+
+Add `venue_name: string | null` to the `PublicEvent` interface.
+
+### 3. Frontend: Update dropdown label
+**File:** `frontend/src/pages/MySchedulePage.tsx` (line ~127)
+
+Change the `alternateOptions` mapping from:
+```ts
+.map((event) => ({ label: formatDateTime(event.start_date_time), value: event.event_id }))
+```
+To:
+```ts
+.map((event) => ({
+  label: event.venue_name
+    ? `${formatDateTime(event.start_date_time)} — ${event.venue_name}`
+    : formatDateTime(event.start_date_time),
+  value: event.event_id,
+}))
+```
+
+### 4. Frontend: Update tests
+**File:** `frontend/src/pages/my-schedule-page.test.tsx`
+
+Update mock `PublicEvent` objects to include `venue_name` field. Update any assertions
+that check the dropdown label text if they exist.
+
+## Verification
+1. `uv run ruff check .` — backend lint passes
+2. `cd frontend && npm run lint` — frontend lint passes
+3. `uv run pytest` — backend tests pass
+4. `cd frontend && npm run test` — frontend tests pass
+5. Manual: on My Schedule page, the "Reschedule to..." dropdown shows labels like
+   "6/1/2099, 10:00:00 AM — Aquatic Center"
