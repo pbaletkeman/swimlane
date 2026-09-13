@@ -158,6 +158,7 @@ export interface PublicEvent {
   coach_id: string | null
   venue_id: number | null
   is_active: boolean
+  venue_name: string | null
 }
 
 /**

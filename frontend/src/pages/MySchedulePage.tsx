@@ -124,7 +124,12 @@ export default function MySchedulePage() {
   const registeredEventIds = new Set(items.map((item) => item.event_id))
   const alternateOptions = alternates
     .filter((event) => !registeredEventIds.has(event.event_id))
-    .map((event) => ({ label: formatDateTime(event.start_date_time), value: event.event_id }))
+    .map((event) => ({
+      label: event.venue_name
+        ? `${formatDateTime(event.start_date_time)} — ${event.venue_name}`
+        : formatDateTime(event.start_date_time),
+      value: event.event_id,
+    }))
 
   return (
     <div className="app-crud-page">

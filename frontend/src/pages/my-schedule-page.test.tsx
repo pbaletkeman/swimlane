@@ -149,7 +149,7 @@ describe('MySchedulePage', () => {
   })
 
   it('disables Move when no target selected', async () => {
-    const otherEvent = { event_id: 99, start_date_time: '2099-06-01T10:00:00' }
+    const otherEvent = { event_id: 99, start_date_time: '2099-06-01T10:00:00', venue_name: 'Test Pool' }
     mockSearchEvents.mockResolvedValue([otherEvent])
     loginAs('MEMBER')
     renderPage(<MySchedulePage />)
@@ -159,7 +159,7 @@ describe('MySchedulePage', () => {
   })
 
   it('reschedules to a picked alternate event', async () => {
-    mockSearchEvents.mockResolvedValue([{ event_id: 99, start_date_time: '2099-06-01T10:00:00' }])
+    mockSearchEvents.mockResolvedValue([{ event_id: 99, start_date_time: '2099-06-01T10:00:00', venue_name: 'Test Pool' }])
     mockReschedule.mockResolvedValue({ schedule_id: 10 })
     loginAs('MEMBER')
     renderPage(<MySchedulePage />)
@@ -170,7 +170,7 @@ describe('MySchedulePage', () => {
   })
 
   it('reschedule failure shows toast', async () => {
-    mockSearchEvents.mockResolvedValue([{ event_id: 99, start_date_time: '2099-06-01T10:00:00' }])
+    mockSearchEvents.mockResolvedValue([{ event_id: 99, start_date_time: '2099-06-01T10:00:00', venue_name: 'Test Pool' }])
     mockReschedule.mockRejectedValue(new Error('nope'))
     loginAs('MEMBER')
     renderPage(<MySchedulePage />)

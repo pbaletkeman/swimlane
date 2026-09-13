@@ -49,6 +49,7 @@ class PublicEvent(BaseModel):
     coach_id: str | None = None
     venue_id: int | None = None
     is_active: bool
+    venue_name: str | None = None
 
 
 class PublicEventDetail(PublicEvent):
@@ -127,6 +128,16 @@ class PublicRoutes:
     # ------------------------------------------------------------------
     def _to_public_events(self, events: list[Event]) -> list[PublicEvent]:
         """Transform ``Event`` rows into ``PublicEvent`` responses."""
+        venue_ids = {e.venue_id for e in events if e.venue_id is not None}
+        venue_names: dict[int, str] = {}
+        if venue_ids:
+            vdb = VenueSQLite()
+            fdb = FacilitySQLite()
+            for vid in venue_ids:
+                v = vdb.get_venue_by_id(vid)
+                if v:
+                    f = fdb.get_facility_by_id(v.facility_id)
+                    venue_names[vid] = f.name if f else "Unknown"
         return [
             PublicEvent(
                 event_id=e.event_id or 0,
@@ -137,6 +148,7 @@ class PublicRoutes:
                 coach_id=e.coach_id,
                 venue_id=e.venue_id,
                 is_active=e.is_active,
+                venue_name=venue_names.get(e.venue_id) if e.venue_id else None,
             )
             for e in events
         ]
